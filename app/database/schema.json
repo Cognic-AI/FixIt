@@ -1,0 +1,188 @@
+{
+  "collections": {
+    "users": {
+      "description": "User profiles for both customers and service providers",
+      "fields": {
+        "id": "string (auto-generated)",
+        "firstName": "string",
+        "lastName": "string",
+        "email": "string (unique)",
+        "userType": "string (customer|vendor)",
+        "rating": "number",
+        "reviewCount": "number",
+        "joinedDate": "string",
+        "avatar": "string (URL)",
+        "location": "string",
+        "verified": "boolean",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "indexes": ["email", "userType", "location"]
+    },
+
+    "services": {
+      "description": "Service listings created by vendors",
+      "fields": {
+        "id": "string (auto-generated)",
+        "title": "string",
+        "description": "string",
+        "price": "number",
+        "location": "string",
+        "coordinates": "geopoint",
+        "rating": "number",
+        "reviewCount": "number",
+        "hostId": "string (reference to users)",
+        "category": "string",
+        "subcategory": "string",
+        "amenities": "array of strings",
+        "rules": "array of strings",
+        "images": "array of strings (URLs)",
+        "availability": "object",
+        "maxGuests": "number (optional)",
+        "bedrooms": "number (optional)",
+        "bathrooms": "number (optional)",
+        "duration": "string (optional)",
+        "deliverables": "array of strings (optional)",
+        "active": "boolean",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "indexes": ["hostId", "category", "location", "price", "rating", "active"]
+    },
+
+    "events": {
+      "description": "Event listings and ticket information",
+      "fields": {
+        "id": "string (auto-generated)",
+        "title": "string",
+        "description": "string",
+        "location": "string",
+        "address": "string",
+        "coordinates": "geopoint",
+        "date": "string (ISO date)",
+        "time": "string",
+        "price": "number",
+        "category": "string",
+        "capacity": "number",
+        "ticketsAvailable": "number",
+        "organizer": "string",
+        "image": "string (URL)",
+        "tags": "array of strings",
+        "ageRestriction": "string",
+        "duration": "string",
+        "active": "boolean",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "indexes": ["category", "date", "location", "price", "active"]
+    },
+
+    "chats": {
+      "description": "Chat conversations between users",
+      "fields": {
+        "id": "string (auto-generated)",
+        "participants": "array of strings (user IDs)",
+        "serviceId": "string (optional reference)",
+        "eventId": "string (optional reference)",
+        "messages": "array of objects",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "subCollections": {
+        "messages": {
+          "fields": {
+            "id": "string (auto-generated)",
+            "senderId": "string",
+            "content": "string",
+            "timestamp": "timestamp",
+            "read": "boolean",
+            "messageType": "string (text|image|file)"
+          }
+        }
+      },
+      "indexes": ["participants", "updatedAt"]
+    },
+
+    "bookings": {
+      "description": "Service bookings and reservations",
+      "fields": {
+        "id": "string (auto-generated)",
+        "serviceId": "string (reference)",
+        "eventId": "string (optional reference)",
+        "customerId": "string (reference to users)",
+        "hostId": "string (reference to users)",
+        "startDate": "string (ISO date)",
+        "endDate": "string (ISO date)",
+        "guests": "number (optional)",
+        "totalPrice": "number",
+        "serviceFee": "number",
+        "status": "string (pending|confirmed|cancelled|completed)",
+        "paymentStatus": "string (pending|paid|refunded)",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "indexes": ["customerId", "hostId", "serviceId", "status", "startDate"]
+    },
+
+    "reviews": {
+      "description": "User reviews and ratings",
+      "fields": {
+        "id": "string (auto-generated)",
+        "serviceId": "string (optional reference)",
+        "eventId": "string (optional reference)",
+        "customerId": "string (reference to users)",
+        "hostId": "string (reference to users)",
+        "rating": "number (1-5)",
+        "comment": "string",
+        "helpful": "number (default: 0)",
+        "createdAt": "timestamp"
+      },
+      "indexes": ["serviceId", "eventId", "customerId", "hostId", "rating"]
+    },
+
+    "feedback": {
+      "description": "User feedback about the platform",
+      "fields": {
+        "id": "string (auto-generated)",
+        "userId": "string (optional reference)",
+        "liked": "array of strings",
+        "improvements": "array of strings",
+        "rating": "string (excellent|good|average|poor)",
+        "comments": "string",
+        "createdAt": "timestamp"
+      },
+      "indexes": ["rating", "createdAt"]
+    },
+
+    "subscriptions": {
+      "description": "User subscription plans",
+      "fields": {
+        "id": "string (auto-generated)",
+        "userId": "string (reference to users)",
+        "planType": "string (weekly|monthly|yearly)",
+        "price": "number",
+        "status": "string (active|cancelled|expired)",
+        "startDate": "timestamp",
+        "endDate": "timestamp",
+        "trialUsed": "boolean",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      },
+      "indexes": ["userId", "status", "planType"]
+    }
+  },
+
+  "security_rules": {
+    "description": "Firestore security rules for data access control",
+    "rules": {
+      "users": "Users can read/write their own data, vendors can be read by all",
+      "services": "Public read, only host can write/update their services",
+      "events": "Public read, only organizers can write/update",
+      "chats": "Only participants can read/write",
+      "bookings": "Only customer and host can read/write their bookings",
+      "reviews": "Public read, only booking participants can write",
+      "feedback": "Only authenticated users can write, admins can read",
+      "subscriptions": "Only user can read/write their subscription"
+    }
+  }
+}
