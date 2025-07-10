@@ -12,3 +12,5 @@ gradle/
 key.properties
 **/*.keystore
 **/*.jks
+
+google-services.json

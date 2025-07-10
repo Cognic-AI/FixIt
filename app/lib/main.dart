@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'pages/auth/login_page.dart';
 import 'pages/home_page.dart';
 import 'pages/onboarding/interests_page.dart';
@@ -9,7 +10,9 @@ import 'services/theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const FixItApp());
 }
 
@@ -69,11 +72,11 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         }
-        
+
         if (authService.currentUser != null) {
           return const HomePage();
         }
-        
+
         return const LoginPage();
       },
     );
