@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 class User {
   final String id;
   final String firstName;
@@ -29,6 +31,9 @@ class User {
   String get username => '@${email.split('@')[0]}';
 
   factory User.fromJson(Map<String, dynamic> json) {
+    developer.log(
+        '👤 Creating User from JSON: ${json['firstName']} ${json['lastName']}',
+        name: 'User');
     return User(
       id: json['id'],
       firstName: json['firstName'],

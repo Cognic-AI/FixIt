@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:developer' as developer;
 import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -20,18 +22,33 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    developer.log('🔐 LoginPage initialized', name: 'LoginPage');
+  }
+
+  @override
   void dispose() {
+    developer.log('🗑️ LoginPage disposing controllers', name: 'LoginPage');
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+    developer.log('🚀 Login attempt started', name: 'LoginPage');
+    if (!_formKey.currentState!.validate()) {
+      developer.log('❌ Form validation failed', name: 'LoginPage');
+      return;
+    }
 
     setState(() => _isLoading = true);
+    developer.log('⏳ Setting loading state to true', name: 'LoginPage');
 
     try {
+      developer.log(
+          '📧 Attempting login with email: ${_emailController.text.trim()}',
+          name: 'LoginPage');
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signInWithEmailAndPassword(
         _emailController.text.trim(),
@@ -39,9 +56,12 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (mounted) {
+        developer.log('✅ Login successful - navigating to home',
+            name: 'LoginPage');
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
+      developer.log('❌ Login failed: $e', name: 'LoginPage', error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -52,7 +72,72 @@ class _LoginPageState extends State<LoginPage> {
       }
     } finally {
       if (mounted) {
+        developer.log('⏹️ Setting loading state to false', name: 'LoginPage');
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _seedDatabase() async {
+    developer.log('🌱 Starting database seeding', name: 'LoginPage');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Seeding database...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      developer.log('📡 Making POST request to seed endpoint',
+          name: 'LoginPage');
+      final response = await http.post(
+        Uri.parse('http://localhost:8080/api/seed'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        developer.log('📦 Seed response status: ${response.statusCode}',
+            name: 'LoginPage');
+
+        if (response.statusCode == 200) {
+          developer.log('✅ Database seeded successfully', name: 'LoginPage');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Database seeded successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          developer.log(
+              '❌ Database seeding failed with status: ${response.statusCode}',
+              name: 'LoginPage');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to seed database'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      developer.log('❌ Error during database seeding: $e',
+          name: 'LoginPage', error: e);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -201,6 +286,24 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Seed Database Button (Development Only)
+                        OutlinedButton.icon(
+                          onPressed: _seedDatabase,
+                          icon: const Icon(Icons.cloud_upload,
+                              color: Colors.orange),
+                          label: const Text(
+                            'Seed Database',
+                            style: TextStyle(color: Colors.orange),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.orange),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
                       ],
                     ),

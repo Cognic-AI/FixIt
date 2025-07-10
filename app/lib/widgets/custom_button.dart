@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -22,6 +23,9 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    developer.log(
+        '🔘 Building CustomButton: "$text" (loading: $isLoading, outlined: $isOutlined)',
+        name: 'CustomButton');
     if (isOutlined) {
       return SizedBox(
         width: double.infinity,

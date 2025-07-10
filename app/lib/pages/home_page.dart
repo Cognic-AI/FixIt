@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../widgets/service_card.dart';
 import '../widgets/event_card.dart';
@@ -7,7 +8,6 @@ import '../models/service.dart';
 import '../models/event.dart';
 import 'search_page.dart';
 import 'map_page.dart';
-import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -70,61 +70,19 @@ class _HomePageState extends State<HomePage> {
     ),
   ];
 
-  Future<void> _seedDatabase() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Seeding database...'),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:8080/api/seed'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (mounted) {
-        Navigator.pop(context); // Close loading dialog
-
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Database seeded successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to seed database'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  @override
+  void initState() {
+    super.initState();
+    developer.log('🏠 HomePage initialized', name: 'HomePage');
+    developer.log('📊 Featured services count: ${featuredServices.length}',
+        name: 'HomePage');
+    developer.log('🎉 Nearby events count: ${nearbyEvents.length}',
+        name: 'HomePage');
   }
 
   @override
   Widget build(BuildContext context) {
+    developer.log('🔨 Building HomePage', name: 'HomePage');
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -161,6 +119,9 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: const Icon(Icons.search),
                 onPressed: () {
+                  developer.log(
+                      '🔍 Search button pressed - navigating to SearchPage',
+                      name: 'HomePage');
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const SearchPage()),
@@ -169,9 +130,19 @@ class _HomePageState extends State<HomePage> {
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {
+                  developer.log('📋 Menu item selected: $value',
+                      name: 'HomePage');
                   if (value == 'logout') {
-                    await Provider.of<AuthService>(context, listen: false)
-                        .signOut();
+                    developer.log('🚪 Logging out user', name: 'HomePage');
+                    try {
+                      await Provider.of<AuthService>(context, listen: false)
+                          .signOut();
+                      developer.log('✅ User logged out successfully',
+                          name: 'HomePage');
+                    } catch (e) {
+                      developer.log('❌ Error during logout: $e',
+                          name: 'HomePage', error: e);
+                    }
                   }
                 },
                 itemBuilder: (context) => [
@@ -364,15 +335,6 @@ class _HomePageState extends State<HomePage> {
             child: SizedBox(height: 24),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _seedDatabase,
-        backgroundColor: Colors.orange,
-        icon: const Icon(Icons.cloud_upload, color: Colors.white),
-        label: const Text(
-          'Seed DB',
-          style: TextStyle(color: Colors.white),
-        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 class Service {
   final String id;
   final String title;
@@ -36,6 +38,8 @@ class Service {
   });
 
   factory Service.fromJson(Map<String, dynamic> json) {
+    developer.log('📝 Creating Service from JSON: ${json['title']}',
+        name: 'Service');
     return Service(
       id: json['id'],
       title: json['title'],

@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as developer;
 import '../models/user.dart' as app_user;
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   User? _firebaseUser;
   app_user.User? _currentUser;
   bool _isLoading = false;
@@ -16,14 +17,21 @@ class AuthService extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AuthService() {
+    developer.log('🔐 AuthService initialized', name: 'AuthService');
     _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
   Future<void> _onAuthStateChanged(User? firebaseUser) async {
+    developer.log('👤 Auth state changed: ${firebaseUser?.uid ?? "null"}',
+        name: 'AuthService');
     _firebaseUser = firebaseUser;
     if (firebaseUser != null) {
+      developer.log('📥 Loading user data for: ${firebaseUser.uid}',
+          name: 'AuthService');
       await _loadUserData(firebaseUser.uid);
     } else {
+      developer.log('🚫 User signed out - clearing current user',
+          name: 'AuthService');
       _currentUser = null;
     }
     notifyListeners();
@@ -31,25 +39,39 @@ class AuthService extends ChangeNotifier {
 
   Future<void> _loadUserData(String uid) async {
     try {
+      developer.log('📊 Loading user data from Firestore for uid: $uid',
+          name: 'AuthService');
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
+        developer.log('✅ User data found in Firestore', name: 'AuthService');
         _currentUser = app_user.User.fromJson({
           'id': doc.id,
           ...doc.data()!,
         });
+      } else {
+        developer.log('⚠️ User document not found in Firestore',
+            name: 'AuthService');
       }
     } catch (e) {
+      developer.log('❌ Error loading user data: $e',
+          name: 'AuthService', error: e);
       debugPrint('Error loading user data: $e');
     }
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
+    developer.log('🔑 Attempting sign in with email: $email',
+        name: 'AuthService');
     _isLoading = true;
     notifyListeners();
 
     try {
+      developer.log('📡 Making Firebase auth request', name: 'AuthService');
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+      developer.log('✅ Firebase sign in successful', name: 'AuthService');
     } catch (e) {
+      developer.log('❌ Firebase sign in failed: $e',
+          name: 'AuthService', error: e);
       _isLoading = false;
       notifyListeners();
       rethrow;

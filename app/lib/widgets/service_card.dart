@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../models/service.dart';
 
 class ServiceCard extends StatelessWidget {
@@ -13,6 +14,9 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    developer.log(
+        '🏗️ Building ServiceCard for: ${service.title} (horizontal: $isHorizontal)',
+        name: 'ServiceCard');
     if (isHorizontal) {
       return Card(
         elevation: 2,
@@ -62,7 +66,8 @@ class ServiceCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                          const Icon(Icons.location_on,
+                              size: 14, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text(
                             service.location,
@@ -122,7 +127,8 @@ class ServiceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
                 child: Stack(
                   children: [
                     Image.network(
@@ -143,7 +149,8 @@ class ServiceCard extends StatelessWidget {
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -177,7 +184,8 @@ class ServiceCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                        const Icon(Icons.location_on,
+                            size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -198,7 +206,8 @@ class ServiceCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 14, color: Colors.amber),
+                            const Icon(Icons.star,
+                                size: 14, color: Colors.amber),
                             const SizedBox(width: 4),
                             Text(
                               service.rating.toString(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../widgets/service_card.dart';
 import '../models/service.dart';
 
@@ -14,6 +15,14 @@ class _SearchPageState extends State<SearchPage> {
   String _selectedCategory = 'All';
   RangeValues _priceRange = const RangeValues(0, 500);
   final List<String> _selectedFilters = [];
+
+  @override
+  void initState() {
+    super.initState();
+    developer.log('🔍 SearchPage initialized', name: 'SearchPage');
+    developer.log('📊 Search results count: ${searchResults.length}',
+        name: 'SearchPage');
+  }
 
   final List<String> categories = [
     'All',
@@ -309,6 +318,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
+    developer.log('🗑️ SearchPage disposing controller', name: 'SearchPage');
     _searchController.dispose();
     super.dispose();
   }
