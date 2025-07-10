@@ -13,7 +13,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   RangeValues _priceRange = const RangeValues(0, 500);
-  List<String> _selectedFilters = [];
+  final List<String> _selectedFilters = [];
 
   final List<String> categories = [
     'All',
