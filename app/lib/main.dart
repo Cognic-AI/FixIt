@@ -11,26 +11,34 @@ import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 
 void main() async {
+  print('🚀 [MAIN] Starting FixIt App - ${DateTime.now()}');
   developer.log('🚀 Starting FixIt App', name: 'Main');
   WidgetsFlutterBinding.ensureInitialized();
+  print('✅ [MAIN] Flutter bindings initialized');
   developer.log('✅ Flutter bindings initialized', name: 'Main');
 
   try {
     // Load environment variables first
+    print('📄 [MAIN] Loading environment variables...');
     developer.log('📄 Loading environment variables...', name: 'Main');
     await dotenv.load(fileName: ".env");
+    print('✅ [MAIN] Environment variables loaded');
     developer.log('✅ Environment variables loaded', name: 'Main');
 
     // Then initialize Firebase
+    print('🔥 [MAIN] Initializing Firebase...');
     developer.log('🔥 Initializing Firebase...', name: 'Main');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    print('✅ [MAIN] Firebase initialized successfully');
     developer.log('✅ Firebase initialized successfully', name: 'Main');
 
+    print('🎯 [MAIN] Running FixIt App');
     developer.log('🎯 Running FixIt App', name: 'Main');
     runApp(const FixItApp());
   } catch (e, stackTrace) {
+    print('❌ [MAIN] Error during app initialization: $e');
     developer.log('❌ Error during app initialization: $e',
         name: 'Main', error: e, stackTrace: stackTrace);
     rethrow;
@@ -92,9 +100,14 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('🔐 [AUTH] Building AuthWrapper');
     return Consumer<AuthService>(
       builder: (context, authService, child) {
+        print(
+            '🔐 [AUTH] AuthService state - Loading: ${authService.isLoading}, User: ${authService.currentUser?.email ?? "null"}');
+
         if (authService.isLoading) {
+          print('⏳ [AUTH] Showing loading screen');
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -103,9 +116,11 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (authService.currentUser != null) {
+          print('✅ [AUTH] User authenticated - showing HomePage');
           return const HomePage();
         }
 
+        print('🔑 [AUTH] No user - showing LoginPage');
         return const LoginPage();
       },
     );

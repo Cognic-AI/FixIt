@@ -17,23 +17,29 @@ class AuthService extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AuthService() {
+    print('🔐 [AUTH_SERVICE] AuthService initialized');
     developer.log('🔐 AuthService initialized', name: 'AuthService');
     _auth.authStateChanges().listen(_onAuthStateChanged);
   }
 
   Future<void> _onAuthStateChanged(User? firebaseUser) async {
+    print(
+        '👤 [AUTH_SERVICE] Auth state changed: ${firebaseUser?.uid ?? "null"}');
     developer.log('👤 Auth state changed: ${firebaseUser?.uid ?? "null"}',
         name: 'AuthService');
     _firebaseUser = firebaseUser;
     if (firebaseUser != null) {
+      print('📥 [AUTH_SERVICE] Loading user data for: ${firebaseUser.uid}');
       developer.log('📥 Loading user data for: ${firebaseUser.uid}',
           name: 'AuthService');
       await _loadUserData(firebaseUser.uid);
     } else {
+      print('🚫 [AUTH_SERVICE] User signed out - clearing current user');
       developer.log('🚫 User signed out - clearing current user',
           name: 'AuthService');
       _currentUser = null;
     }
+    print('🔄 [AUTH_SERVICE] Notifying listeners');
     notifyListeners();
   }
 
@@ -60,16 +66,20 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
+    print('🔑 [AUTH_SERVICE] Attempting sign in with email: $email');
     developer.log('🔑 Attempting sign in with email: $email',
         name: 'AuthService');
     _isLoading = true;
     notifyListeners();
 
     try {
+      print('📡 [AUTH_SERVICE] Making Firebase auth request');
       developer.log('📡 Making Firebase auth request', name: 'AuthService');
       await _auth.signInWithEmailAndPassword(email: email, password: password);
+      print('✅ [AUTH_SERVICE] Firebase sign in successful');
       developer.log('✅ Firebase sign in successful', name: 'AuthService');
     } catch (e) {
+      print('❌ [AUTH_SERVICE] Firebase sign in failed: $e');
       developer.log('❌ Firebase sign in failed: $e',
           name: 'AuthService', error: e);
       _isLoading = false;
