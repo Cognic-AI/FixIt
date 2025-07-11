@@ -46,8 +46,13 @@ class _AddServicePageState extends State<AddServicePage> {
   @override
   void initState() {
     super.initState();
-    Provider.of<VendorService>(context, listen: false).loadMyServices();
     developer.log('🏗️ Initializing AddServicePage', name: 'AddServicePage');
+
+    // Load services when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      vendorService.loadMyServices();
+    });
   }
 
   @override
@@ -71,187 +76,431 @@ class _AddServicePageState extends State<AddServicePage> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Service Title
-              CustomTextField(
-                controller: _titleController,
-                label: 'Service Title *',
-                hintText: 'Enter service title',
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please enter service title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Description
-              CustomTextField(
-                controller: _descriptionController,
-                label: 'Description *',
-                hintText: 'Describe your service',
-                maxLines: 4,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please enter service description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Price
-              CustomTextField(
-                controller: _priceController,
-                label: 'Price (\$) *',
-                hintText: 'Enter service price',
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please enter service price';
-                  }
-                  if (double.tryParse(value!) == null) {
-                    return 'Please enter a valid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Location
-              CustomTextField(
-                controller: _locationController,
-                label: 'Location *',
-                hintText: 'Enter service location',
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please enter service location';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Category
-              const Text(
-                'Category *',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCategory,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCategory = newValue!;
-                      });
-                    },
-                    items: _categories
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value.toUpperCase()),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Image URL
-              CustomTextField(
-                controller: _imageUrlController,
-                label: 'Image URL',
-                hintText: 'Enter image URL (optional)',
-              ),
-              const SizedBox(height: 16),
-
-              // Availability/Dates
-              CustomTextField(
-                controller: _datesController,
-                label: 'Availability',
-                hintText: 'e.g., Mon-Fri 9AM-5PM',
-              ),
-              const SizedBox(height: 16),
-
-              // Amenities/Features
-              const Text(
-                'Service Features',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: _amenityController,
-                      label: '',
-                      hintText: 'Add a feature',
+      body: Consumer<VendorService>(
+        builder: (context, vendorService, child) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Loading indicator for services
+                if (vendorService.isLoading && vendorService.myServices.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Loading your services...'),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _addAmenity,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text('Add'),
+
+                // Existing Services Section
+                if (vendorService.myServices.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      const Text(
+                        'Your Current Services',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${vendorService.myServices.length} services',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          vendorService.loadMyServices();
+                        },
+                        icon: const Icon(Icons.refresh),
+                        iconSize: 20,
+                        tooltip: 'Refresh services',
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (_amenities.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: _amenities.map((amenity) {
-                    return Chip(
-                      label: Text(amenity),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      onDeleted: () {
-                        setState(() {
-                          _amenities.remove(amenity);
-                        });
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: vendorService.myServices.length,
+                      itemBuilder: (context, index) {
+                        final service = vendorService.myServices[index];
+                        return Container(
+                          width: 200,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                _showServiceQuickActions(service);
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            service.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: service.active
+                                                ? Colors.green
+                                                : Colors.red,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            service.active
+                                                ? 'Active'
+                                                : 'Inactive',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      service.category.toUpperCase(),
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '\$${service.price.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: Color(0xFF2563EB),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.star,
+                                              color: Colors.amber[600],
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              service.rating.toStringAsFixed(1),
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ), // Column closing
+                              ), // Padding closing
+                            ), // InkWell closing
+                          ),
+                        ); // Card closing
                       },
-                    );
-                  }).toList(),
-                ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 24),
+                ],
 
-              const SizedBox(height: 32),
+                // Empty state for no services
+                if (!vendorService.isLoading &&
+                    vendorService.myServices.isEmpty) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.build_circle_outlined,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No services yet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Create your first service below to start getting clients',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
 
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(
-                  text: 'Add Service',
-                  onPressed: _isLoading ? null : _submitService,
-                  isLoading: _isLoading,
+                // Add New Service Form Title
+                Row(
+                  children: [
+                    const Text(
+                      'Add New Service',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (vendorService.myServices.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'NEW',
+                          style: TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(height: 16),
+
+                // Form
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Service Title
+                      CustomTextField(
+                        controller: _titleController,
+                        label: 'Service Title *',
+                        hintText: 'Enter service title',
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter service title';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Description
+                      CustomTextField(
+                        controller: _descriptionController,
+                        label: 'Description *',
+                        hintText: 'Describe your service',
+                        maxLines: 4,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter service description';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Price
+                      CustomTextField(
+                        controller: _priceController,
+                        label: 'Price (\$) *',
+                        hintText: 'Enter service price',
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter service price';
+                          }
+                          if (double.tryParse(value!) == null) {
+                            return 'Please enter a valid price';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Location
+                      CustomTextField(
+                        controller: _locationController,
+                        label: 'Location *',
+                        hintText: 'Enter service location',
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter service location';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Category
+                      const Text(
+                        'Category *',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedCategory,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedCategory = newValue!;
+                              });
+                            },
+                            items: _categories
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value.toUpperCase()),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Image URL
+                      CustomTextField(
+                        controller: _imageUrlController,
+                        label: 'Image URL',
+                        hintText: 'Enter image URL (optional)',
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Availability/Dates
+                      CustomTextField(
+                        controller: _datesController,
+                        label: 'Availability',
+                        hintText: 'e.g., Mon-Fri 9AM-5PM',
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Amenities/Features
+                      const Text(
+                        'Service Features',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              controller: _amenityController,
+                              label: '',
+                              hintText: 'Add a feature',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: _addAmenity,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Add'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      if (_amenities.isNotEmpty)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: _amenities.map((amenity) {
+                            return Chip(
+                              label: Text(amenity),
+                              deleteIcon: const Icon(Icons.close, size: 18),
+                              onDeleted: () {
+                                setState(() {
+                                  _amenities.remove(amenity);
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+
+                      const SizedBox(height: 32),
+
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          text: 'Add Service',
+                          onPressed: _isLoading ? null : _submitService,
+                          isLoading: _isLoading,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -306,13 +555,44 @@ class _AddServicePageState extends State<AddServicePage> {
       if (success) {
         developer.log('✅ Service added successfully', name: 'AddServicePage');
         if (mounted) {
+          // Clear the form
+          _titleController.clear();
+          _descriptionController.clear();
+          _priceController.clear();
+          _locationController.clear();
+          _imageUrlController.clear();
+          _datesController.clear();
+          _amenities.clear();
+
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Service added successfully!'),
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Service added successfully!',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                            'Total services: ${vendorService.myServices.length + 1}'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
             ),
           );
-          Navigator.pop(context);
+
+          // Reload services to show the new one
+          await vendorService.loadMyServices();
         }
       } else {
         throw Exception('Failed to add service');
@@ -338,5 +618,113 @@ class _AddServicePageState extends State<AddServicePage> {
         await vendorService.loadMyServices();
       }
     }
+  }
+
+  void _showServiceQuickActions(Service service) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: const Color(0xFF2563EB).withOpacity(0.1),
+                  child: const Icon(
+                    Icons.build,
+                    color: Color(0xFF2563EB),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        service.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '\$${service.price.toStringAsFixed(2)} • ${service.category.toUpperCase()}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO: Navigate to edit service page
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Edit service feature coming soon!'),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      final vendorService =
+                          Provider.of<VendorService>(context, listen: false);
+                      await vendorService.updateService(
+                        service.id,
+                        {'active': !service.active},
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            service.active
+                                ? 'Service deactivated'
+                                : 'Service activated',
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(service.active ? Icons.pause : Icons.play_arrow),
+                    label: Text(service.active ? 'Deactivate' : 'Activate'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          service.active ? Colors.orange : Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
