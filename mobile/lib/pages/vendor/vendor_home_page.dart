@@ -69,7 +69,7 @@ class _VendorHomePageState extends State<VendorHomePage>
       floatingActionButton: _selectedIndex == 1
           ? FloatingActionButton(
               onPressed: _showAddServiceDialog,
-              backgroundColor: const Color(0xFF2563EB),
+              backgroundColor: const Color(0xFF006FD6),
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
@@ -85,7 +85,7 @@ class _VendorHomePageState extends State<VendorHomePage>
           _selectedIndex = index;
         });
       },
-      selectedItemColor: const Color(0xFF2563EB),
+      selectedItemColor: const Color(0xFF006FD6),
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(
@@ -143,7 +143,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                         'Total Services',
                         vendorService.myServices.length.toString(),
                         Icons.build,
-                        Colors.blue,
+                        const Color(0xFF006FD6),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -152,7 +152,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                         'Pending Requests',
                         vendorService.pendingRequests.length.toString(),
                         Icons.pending,
-                        Colors.orange,
+                        const Color(0xFF006FD6),
                       ),
                     ),
                   ],
@@ -170,7 +170,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                         'Active Services',
                         vendorService.activeServices.length.toString(),
                         Icons.work,
-                        Colors.green,
+                        const Color(0xFF006FD6),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -179,7 +179,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                         'Completed',
                         vendorService.completedServices.length.toString(),
                         Icons.check_circle,
-                        Colors.purple,
+                        const Color(0xFF006FD6),
                       ),
                     ),
                   ],
@@ -203,8 +203,8 @@ class _VendorHomePageState extends State<VendorHomePage>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF667EEA),
-                          Color(0xFF764BA2),
+                          Color(0xFF006FD6),
+                          Color(0xFF006FD6),
                         ],
                       ),
                     ),
@@ -257,7 +257,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                             label: const Text('Chat with AI'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF667EEA),
+                              foregroundColor: const Color(0xFF006FD6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -383,7 +383,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                         icon: const Icon(Icons.add),
                         label: const Text('Add Service'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
+                          backgroundColor: const Color(0xFF006FD6),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
@@ -433,8 +433,8 @@ class _VendorHomePageState extends State<VendorHomePage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF2563EB),
-                    Color(0xFF7C3AED),
+                    Color(0xFF006FD6),
+                    Color(0xFF006FD6),
                   ],
                 ),
               ),
@@ -464,9 +464,9 @@ class _VendorHomePageState extends State<VendorHomePage>
               color: Colors.white,
               child: TabBar(
                 controller: _tabController,
-                labelColor: const Color(0xFF2563EB),
+                labelColor: const Color(0xFF006FD6),
                 unselectedLabelColor: Colors.grey,
-                indicatorColor: const Color(0xFF2563EB),
+                indicatorColor: const Color(0xFF006FD6),
                 tabs: const [
                   Tab(text: 'Pending'),
                   Tab(text: 'Active'),
@@ -564,7 +564,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: const Color(0xFF2563EB).withOpacity(0.1),
+                      backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
                       child: user?.avatar != null
                           ? ClipOval(
                               child: Image.network(
@@ -579,7 +579,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2563EB),
+                                color: Color(0xFF006FD6),
                               ),
                             ),
                     ),
@@ -654,43 +654,34 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   Widget _buildAppBar(String title) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 80,
       floating: false,
       pinned: true,
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      backgroundColor: const Color(0xFF006FD6),
+      foregroundColor: Colors.white,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           title,
           style: const TextStyle(
-            color: Color(0xFF2563EB),
+            color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2563EB),
-                Color(0xFF7C3AED),
-              ],
-            ),
-          ),
-        ),
+        centerTitle: false,
+        titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
       ),
     );
   }
 
   Widget _buildServicesAppBar(VendorService vendorService) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: 80,
       floating: false,
       pinned: true,
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      backgroundColor: const Color(0xFF006FD6),
+      foregroundColor: Colors.white,
       elevation: 0,
       actions: [
         IconButton(
@@ -706,7 +697,7 @@ class _VendorHomePageState extends State<VendorHomePage>
               );
             }
           },
-          icon: const Icon(Icons.refresh),
+          icon: const Icon(Icons.refresh, color: Colors.white),
           tooltip: 'Refresh services',
         ),
         const SizedBox(width: 8),
@@ -715,22 +706,13 @@ class _VendorHomePageState extends State<VendorHomePage>
         title: const Text(
           'My Services',
           style: TextStyle(
-            color: Color(0xFF2563EB),
+            color: Colors.white,
             fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2563EB),
-                Color(0xFF7C3AED),
-              ],
-            ),
-          ),
-        ),
+        centerTitle: false,
+        titlePadding: EdgeInsets.only(left: 16, bottom: 16),
       ),
     );
   }
@@ -826,14 +808,14 @@ class _VendorHomePageState extends State<VendorHomePage>
   Widget _buildConversationTile(Conversation conversation) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: const Color(0xFF2563EB).withOpacity(0.1),
+        backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
         child: Text(
           conversation.clientName.isNotEmpty
               ? conversation.clientName[0].toUpperCase()
               : 'C',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF2563EB),
+            color: Color(0xFF006FD6),
           ),
         ),
       ),
@@ -878,7 +860,7 @@ class _VendorHomePageState extends State<VendorHomePage>
               margin: const EdgeInsets.only(top: 4),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: const BoxDecoration(
-                color: Color(0xFF2563EB),
+                color: Color(0xFF006FD6),
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -1027,12 +1009,12 @@ class _VendorHomePageState extends State<VendorHomePage>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      color: const Color(0xFF006FD6).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.smart_toy,
-                      color: Color(0xFF2563EB),
+                      color: Color(0xFF006FD6),
                     ),
                   ),
                   const SizedBox(width: 12),

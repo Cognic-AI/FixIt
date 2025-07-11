@@ -9,13 +9,13 @@ class VendorServiceCard extends StatelessWidget {
   final VoidCallback? onViewDetails;
 
   const VendorServiceCard({
-    Key? key,
+    super.key,
     required this.service,
     this.onEdit,
     this.onDelete,
     this.onToggleStatus,
     this.onViewDetails,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +92,12 @@ class VendorServiceCard extends StatelessWidget {
                         icon: service.active ? Icons.pause : Icons.play_arrow,
                         onTap: onToggleStatus,
                         color: service.active ? Colors.orange : Colors.green,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickActionButton(
+                        icon: Icons.delete,
+                        onTap: onDelete,
+                        color: Colors.red,
                       ),
                     ],
                   ),
@@ -231,40 +237,6 @@ class VendorServiceCard extends StatelessWidget {
                     }).toList(),
                   ),
                 ],
-
-                const SizedBox(height: 16),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onViewDetails,
-                        icon: const Icon(Icons.visibility, size: 18),
-                        label: const Text('View Details'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2563EB),
-                          side: const BorderSide(color: Color(0xFF2563EB)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete),
-                      color: Colors.red,
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.red.withOpacity(0.1),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
