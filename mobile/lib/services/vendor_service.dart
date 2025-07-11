@@ -33,6 +33,7 @@ class VendorService extends ChangeNotifier {
     _setLoading(true);
     try {
       developer.log('📊 Loading vendor services', name: 'VendorService');
+      print('Loading services for user: $currentUserId');
 
       final querySnapshot = await _firestore
           .collection('services')
@@ -46,6 +47,8 @@ class VendorService extends ChangeNotifier {
 
       developer.log('✅ Loaded ${_myServices.length} services',
           name: 'VendorService');
+      print('Loaded ${_myServices.length} services for user: $currentUserId');
+      _setLoading(false);
       notifyListeners();
     } catch (e) {
       developer.log('❌ Error loading services: $e', name: 'VendorService');

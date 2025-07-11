@@ -44,6 +44,13 @@ class _AddServicePageState extends State<AddServicePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    Provider.of<VendorService>(context, listen: false).loadMyServices();
+    developer.log('🏗️ Initializing AddServicePage', name: 'AddServicePage');
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
@@ -325,6 +332,10 @@ class _AddServicePageState extends State<AddServicePage> {
         setState(() {
           _isLoading = false;
         });
+        // Reload services in VendorService
+        final vendorService =
+            Provider.of<VendorService>(context, listen: false);
+        await vendorService.loadMyServices();
       }
     }
   }
