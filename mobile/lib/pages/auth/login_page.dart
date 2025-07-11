@@ -1,3 +1,4 @@
+import 'package:fixit/pages/auth/account_type_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,7 +6,6 @@ import 'dart:developer' as developer;
 import '../../services/auth_service.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -531,7 +531,7 @@ class _LoginPageState extends State<LoginPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        const RegisterPage(userType: 'user'),
+                                        const AccountTypePage(),
                                   ),
                                 );
                               },
