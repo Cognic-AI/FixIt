@@ -1,3 +1,4 @@
+import 'package:fixit/pages/vendor/vendor_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -93,6 +94,7 @@ class FixItApp extends StatelessWidget {
               '/login': (context) => const LoginPage(),
               '/home': (context) => const HomePage(),
               '/interests': (context) => const InterestsPage(),
+              '/vendor_home': (context) => const VendorHomePage(),
             },
           );
         },

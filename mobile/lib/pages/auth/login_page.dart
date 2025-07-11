@@ -65,7 +65,9 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         developer.log('[LOGIN] Login successful - navigating to home',
             name: 'LoginPage');
-        Navigator.pushReplacementNamed(context, '/home');
+        authService.currentUser?.userType == 'client'
+            ? Navigator.pushReplacementNamed(context, '/home')
+            : Navigator.pushReplacementNamed(context, '/vendor_home');
       }
     } catch (e) {
       print('[LOGIN] Login failed: $e');
