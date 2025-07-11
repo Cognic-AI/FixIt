@@ -327,8 +327,26 @@ class _VendorHomePageState extends State<VendorHomePage>
 
         return CustomScrollView(
           slivers: [
-            _buildAppBar('My Services'),
-            if (vendorService.myServices.isEmpty)
+            _buildServicesAppBar(vendorService),
+
+            // Loading indicator
+            if (vendorService.isLoading)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading services...'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            if (!vendorService.isLoading && vendorService.myServices.isEmpty)
               SliverFillRemaining(
                 child: Center(
                   child: Column(
@@ -377,7 +395,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                   ),
                 ),
               )
-            else
+            else if (!vendorService.isLoading)
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -646,6 +664,57 @@ class _VendorHomePageState extends State<VendorHomePage>
         title: Text(
           title,
           style: const TextStyle(
+            color: Color(0xFF2563EB),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2563EB),
+                Color(0xFF7C3AED),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildServicesAppBar(VendorService vendorService) {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: false,
+      pinned: true,
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      actions: [
+        IconButton(
+          onPressed: () async {
+            print('[VENDOR_HOME] Refresh button pressed');
+            await vendorService.loadMyServices();
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Services refreshed'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            }
+          },
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Refresh services',
+        ),
+        const SizedBox(width: 8),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        title: const Text(
+          'My Services',
+          style: TextStyle(
             color: Color(0xFF2563EB),
             fontWeight: FontWeight.bold,
           ),
