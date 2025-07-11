@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as developer;
-import 'firebase_options.dart';
 import 'pages/auth/login_page.dart';
 import 'pages/home_page.dart';
 import 'pages/onboarding/interests_page.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   print('🚀 [MAIN] Starting FixIt App - ${DateTime.now()}');
@@ -25,14 +24,21 @@ void main() async {
     print('✅ [MAIN] Environment variables loaded');
     developer.log('✅ Environment variables loaded', name: 'Main');
 
-    // Then initialize Firebase
-    print('🔥 [MAIN] Initializing Firebase...');
-    developer.log('🔥 Initializing Firebase...', name: 'Main');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('✅ [MAIN] Firebase initialized successfully');
-    developer.log('✅ Firebase initialized successfully', name: 'Main');
+    // Check if Firebase is already initialized before trying to initialize it again
+    print('🔥 [MAIN] Checking Firebase initialization status...');
+    developer.log('🔥 Checking Firebase initialization status...',
+        name: 'Main');
+
+    if (Firebase.apps.isEmpty) {
+      print('🔥 [MAIN] Initializing Firebase...');
+      developer.log('🔥 Initializing Firebase...', name: 'Main');
+      await Firebase.initializeApp();
+      print('✅ [MAIN] Firebase initialized successfully');
+      developer.log('✅ Firebase initialized successfully', name: 'Main');
+    } else {
+      print('✅ [MAIN] Firebase already initialized');
+      developer.log('✅ Firebase already initialized', name: 'Main');
+    }
 
     print('🎯 [MAIN] Running FixIt App');
     developer.log('🎯 Running FixIt App', name: 'Main');
