@@ -27,10 +27,3 @@ yarn-error.log*
 next-env.d.ts
 
 .dart_tool
-pubspec.lock
-
-./android/.gradle
-./android/gradle
-./android/gradle.properties
-./android/build.gradle
-./android/settings.gradle
