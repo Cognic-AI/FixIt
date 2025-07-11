@@ -8,6 +8,7 @@ import 'pages/home_page.dart';
 import 'pages/onboarding/interests_page.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
+import 'services/vendor_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -68,6 +69,11 @@ class FixItApp extends StatelessWidget {
           developer.log('🏗️ Creating ThemeService provider', name: 'FixItApp');
           return ThemeService();
         }),
+        ChangeNotifierProvider(create: (_) {
+          developer.log('🏗️ Creating VendorService provider',
+              name: 'FixItApp');
+          return VendorService();
+        }),
       ],
       child: Consumer<ThemeService>(
         builder: (context, themeService, child) {
@@ -124,8 +130,15 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (authService.currentUser != null) {
-          print('✅ [AUTH] User authenticated - showing HomePage');
-          return const HomePage();
+          print('✅ [AUTH] User authenticated - routing based on user type');
+          final user = authService.currentUser!;
+          if (user.userType == 'vendor') {
+            print('🏢 [AUTH] Vendor user - showing VendorHomePage');
+            return const VendorHomePage();
+          } else {
+            print('👤 [AUTH] Client user - showing HomePage');
+            return const HomePage();
+          }
         }
 
         print('🔑 [AUTH] No user - showing LoginPage');
