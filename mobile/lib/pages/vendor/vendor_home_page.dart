@@ -27,14 +27,20 @@ class _VendorHomePageState extends State<VendorHomePage>
   @override
   void initState() {
     super.initState();
+    print('[VENDOR_HOME] initState called');
     _tabController = TabController(length: 3, vsync: this);
-    developer.log('🏠 VendorHomePage initialized', name: 'VendorHomePage');
+    developer.log('VendorHomePage initialized', name: 'VendorHomePage');
 
     // Initialize vendor service
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('[VENDOR_HOME] addPostFrameCallback executing');
       final vendorService = Provider.of<VendorService>(context, listen: false);
+      print('[VENDOR_HOME] Got VendorService instance');
+      print('[VENDOR_HOME] About to call vendorService.initialize()');
       vendorService.initialize();
+      print('[VENDOR_HOME] vendorService.initialize() called');
     });
+    print('[VENDOR_HOME] initState completed');
   }
 
   @override
@@ -45,7 +51,9 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   @override
   Widget build(BuildContext context) {
-    developer.log('🔨 Building VendorHomePage', name: 'VendorHomePage');
+    print('[VENDOR_HOME] build method called');
+    print('[VENDOR_HOME] _selectedIndex: $_selectedIndex');
+    developer.log('Building VendorHomePage', name: 'VendorHomePage');
 
     return Scaffold(
       body: _selectedIndex == 0
@@ -105,8 +113,21 @@ class _VendorHomePageState extends State<VendorHomePage>
   }
 
   Widget _buildDashboard() {
+    print('[VENDOR_HOME] _buildDashboard called');
     return Consumer<VendorService>(
       builder: (context, vendorService, child) {
+        print('[VENDOR_HOME] Consumer builder called');
+        print(
+            '[VENDOR_HOME] vendorService.isLoading: ${vendorService.isLoading}');
+        print(
+            '[VENDOR_HOME] vendorService.myServices.length: ${vendorService.myServices.length}');
+        print(
+            '[VENDOR_HOME] vendorService.pendingRequests.length: ${vendorService.pendingRequests.length}');
+        print(
+            '[VENDOR_HOME] vendorService.activeServices.length: ${vendorService.activeServices.length}');
+        print(
+            '[VENDOR_HOME] vendorService.completedServices.length: ${vendorService.completedServices.length}');
+
         return CustomScrollView(
           slivers: [
             _buildAppBar('Dashboard'),
@@ -287,8 +308,23 @@ class _VendorHomePageState extends State<VendorHomePage>
   }
 
   Widget _buildServices() {
+    print('[VENDOR_HOME] _buildServices called');
     return Consumer<VendorService>(
       builder: (context, vendorService, child) {
+        print('[VENDOR_HOME] Services Consumer builder called');
+        print(
+            '[VENDOR_HOME] Services - vendorService.isLoading: ${vendorService.isLoading}');
+        print(
+            '[VENDOR_HOME] Services - vendorService.myServices.length: ${vendorService.myServices.length}');
+
+        if (vendorService.myServices.isNotEmpty) {
+          print('[VENDOR_HOME] Services list:');
+          for (int i = 0; i < vendorService.myServices.length; i++) {
+            print(
+                '[VENDOR_HOME] Service $i: ${vendorService.myServices[i].title}');
+          }
+        }
+
         return CustomScrollView(
           slivers: [
             _buildAppBar('My Services'),
@@ -346,6 +382,8 @@ class _VendorHomePageState extends State<VendorHomePage>
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final service = vendorService.myServices[index];
+                    print(
+                        '[VENDOR_HOME] Building service card for: ${service.title}');
                     return VendorServiceCard(
                       service: service,
                       onEdit: () => _editService(service),

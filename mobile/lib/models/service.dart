@@ -38,26 +38,36 @@ class Service {
   });
 
   factory Service.fromJson(Map<String, dynamic> json) {
-    developer.log('📝 Creating Service from JSON: ${json['title']}',
+    print('[SERVICE_MODEL] Creating Service from JSON');
+    print('[SERVICE_MODEL] JSON data: $json');
+    developer.log('Creating Service from JSON: ${json['title']}',
         name: 'Service');
-    return Service(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'] ?? '',
-      price: (json['price'] ?? 0.0).toDouble(),
-      location: json['location'],
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      reviewCount: json['reviewCount'] ?? 0,
-      hostId: json['hostId'],
-      hostName: json['hostName'],
-      category: json['category'],
-      amenities: List<String>.from(json['amenities'] ?? []),
-      imageUrl: json['imageUrl'] ?? '',
-      dates: json['dates'] ?? '',
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      active: json['active'] ?? true,
-    );
+
+    try {
+      final service = Service(
+        id: json['id'],
+        title: json['title'],
+        description: json['description'] ?? '',
+        price: (json['price'] ?? 0.0).toDouble(),
+        location: json['location'],
+        rating: (json['rating'] ?? 0.0).toDouble(),
+        reviewCount: json['reviewCount'] ?? 0,
+        hostId: json['hostId'],
+        hostName: json['hostName'],
+        category: json['category'],
+        amenities: List<String>.from(json['amenities'] ?? []),
+        imageUrl: json['imageUrl'] ?? '',
+        dates: json['dates'] ?? '',
+        latitude: json['latitude']?.toDouble(),
+        longitude: json['longitude']?.toDouble(),
+        active: json['active'] ?? true,
+      );
+      print('[SERVICE_MODEL] Service created successfully: ${service.title}');
+      return service;
+    } catch (e) {
+      print('[SERVICE_MODEL] Error creating service: $e');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {

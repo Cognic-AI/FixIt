@@ -24,16 +24,29 @@ class VendorService extends ChangeNotifier {
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
 
-  String? get currentUserId => _auth.currentUser?.uid;
+  String? get currentUserId {
+    final uid = _auth.currentUser?.uid;
+    print('[VENDOR_SERVICE] currentUserId getter called - result: $uid');
+    return uid;
+  }
 
   // Load vendor's services
   Future<void> loadMyServices() async {
-    if (currentUserId == null) return;
+    print('[VENDOR_SERVICE] loadMyServices called');
+    print('[VENDOR_SERVICE] currentUserId: $currentUserId');
+
+    if (currentUserId == null) {
+      print('[VENDOR_SERVICE] currentUserId is null, returning early');
+      return;
+    }
 
     _setLoading(true);
+    print('[VENDOR_SERVICE] Set loading to true');
+
     try {
-      developer.log('📊 Loading vendor services', name: 'VendorService');
-      print('Loading services for user: $currentUserId');
+      developer.log('Loading vendor services', name: 'VendorService');
+      print(
+          '[VENDOR_SERVICE] Starting Firestore query for hostId: $currentUserId');
 
       final querySnapshot = await _firestore
           .collection('services')
@@ -41,19 +54,35 @@ class VendorService extends ChangeNotifier {
           .orderBy('createdAt', descending: true)
           .get();
 
-      _myServices = querySnapshot.docs
-          .map((doc) => Service.fromJson({...doc.data(), 'id': doc.id}))
-          .toList();
+      print('[VENDOR_SERVICE] Firestore query completed');
+      print(
+          '[VENDOR_SERVICE] Number of documents returned: ${querySnapshot.docs.length}');
 
-      developer.log('✅ Loaded ${_myServices.length} services',
+      _myServices = querySnapshot.docs.map((doc) {
+        print('[VENDOR_SERVICE] Processing document: ${doc.id}');
+        final data = {...doc.data(), 'id': doc.id};
+        print('[VENDOR_SERVICE] Document data: $data');
+        return Service.fromJson(data);
+      }).toList();
+
+      print('[VENDOR_SERVICE] Processed ${_myServices.length} services');
+      for (int i = 0; i < _myServices.length; i++) {
+        print('[VENDOR_SERVICE] Service $i: ${_myServices[i].title}');
+      }
+
+      developer.log('Loaded ${_myServices.length} services',
           name: 'VendorService');
-      print('Loaded ${_myServices.length} services for user: $currentUserId');
       _setLoading(false);
+      print('[VENDOR_SERVICE] Set loading to false');
+      print('[VENDOR_SERVICE] About to call notifyListeners');
       notifyListeners();
+      print('[VENDOR_SERVICE] notifyListeners called successfully');
     } catch (e) {
-      developer.log('❌ Error loading services: $e', name: 'VendorService');
+      print('[VENDOR_SERVICE] Error in loadMyServices: $e');
+      developer.log('Error loading services: $e', name: 'VendorService');
     } finally {
       _setLoading(false);
+      print('[VENDOR_SERVICE] Finally block: set loading to false');
     }
   }
 
@@ -288,18 +317,27 @@ class VendorService extends ChangeNotifier {
   }
 
   void _setLoading(bool loading) {
+    print('[VENDOR_SERVICE] _setLoading called with: $loading');
     _isLoading = loading;
+    print('[VENDOR_SERVICE] _isLoading set to: $_isLoading');
     notifyListeners();
+    print('[VENDOR_SERVICE] notifyListeners called from _setLoading');
   }
 
   // Initialize vendor data
   Future<void> initialize() async {
-    developer.log('🚀 Initializing VendorService', name: 'VendorService');
-    await Future.wait([
-      loadMyServices(),
-      loadServiceRequests(),
-      loadConversations(),
-    ]);
-    developer.log('✅ VendorService initialized', name: 'VendorService');
+    print('[VENDOR_SERVICE] initialize() called');
+    developer.log('Initializing VendorService', name: 'VendorService');
+
+    print('[VENDOR_SERVICE] About to call loadMyServices');
+    await loadMyServices();
+    print('[VENDOR_SERVICE] loadMyServices completed');
+
+    print('[VENDOR_SERVICE] About to call loadServiceRequests');
+    await loadServiceRequests();
+    print('[VENDOR_SERVICE] loadServiceRequests completed');
+
+    print('[VENDOR_SERVICE] VendorService initialization completed');
+    developer.log('VendorService initialized', name: 'VendorService');
   }
 }
