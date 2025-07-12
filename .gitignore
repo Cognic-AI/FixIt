@@ -1,3 +1,5 @@
-backend/firebase-service-account.json
-backend/firabase-private-key.pem
-backend/Config.toml
+*/firebase-service-account.json
+*/firebase-private-key.pem
+*/Config.toml
+*/.env
+*/target/
