@@ -1,5 +1,6 @@
 */firebase-service-account.json
 */firebase-private-key.pem
+*/firebase-private.key
 */Config.toml
 */.env
 */target/

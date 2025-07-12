@@ -1,6 +1,5 @@
 import backend.ai;
-
-// import backend.auth;
+import backend.auth;
 
 // import backend.bookings;
 // import backend.events;
@@ -39,13 +38,13 @@ service /api on new http:Listener(8080) {
     }
 
     // Authentication routes
-    // resource function post auth/register(http:Caller caller, http:Request req) returns error? {
-    //     check auth:registerUser(caller, req);
-    // }
+    resource function post auth/register(http:Caller caller, http:Request req) returns error? {
+        check auth:registerUser(caller, req);
+    }
 
-    // resource function post auth/login(http:Caller caller, http:Request req) returns error? {
-    //     check auth:loginUser(caller, req);
-    // }
+    resource function post auth/login(http:Caller caller, http:Request req) returns error? {
+        check auth:login(caller, req);
+    }
 
     // resource function post auth/logout(http:Caller caller, http:Request req) returns error? {
     //     check auth:logoutUser(caller, req);
