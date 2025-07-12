@@ -8,9 +8,9 @@ class ChatPage extends StatefulWidget {
   final Conversation conversation;
 
   const ChatPage({
-    Key? key,
+    super.key,
     required this.conversation,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -19,7 +19,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
-  List<Message> _messages = [];
+  final List<Message> _messages = [];
   bool _isLoading = true;
 
   @override
