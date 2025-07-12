@@ -1,1 +1,3 @@
 backend/firebase-service-account.json
+backend/firabase-private-key.pem
+backend/Config.toml
