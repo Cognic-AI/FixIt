@@ -335,6 +335,9 @@ dependencies = [
 	{org = "ballerina", name = "lang.int"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
+]
 
 [[package]]
 org = "ballerinai"
@@ -359,7 +362,9 @@ dependencies = [
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "test"},
 	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "uuid"},
 	{org = "ballerinai", name = "observe"},
+	{org = "lakpahana", name = "firebase_auth"},
 	{org = "nalaka", name = "firestore"}
 ]
 modules = [
@@ -375,6 +380,21 @@ modules = [
 	{org = "fixit", packageName = "backend", moduleName = "backend.reviews"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.services"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.utils"}
+]
+
+[[package]]
+org = "lakpahana"
+name = "firebase_auth"
+version = "1.0.1"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jwt"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "oauth2"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "lakpahana", packageName = "firebase_auth", moduleName = "firebase_auth"}
 ]
 
 [[package]]
