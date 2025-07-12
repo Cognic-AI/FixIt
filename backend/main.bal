@@ -1,11 +1,13 @@
 import backend.ai;
-import backend.auth;
+
+// import backend.auth;
+
 // import backend.bookings;
 // import backend.events;
 // import backend.feedback;
 // import backend.firestore;
-import backend.maps;
-import backend.messaging;
+// import backend.maps;
+// import backend.messaging;
 
 // import backend.reviews;
 // import backend.services;
@@ -37,21 +39,21 @@ service /api on new http:Listener(8080) {
     }
 
     // Authentication routes
-    resource function post auth/register(http:Caller caller, http:Request req) returns error? {
-        check auth:registerUser(caller, req);
-    }
+    // resource function post auth/register(http:Caller caller, http:Request req) returns error? {
+    //     check auth:registerUser(caller, req);
+    // }
 
-    resource function post auth/login(http:Caller caller, http:Request req) returns error? {
-        check auth:loginUser(caller, req);
-    }
+    // resource function post auth/login(http:Caller caller, http:Request req) returns error? {
+    //     check auth:loginUser(caller, req);
+    // }
 
-    resource function post auth/logout(http:Caller caller, http:Request req) returns error? {
-        check auth:logoutUser(caller, req);
-    }
+    // resource function post auth/logout(http:Caller caller, http:Request req) returns error? {
+    //     check auth:logoutUser(caller, req);
+    // }
 
-    resource function get auth/profile/[string userId](http:Caller caller, http:Request req) returns error? {
-        check auth:getUserProfile(caller, req, userId);
-    }
+    // resource function get auth/profile/[string userId](http:Caller caller, http:Request req) returns error? {
+    //     check auth:getUserProfile(caller, req, userId);
+    // }
 
     // Services routes
     // resource function get services(http:Caller caller, http:Request req) returns error? {
@@ -88,21 +90,21 @@ service /api on new http:Listener(8080) {
     // }
 
     // Messaging routes
-    resource function get chats/[string userId](http:Caller caller, http:Request req) returns error? {
-        check messaging:getUserChats(caller, req, userId);
-    }
+    // resource function get chats/[string userId](http:Caller caller, http:Request req) returns error? {
+    //     check messaging:getUserChats(caller, req, userId);
+    // }
 
-    resource function get chats/[string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-        check messaging:getChatMessages(caller, req, chatId);
-    }
+    // resource function get chats/[string chatId]/messages(http:Caller caller, http:Request req) returns error? {
+    //     check messaging:getChatMessages(caller, req, chatId);
+    // }
 
-    resource function post chats/[string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-        check messaging:sendMessage(caller, req, chatId);
-    }
+    // resource function post chats/[string chatId]/messages(http:Caller caller, http:Request req) returns error? {
+    //     check messaging:sendMessage(caller, req, chatId);
+    // }
 
-    resource function post chats(http:Caller caller, http:Request req) returns error? {
-        check messaging:createChat(caller, req);
-    }
+    // resource function post chats(http:Caller caller, http:Request req) returns error? {
+    //     check messaging:createChat(caller, req);
+    // }
 
     // Bookings routes
     // resource function get bookings/[string userId](http:Caller caller, http:Request req) returns error? {
@@ -136,24 +138,24 @@ service /api on new http:Listener(8080) {
     // }
 
     // AI Assistant routes
-    resource function post ai/chat(http:Caller caller, http:Request req) returns error? {
+    isolated resource function post ai/chat(http:Caller caller, http:Request req) returns error? {
         check ai:chatWithGemini(caller, req);
     }
 
-    resource function post ai/recommendations(http:Caller caller, http:Request req) returns error? {
-        check ai:getRecommendations(caller, req);
-    }
+    // resource function post ai/recommendations(http:Caller caller, http:Request req) returns error? {
+    //     check ai:getRecommendations(caller, req);
+    // }
 
-    // Maps routes
-    resource function get maps/geocode(http:Caller caller, http:Request req) returns error? {
-        check maps:geocodeAddress(caller, req);
-    }
+    // // Maps routes
+    // resource function get maps/geocode(http:Caller caller, http:Request req) returns error? {
+    //     check maps:geocodeAddress(caller, req);
+    // }
 
-    resource function get maps/directions(http:Caller caller, http:Request req) returns error? {
-        check maps:getDirections(caller, req);
-    }
+    // resource function get maps/directions(http:Caller caller, http:Request req) returns error? {
+    //     check maps:getDirections(caller, req);
+    // }
 
-    resource function get maps/nearby(http:Caller caller, http:Request req) returns error? {
-        check maps:getNearbyPlaces(caller, req);
-    }
+    // resource function get maps/nearby(http:Caller caller, http:Request req) returns error? {
+    //     check maps:getNearbyPlaces(caller, req);
+    // }
 }

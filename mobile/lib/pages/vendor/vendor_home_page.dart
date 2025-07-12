@@ -775,7 +775,7 @@ class _VendorHomePageState extends State<VendorHomePage>
             ),
             const SizedBox(height: 16),
             Text(
-              'No ${type} requests',
+              'No $type requests',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[600],
