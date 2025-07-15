@@ -161,7 +161,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
     }
 
     // Check if user already exists
-    json|error existingUser = firestoreModule:getDocument("users", userReg.email, userReg.email);
+    json|error existingUser = firestoreModule:getDocument("users", <string>userReg.email);
     if existingUser is json {
         json errorResponse = {
             "message": "User with this email already exists",
@@ -304,7 +304,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     }
 
     // Get user from Firestore
-    json|error userData = firestoreModule:getDocument("users", loginData.email);
+    json|error userData = firestoreModule:getDocument("users", <string>loginData.email);
     if userData is error {
         json errorResponse = {
             "message": "Invalid email or password",

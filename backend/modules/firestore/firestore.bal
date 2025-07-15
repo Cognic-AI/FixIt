@@ -117,8 +117,8 @@ public function createDocument(string collection, map<json> data, string? docume
     }
 }
 
-public function getDocument(string collection, string documentId, string email = "") returns map<json>|error {
-    io:println("📖 Getting document from collection: ", collection, " with ID: ", documentId);
+public function getDocument(string collection, string email = "") returns map<json>|error {
+    io:println("📖 Getting document from collection: ", collection);
     string accessToken = check _getAccessToken();
 
     // Create filter to match the specific document ID
