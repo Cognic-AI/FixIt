@@ -1,5 +1,6 @@
 import backend.ai;
 import backend.auth;
+import backend.services;
 
 // import backend.bookings;
 // import backend.services;
@@ -133,31 +134,31 @@ isolated service /api/ai on new http:Listener(8082) {
     // }
 }
 
-// Services service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/services on new http:Listener(8080) {
-//     resource function get .(http:Caller caller, http:Request req) returns error? {
-//         check services:getServices(caller, req);
-//     }
+// Services
+@http:ServiceConfig {
+        cors: corsConfig
+}
+isolated service /api/services on new http:Listener(8084) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check services:getServices(caller, req);
+    }
 
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check services:createService(caller, req);
-//     }
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check services:createService(caller, req);
+    }
 
-//     resource function get my(http:Caller caller, http:Request req) returns error? {
-//         check services:getMyServices(caller, req);
-//     }
+    resource function get my(http:Caller caller, http:Request req) returns error? {
+        check services:getMyServices(caller, req);
+    }
 
-//     resource function put [string serviceId](http:Caller caller, http:Request req) returns error? {
-//         check services:updateService(caller, req, serviceId);
-//     }
+    resource function put [string serviceId](http:Caller caller, http:Request req) returns error? {
+        check services:updateService(caller, req, serviceId);
+    }
 
-//     resource function delete [string serviceId](http:Caller caller, http:Request req) returns error? {
-//         check services:deleteService(caller, req, serviceId);
-//     }
-// }
+    resource function delete [string serviceId](http:Caller caller, http:Request req) returns error? {
+        check services:deleteService(caller, req, serviceId);
+    }
+}
 
 // Events service (commented out)
 // @http:ServiceConfig {

@@ -20,13 +20,3 @@ public isolated function generateAlphanumericId(int length = 16) returns string|
 
     return id;
 }
-
-// // Example usage
-// public function main() {
-//     string id = generateAlphanumericId();
-//     io:println("Generated ID: ", id);
-
-//     // Custom length example
-//     string shortId = generateAlphanumericId(8);
-//     io:println("Short ID: ", shortId);
-// }
