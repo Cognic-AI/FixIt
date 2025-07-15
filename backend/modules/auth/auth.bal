@@ -190,7 +190,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         firstName: userReg.firstName,
         lastName: userReg.lastName,
         phoneNumber: userReg.phoneNumber,
-        role: userReg.role == "provider" ? "provider" : "customer",
+        role: userReg.role == "vendor" ? "vendor" : "client",
         password: hashedPassword,
         emailVerified: false,
         profileImageUrl: (),
@@ -213,7 +213,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         check caller->respond(response);
         return;
     }
-    string|error createResult = firestoreModule:createDocument("users", <map<json>>newUser.toJson(), documentId);
+    string|error createResult = firestoreModule:createDocument("users", <map<json>>newUser.toJson());
     if createResult is error {
         log:printError("Failed to create user in Firestore", createResult);
         json errorResponse = {
