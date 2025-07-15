@@ -81,24 +81,38 @@ public function createDocument(string collection, map<json> data, string? docume
     if documentId is string {
         io:println("📋 Using provided document ID: ", documentId);
         // Create document with specific ID
-        check firestore:createFirestoreDocument(
+        error? result = firestore:createFirestoreDocument(
                 firestoreProjectId,
                 accessToken,
                 collection + "/" + documentId, // Document path format
                 data
         );
+
+        if result is error {
+            io:println("❌ Failed to create document: ", result.message());
+            return error("Failed to create document: " + result.message());
+        }
+
         io:println("✅ Document created successfully with ID: ", documentId);
+        io:println("📄 Firestore response: ", result);
         return "Document created with ID: " + documentId;
     } else {
         io:println("🆔 Auto-generating document ID");
         // Let Firestore auto-generate ID
-        check firestore:createFirestoreDocument(
+        error? result = firestore:createFirestoreDocument(
                 firestoreProjectId,
                 accessToken,
                 collection, // Just collection name
                 data
         );
+
+        if result is error {
+            io:println("❌ Failed to create document: ", result.message());
+            return error("Failed to create document: " + result.message());
+        }
+
         io:println("✅ Document created successfully with auto-generated ID");
+        io:println("📄 Firestore response: ", result);
         return "Document created with auto-generated ID";
     }
 }
