@@ -144,6 +144,31 @@ public function getDocument(string collection, string email = "") returns map<js
     return results[0];
 }
 
+public function getDocumentWithFilters(string collection, map<json> filter = {}) returns map<json>|error {
+    io:println("📖 Getting document from collection: ", collection);
+
+    string accessToken = check _getAccessToken();
+
+    io:println("🔍 Querying document with ID filter...");
+
+    map<json>[] results = check firestore:queryFirestoreDocuments(
+            firestoreProjectId,
+            accessToken,
+            collection, // Query the collection
+            filter // Filter for specific document
+    );
+
+    if results.length
+() == 0 {
+        io:println("❌ Document not found");
+        return error("Document not found");
+    }
+
+    io:println("✅ Document retrieved successfully");
+    return results[0];
+
+}
+
 public function updateDocument(string collection, string documentId, map<json> data) returns error? {
     io:println("✏️ Updating document in collection: ", collection, " with ID: ", documentId);
     string accessToken = check _getAccessToken();
