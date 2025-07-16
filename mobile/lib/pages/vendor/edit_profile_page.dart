@@ -34,7 +34,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _firstNameController.text = user.firstName;
       _lastNameController.text = user.lastName;
       _emailController.text = user.email;
-      _locationController.text = user.location;
     }
   }
 
@@ -77,10 +76,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               radius: 60,
                               backgroundColor:
                                   const Color(0xFF2563EB).withOpacity(0.1),
-                              child: user?.avatar != null
+                              child: user?.profileImageUrl != null
                                   ? ClipOval(
                                       child: Image.network(
-                                        user!.avatar!,
+                                        user!.profileImageUrl!,
                                         width: 120,
                                         height: 120,
                                         fit: BoxFit.cover,
@@ -119,22 +118,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.star,
-                                color: Colors.amber[600], size: 20),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${user?.rating.toStringAsFixed(1) ?? '0.0'} (${user?.reviewCount ?? 0} reviews)',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

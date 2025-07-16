@@ -9,7 +9,6 @@ import 'pages/onboarding/interests_page.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/vendor_service.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   print('🚀 [MAIN] Starting FixIt App - ${DateTime.now()}');
@@ -25,22 +24,6 @@ void main() async {
     await dotenv.load(fileName: ".env");
     print('✅ [MAIN] Environment variables loaded');
     developer.log('✅ Environment variables loaded', name: 'Main');
-
-    // Check if Firebase is already initialized before trying to initialize it again
-    print('🔥 [MAIN] Checking Firebase initialization status...');
-    developer.log('🔥 Checking Firebase initialization status...',
-        name: 'Main');
-
-    if (Firebase.apps.isEmpty) {
-      print('🔥 [MAIN] Initializing Firebase...');
-      developer.log('🔥 Initializing Firebase...', name: 'Main');
-      await Firebase.initializeApp();
-      print('✅ [MAIN] Firebase initialized successfully');
-      developer.log('✅ Firebase initialized successfully', name: 'Main');
-    } else {
-      print('✅ [MAIN] Firebase already initialized');
-      developer.log('✅ Firebase already initialized', name: 'Main');
-    }
 
     print('🎯 [MAIN] Running FixIt App');
     developer.log('🎯 Running FixIt App', name: 'Main');
@@ -132,7 +115,7 @@ class AuthWrapper extends StatelessWidget {
         if (authService.currentUser != null) {
           print('✅ [AUTH] User authenticated - routing based on user type');
           final user = authService.currentUser!;
-          if (user.userType == 'vendor') {
+          if (user.role == 'vendor') {
             print('🏢 [AUTH] Vendor user - showing VendorHomePage');
             return const VendorHomePage();
           } else {

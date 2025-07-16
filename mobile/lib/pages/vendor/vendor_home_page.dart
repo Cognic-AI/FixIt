@@ -565,10 +565,10 @@ class _VendorHomePageState extends State<VendorHomePage>
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
-                      child: user?.avatar != null
+                      child: user?.profileImageUrl != null
                           ? ClipOval(
                               child: Image.network(
-                                user!.avatar!,
+                                user!.profileImageUrl!,
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,
@@ -598,20 +598,6 @@ class _VendorHomePageState extends State<VendorHomePage>
                         fontSize: 16,
                         color: Colors.grey[600],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star, color: Colors.amber[600], size: 20),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${user?.rating.toStringAsFixed(1) ?? '0.0'} (${user?.reviewCount ?? 0} reviews)',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
