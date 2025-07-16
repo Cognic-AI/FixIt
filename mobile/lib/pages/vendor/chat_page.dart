@@ -6,10 +6,12 @@ import '../../models/message.dart';
 
 class ChatPage extends StatefulWidget {
   final Conversation conversation;
+  final String token;
 
   const ChatPage({
     super.key,
     required this.conversation,
+    required this.token,
   });
 
   @override
@@ -263,6 +265,8 @@ class _ChatPageState extends State<ChatPage> {
         widget.conversation.id,
         content,
         MessageType.text,
+        widget.token,
+        widget.conversation.clientId,
       );
 
       if (success) {

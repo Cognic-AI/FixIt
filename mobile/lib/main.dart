@@ -9,7 +9,6 @@ import 'pages/onboarding/interests_page.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/vendor_service.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
 
@@ -23,17 +22,8 @@ void main() async {
     await dotenv.load(fileName: ".env");
     developer.log('✅ Environment variables loaded', name: 'Main');
 
-    // Check if Firebase is already initialized before trying to initialize it again
-    developer.log('🔥 Checking Firebase initialization status...',
-        name: 'Main');
+    print('🎯 [MAIN] Running FixIt App');
 
-    if (Firebase.apps.isEmpty) {
-      developer.log('🔥 Initializing Firebase...', name: 'Main');
-      await Firebase.initializeApp();
-      developer.log('✅ Firebase initialized successfully', name: 'Main');
-    } else {
-      developer.log('✅ Firebase already initialized', name: 'Main');
-    }
     developer.log('🎯 Running FixIt App', name: 'Main');
     runApp(const FixItApp());
   } catch (e, stackTrace) {
@@ -90,7 +80,10 @@ class FixItApp extends StatelessWidget {
               '/login': (context) => const LoginPage(),
               '/home': (context) => const HomePage(),
               '/interests': (context) => const InterestsPage(),
-              '/vendor_home': (context) => const VendorHomePage(),
+              '/vendor_home': (context) => VendorHomePage(
+                    user: AuthService().currentUser!,
+                    token: AuthService().jwtToken ?? '',
+                  ),
             },
           );
         },
@@ -122,9 +115,11 @@ class AuthWrapper extends StatelessWidget {
         if (authService.currentUser != null) {
           developer.log('✅ [AUTH] User authenticated - routing based on user type', name: 'AuthWrapper');
           final user = authService.currentUser!;
-          if (user.userType == 'vendor') {
-            developer.log('🏢 [AUTH] Vendor user - showing VendorHomePage', name: 'AuthWrapper');
-            return const VendorHomePage();
+          if (user.role == 'vendor') {
+            print('🏢 [AUTH] Vendor user - showing VendorHomePage');
+            return VendorHomePage(
+                user: user, token: authService.jwtToken ?? '');
+
           } else {
             developer.log('👤 [AUTH] Client user - showing HomePage', name: 'AuthWrapper');
             return const HomePage();
