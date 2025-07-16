@@ -193,3 +193,5 @@ backend/firebase-service-account.json
 backend/private.key
 
 mobile/app/google-services.json
+
+pubspec.lock
