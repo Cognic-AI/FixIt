@@ -127,15 +127,13 @@ public function updateDocument(string collection, string documentId, map<json> d
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
+    map<json> filter = {"id": documentId};
 
-    // Create update operation
-    mongodb:Update updateOp = {
-        "$set": data
-    };
     io:println("🚀 Updating document...");
-    _ = check mongoCollection->updateOne(filter, updateOp);
+    _ = check mongoCollection->updateOne(filter, {set: data});
+
     io:println("✅ Document updated successfully");
+
 }
 
 public function deleteDocument(string collection, string documentId) returns error? {
@@ -145,7 +143,7 @@ public function deleteDocument(string collection, string documentId) returns err
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
+    map<json> filter = {"id": documentId};
 
     io:println("🚀 Deleting document...");
     _ = check mongoCollection->deleteOne(filter);
@@ -299,15 +297,8 @@ public function updateField(string collection, string documentId, string fieldNa
     // Create filter to match the specific document ID
     map<json> filter = {"id": documentId};
 
-    // Create update operation for the specific field
-    mongodb:Update updateOp = {
-        "$set": {
-            fieldName: value
-        }
-    };
-
     io:println("✏️ Updating field...");
-    _ = check mongoCollection->updateOne(filter, updateOp);
+    _ = check mongoCollection->updateOne(filter, {set: {fieldName: value}});
     io:println("✅ Field update completed");
 }
 
@@ -319,15 +310,7 @@ public function deleteField(string collection, string documentId, string fieldNa
 
     // Create filter to match the specific document ID
     map<json> filter = {"_id": documentId};
-
-    // Create update operation to unset the field
-    mongodb:Update update = {
-        "$unset": {
-            fieldName: ""
-        }
-    };
-
     io:println("🔧 Removing field...");
-    _ = check mongoCollection->updateOne(filter, update);
+    _ = check mongoCollection->updateOne(filter, {unset: {fieldName: ""}});
     io:println("✅ Field deletion completed");
 }

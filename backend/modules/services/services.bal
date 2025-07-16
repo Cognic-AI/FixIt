@@ -264,7 +264,11 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
 
     // Get existing service to verify ownership
-    json|error serviceData = mongoModule:getDocument("services", serviceId);
+    map<json> filters = {
+        "id": serviceId,
+        "providerId": user.id // Ensure the service belongs to the user
+    };
+    Service|error serviceData = mongoModule:queryService(filters);
     if serviceData is error {
         json errorResponse = {
             "message": "Service not found",
@@ -276,22 +280,8 @@ public function updateService(http:Caller caller, http:Request req, string servi
         check caller->respond(response);
         return;
     }
-
-    Service|error existingService = serviceData.cloneWithType(Service);
-    if existingService is error {
-        json errorResponse = {
-            "message": "Invalid service data",
-            "statusCode": 500
-        };
-        http:Response response = new;
-        response.statusCode = 500;
-        response.setJsonPayload(errorResponse);
-        check caller->respond(response);
-        return;
-    }
-
     // Check if user owns the service
-    if existingService.providerId != user.id {
+    if serviceData.providerId != user.id {
         json errorResponse = {
             "message": "Forbidden: You can only update your own services",
             "statusCode": 403
@@ -317,29 +307,29 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
 
     // Update service fields
-    existingService.updatedAt = time:utcToString(time:utcNow());
+    serviceData.updatedAt = time:utcToString(time:utcNow());
 
     if payload.title is string {
-        existingService.title = (check payload.title).toString();
+        serviceData.title = (check payload.title).toString();
     }
     if payload.description is string {
-        existingService.description = (check payload.description).toString();
+        serviceData.description = (check payload.description).toString();
     }
     if payload.category is string {
-        existingService.category = (check payload.category).toString();
+        serviceData.category = (check payload.category).toString();
     }
     if payload.price is decimal {
-        existingService.price = (check payload.price);
+        serviceData.price = (check payload.price);
     }
     if payload.location is string {
-        existingService.location = (check payload.location).toString();
+        serviceData.location = (check payload.location).toString();
     }
     if payload.availability is boolean {
-        existingService.availability = check payload.availability;
+        serviceData.availability = check payload.availability;
     }
 
     // Update service in Firestore
-    error? updateResult = mongoModule:updateDocument("services", serviceId, mapToJSON(existingService.toJson()));
+    error? updateResult = mongoModule:updateDocument("services", serviceId, mapToJSON(serviceData.toJson()));
     if updateResult is error {
         log:printError("Failed to update service in Firestore", updateResult);
         json errorResponse = {
@@ -355,7 +345,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
 
     json successResponse = {
         "message": "Service updated successfully",
-        "service": existingService.toJson()
+        "service": serviceData.toJson()
     };
 
     http:Response response = new;
@@ -382,27 +372,18 @@ public function deleteService(http:Caller caller, http:Request req, string servi
     }
 
     // Get existing service to verify ownership
-    json|error serviceData = mongoModule:getDocument("services", serviceId);
-    if serviceData is error {
+    map<json> filters = {
+        "id": serviceId,
+        "providerId": user.id // Ensure the service belongs to the user
+    };
+    Service|error existingService = mongoModule:queryService(filters);
+    if existingService is error {
         json errorResponse = {
             "message": "Service not found",
             "statusCode": 404
         };
         http:Response response = new;
         response.statusCode = 404;
-        response.setJsonPayload(errorResponse);
-        check caller->respond(response);
-        return;
-    }
-
-    Service|error existingService = serviceData.cloneWithType(Service);
-    if existingService is error {
-        json errorResponse = {
-            "message": "Invalid service data",
-            "statusCode": 500
-        };
-        http:Response response = new;
-        response.statusCode = 500;
         response.setJsonPayload(errorResponse);
         check caller->respond(response);
         return;
