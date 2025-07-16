@@ -9,7 +9,37 @@ configurable string mongoUsername = ?;
 configurable string mongoPassword = ?;
 configurable string mongoAuthSource = "admin"; // Default admin database for authentication
 
-// Initialize MongoDB client
+public type User record {
+    string id;
+    string email;
+    string firstName;
+    string lastName;
+    string? phoneNumber;
+    string role; // "customer", "provider", "admin"
+    string password; // hashed
+    boolean emailVerified;
+    string? profileImageUrl;
+    string createdAt;
+    string updatedAt;
+    string? lastLoginAt;
+}; // Initialize MongoDB client
+
+public type _Service record {
+    string id;
+    string providerId;
+    string providerEmail;
+    string title;
+    string description;
+    string category;
+    boolean availability;
+    decimal price;
+    string location;
+    string createdAt;
+    string updatedAt;
+    string tags;
+    string images;
+};
+
 final mongodb:Client mongoDb = check new ({
     connection: connectionString
 });
@@ -76,7 +106,7 @@ public function getDocumentWithFilters(string collection, map<json> filter = {})
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
     io:println("🔍 Querying document with filter...");
-    map<json>|error|() result = mongoCollection->findOne(filter);
+    map<json>|error|() result = mongoCollection->findOne(filter, {});
 
     if result is error {
         io:println("❌ Error retrieving document: ", result.message());
@@ -97,14 +127,13 @@ public function updateDocument(string collection, string documentId, map<json> d
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
-
-    // Create update operation
-    map<json> update = {"$set": data};
+    map<json> filter = {"id": documentId};
 
     io:println("🚀 Updating document...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, {set: data});
+
     io:println("✅ Document updated successfully");
+
 }
 
 public function deleteDocument(string collection, string documentId) returns error? {
@@ -114,53 +143,138 @@ public function deleteDocument(string collection, string documentId) returns err
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
+    map<json> filter = {"id": documentId};
 
     io:println("🚀 Deleting document...");
     _ = check mongoCollection->deleteOne(filter);
     io:println("✅ Document deleted successfully");
 }
 
-public function queryDocuments(string collection, map<json>? filters = ()) returns map<json>[]|error {
-    io:println("🔍 Querying documents in collection: ", collection);
+public function queryUsers(
+        string collection,
+        map<json> filter
+) returns User|error {
+    io:println("🔍 Getting document from collection: ", collection);
 
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
-    map<json> filter = filters is map<json> ? filters : {};
-    if filters is map<json> {
-        io:println("📋 Using filters: ", filters.toString());
-    } else {
-        io:println("📋 No filters applied");
-    }
-
+    io:println("📋 Using filter: ", filter.toString());
     io:println("🚀 Executing query...");
-    stream<map<json>, error?>|error resultStream = mongoCollection->find(filter);
 
-    if resultStream is error {
-        io:println("❌ Error executing query: ", resultStream.message());
-        return error("Error executing query: " + resultStream.message());
+    // Query with User type projection
+    User|mongodb:Error|() result = mongoCollection->findOne(
+        filter,
+        {},  // findOptions
+        (),  // projection
+        User
+    );
+
+    // Handle the different result cases
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    } else if result is () {
+        io:println("❌ No document found matching the filter");
+        return error("User not found");
+    }
+    else {
+
+        io:println("✅ User document retrieved successfully");
+        return result;
     }
 
-    map<json>[] results = [];
-    check resultStream.forEach(function(map<json> doc) {
-        results.push(doc);
+}
+
+public function queryService(map<json> filter) returns _Service|error {
+    string collection = "services";
+    io:println("🔍 Getting document from collection: ", collection);
+
+    mongodb:Database db = check mongoDb->getDatabase("main");
+    mongodb:Collection mongoCollection = check db->getCollection(collection);
+
+    io:println("📋 Using filter: ", filter.toString());
+    io:println("🚀 Executing query...");
+
+    // Query with User type projection
+    _Service|mongodb:Error|() result = mongoCollection->findOne(
+        filter,
+        {},  // findOptions
+        (),  // projection
+        _Service
+    );
+
+    // Handle the different result cases
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    } else if result is () {
+        io:println("❌ No document found matching the filter");
+        return error("User not found");
+    }
+    else {
+
+        io:println("✅ User document retrieved successfully");
+        return result;
+    }
+
+}
+
+public function queryServices(map<json> filter) returns _Service[]|error {
+    string collection = "services";
+
+    io:println("🔍 Getting document from collection: ", collection);
+
+    mongodb:Database db = check mongoDb->getDatabase("main");
+    mongodb:Collection mongoCollection = check db->getCollection(collection);
+
+    io:println("📋 Using filter: ", filter.toString());
+    io:println("🚀 Executing query...");
+
+    // Query with Service type projection
+    stream<_Service, error?>|mongodb:Error result = mongoCollection->find(
+        filter,
+        {},  // findOptions
+        (),  // projection
+        _Service
+    );
+
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    }
+
+    // Convert stream to array
+    _Service[] services = [];
+    error? e = result.forEach(function(_Service 'service) {
+        services.push('service);
     });
 
-    io:println("✅ Query completed. Found ", results.length().toString(), " documents");
-    return results;
+    if e is error {
+        io:println("❌ Error processing stream: ", e.message());
+        return error("Stream processing error: " + e.message());
+    }
+
+    if services.length() == 0 {
+        io:println("⚠️ No documents found matching the filter");
+        return [];
+    }
+
+    io:println("✅ Retrieved ", services.length(), " services successfully");
+    return services;
 }
 
 // Collection operations
-public function listDocuments(string collection) returns map<json>[]|error {
-    io:println("📋 Listing all documents in collection: ", collection);
-    // Get all documents in a collection (no filters)
-    map<json>[]|error result = queryDocuments(collection);
-    if result is map<json>[] {
-        io:println("✅ Listed ", result.length().toString(), " documents");
-    }
-    return result;
-}
+
+// public function listDocuments(string collection) returns map<json>[]|error {
+//     io:println("📋 Listing all documents in collection: ", collection);
+//     // Get all documents in a collection (no filters)
+//     map<json>[]|error result = queryDocuments(collection);
+//     if result is map<json>[] {
+//         io:println("✅ Listed ", result.length().toString(), " documents");
+//     }
+//     return result;
+// }
 
 public function clearCollection(string collection) returns error? {
     io:println("🧹 Clearing all documents from collection: ", collection);
@@ -174,20 +288,17 @@ public function clearCollection(string collection) returns error? {
 }
 
 // Field operations
-public function updateField(string collection, string documentId, string fieldName, json value) returns error? {
+public function updateField(string collection, string documentId, string fieldName, string value) returns error? {
     io:println("🔧 Updating field '", fieldName, "' in document: ", collection, "/", documentId);
 
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
-
-    // Create update operation for the specific field
-    map<json> update = {"$set": {fieldName: value}};
+    map<json> filter = {"id": documentId};
 
     io:println("✏️ Updating field...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, {set: {fieldName: value}});
     io:println("✅ Field update completed");
 }
 
@@ -199,11 +310,7 @@ public function deleteField(string collection, string documentId, string fieldNa
 
     // Create filter to match the specific document ID
     map<json> filter = {"_id": documentId};
-
-    // Create update operation to unset the field
-    map<json> update = {"$unset": {fieldName: ""}};
-
     io:println("🔧 Removing field...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, {unset: {fieldName: ""}});
     io:println("✅ Field deletion completed");
 }
