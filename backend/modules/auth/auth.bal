@@ -1,4 +1,4 @@
-import backend.firestore as firestoreModule;
+import backend.mongodb as mongoModule;
 import backend.utils as utils;
 
 import ballerina/crypto;
@@ -161,7 +161,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
     }
 
     // Check if user already exists
-    json|error existingUser = firestoreModule:getDocument("users", <string>userReg.email);
+    json|error existingUser = mongoModule:getDocument("users", <string>userReg.email);
     if existingUser is json {
         json errorResponse = {
             "message": "User with this email already exists",
@@ -213,7 +213,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         check caller->respond(response);
         return;
     }
-    string|error createResult = firestoreModule:createDocument("users", <map<json>>newUser.toJson());
+    string|error createResult = mongoModule:createDocument("users", <map<json>>newUser.toJson());
     if createResult is error {
         log:printError("Failed to create user in Firestore", createResult);
         json errorResponse = {
@@ -304,7 +304,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     }
 
     // Get user from Firestore
-    json|error userData = firestoreModule:getDocument("users", <string>loginData.email);
+    json|error userData = mongoModule:getDocument("users", <string>loginData.email);
     if userData is error {
         json errorResponse = {
             "message": "Invalid email or password",
@@ -350,7 +350,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     user.lastLoginAt = currentTime;
     user.updatedAt = currentTime;
 
-    error? updateResult = firestoreModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
+    error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
     if updateResult is error {
         log:printError("Failed to update last login time", updateResult);
     }
@@ -413,7 +413,7 @@ public function authenticateRequest(http:Request req) returns User|error {
     }
 
     // Get full user data from Firestore for verification
-    json|error userData = firestoreModule:getDocument("users", email.toString());
+    json|error userData = mongoModule:getDocument("users", email.toString());
     if userData is error {
         return error("User not found");
     }
