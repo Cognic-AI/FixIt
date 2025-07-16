@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.12.4"
+distribution-version = "2201.12.7"
 
 [[package]]
 org = "ballerina"
@@ -68,9 +68,6 @@ dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "os"},
 	{org = "ballerina", name = "time"}
-]
-modules = [
-	{org = "ballerina", packageName = "file", moduleName = "file"}
 ]
 
 [[package]]
@@ -373,12 +370,24 @@ modules = [
 ]
 
 [[package]]
+org = "ballerinax"
+name = "mongodb"
+version = "5.1.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "log"}
+]
+modules = [
+	{org = "ballerinax", packageName = "mongodb", moduleName = "mongodb"}
+]
+
+[[package]]
 org = "fixit"
 name = "backend"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
-	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "lang.array"},
@@ -389,7 +398,7 @@ dependencies = [
 	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "uuid"},
 	{org = "ballerinai", name = "observe"},
-	{org = "nalaka", name = "firestore"}
+	{org = "ballerinax", name = "mongodb"}
 ]
 modules = [
 	{org = "fixit", packageName = "backend", moduleName = "backend"},
@@ -398,29 +407,11 @@ modules = [
 	{org = "fixit", packageName = "backend", moduleName = "backend.bookings"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.events"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.feedback"},
-	{org = "fixit", packageName = "backend", moduleName = "backend.firestore"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.maps"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.messaging"},
+	{org = "fixit", packageName = "backend", moduleName = "backend.mongodb"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.reviews"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.services"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.utils"}
-]
-
-[[package]]
-org = "nalaka"
-name = "firestore"
-version = "1.0.2"
-dependencies = [
-	{org = "ballerina", name = "http"},
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "jwt"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "oauth2"},
-	{org = "ballerina", name = "regex"},
-	{org = "ballerina", name = "time"},
-	{org = "ballerinai", name = "observe"}
-]
-modules = [
-	{org = "nalaka", packageName = "firestore", moduleName = "firestore"}
 ]
 
