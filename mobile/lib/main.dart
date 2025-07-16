@@ -83,7 +83,10 @@ class FixItApp extends StatelessWidget {
               '/login': (context) => const LoginPage(),
               '/home': (context) => const HomePage(),
               '/interests': (context) => const InterestsPage(),
-              '/vendor_home': (context) => const VendorHomePage(),
+              '/vendor_home': (context) => VendorHomePage(
+                    user: AuthService().currentUser!,
+                    token: AuthService().jwtToken ?? '',
+                  ),
             },
           );
         },
@@ -117,7 +120,8 @@ class AuthWrapper extends StatelessWidget {
           final user = authService.currentUser!;
           if (user.role == 'vendor') {
             print('🏢 [AUTH] Vendor user - showing VendorHomePage');
-            return const VendorHomePage();
+            return VendorHomePage(
+                user: user, token: authService.jwtToken ?? '');
           } else {
             print('👤 [AUTH] Client user - showing HomePage');
             return const HomePage();

@@ -8,7 +8,11 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 
 class AddServicePage extends StatefulWidget {
-  const AddServicePage({super.key});
+  const AddServicePage(
+      {super.key, required this.token, required this.vendorId});
+
+  final String token;
+  final String vendorId;
 
   @override
   State<AddServicePage> createState() => _AddServicePageState();
@@ -51,7 +55,9 @@ class _AddServicePageState extends State<AddServicePage> {
     // Load services when page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vendorService = Provider.of<VendorService>(context, listen: false);
-      vendorService.loadMyServices();
+      vendorService.loadMyServices(
+        widget.token,
+      );
     });
   }
 
@@ -348,7 +354,11 @@ class _AddServicePageState extends State<AddServicePage> {
         active: true,
       );
 
-      final success = await vendorService.addService(service);
+      final success = await vendorService.addService(
+        service,
+        widget.token,
+        widget.vendorId,
+      );
 
       if (success) {
         developer.log('✅ Service added successfully', name: 'AddServicePage');
@@ -390,7 +400,9 @@ class _AddServicePageState extends State<AddServicePage> {
           );
 
           // Reload services to show the new one
-          await vendorService.loadMyServices();
+          await vendorService.loadMyServices(
+            widget.token,
+          );
         }
       } else {
         throw Exception('Failed to add service');
@@ -413,7 +425,9 @@ class _AddServicePageState extends State<AddServicePage> {
         // Reload services in VendorService
         final vendorService =
             Provider.of<VendorService>(context, listen: false);
-        await vendorService.loadMyServices();
+        await vendorService.loadMyServices(
+          widget.token,
+        );
       }
     }
   }
