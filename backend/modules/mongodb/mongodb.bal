@@ -114,10 +114,11 @@ public function updateDocument(string collection, string documentId, map<json> d
     map<json> filter = {"_id": documentId};
 
     // Create update operation
-    map<json> update = {"$set": data};
-
+    mongodb:Update updateOp = {
+        "$set": data
+    };
     io:println("🚀 Updating document...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, updateOp);
     io:println("✅ Document updated successfully");
 }
 
@@ -194,20 +195,24 @@ public function clearCollection(string collection) returns error? {
 }
 
 // Field operations
-public function updateField(string collection, string documentId, string fieldName, json value) returns error? {
+public function updateField(string collection, string documentId, string fieldName, string value) returns error? {
     io:println("🔧 Updating field '", fieldName, "' in document: ", collection, "/", documentId);
 
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
     // Create filter to match the specific document ID
-    map<json> filter = {"_id": documentId};
+    map<json> filter = {"id": documentId};
 
     // Create update operation for the specific field
-    map<json> update = {"$set": {fieldName: value}};
+    mongodb:Update updateOp = {
+        "$set": {
+            fieldName: value
+        }
+    };
 
     io:println("✏️ Updating field...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, updateOp);
     io:println("✅ Field update completed");
 }
 
@@ -221,9 +226,13 @@ public function deleteField(string collection, string documentId, string fieldNa
     map<json> filter = {"_id": documentId};
 
     // Create update operation to unset the field
-    map<json> update = {"$unset": {fieldName: ""}};
+    mongodb:Update update = {
+        "$unset": {
+            fieldName: ""
+        }
+    };
 
     io:println("🔧 Removing field...");
-    _ = check mongoCollection->updateOne(filter, <mongodb:Update>update);
+    _ = check mongoCollection->updateOne(filter, update);
     io:println("✅ Field deletion completed");
 }

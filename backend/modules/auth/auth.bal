@@ -331,14 +331,14 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     }
 
     // Update last login time
-    // string currentTime = time:utcToString(time:utcNow());
-    // user.lastLoginAt = currentTime;
-    // user.updatedAt = currentTime;
+    string currentTime = time:utcToString(time:utcNow());
+    user.lastLoginAt = currentTime;
+    user.updatedAt = currentTime;
 
-    // error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
-    // if updateResult is error {
-    //     log:printError("Failed to update last login time", updateResult);
-    // }
+    error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
+    if updateResult is error {
+        log:printError("Failed to update last login time", updateResult);
+    }
 
     // Generate JWT token
     string token = check generateJWTToken(user);
