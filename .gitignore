@@ -4,3 +4,7 @@
 */Config.toml
 */.env
 */target/
+*/.flutter-plugins-dependencies
+*/pubspec.lock
+
+.idea

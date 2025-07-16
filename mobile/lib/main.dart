@@ -11,25 +11,22 @@ import 'services/theme_service.dart';
 import 'services/vendor_service.dart';
 
 void main() async {
-  print('🚀 [MAIN] Starting FixIt App - ${DateTime.now()}');
+
   developer.log('🚀 Starting FixIt App', name: 'Main');
   WidgetsFlutterBinding.ensureInitialized();
-  print('✅ [MAIN] Flutter bindings initialized');
   developer.log('✅ Flutter bindings initialized', name: 'Main');
 
   try {
     // Load environment variables first
-    print('📄 [MAIN] Loading environment variables...');
     developer.log('📄 Loading environment variables...', name: 'Main');
     await dotenv.load(fileName: ".env");
-    print('✅ [MAIN] Environment variables loaded');
     developer.log('✅ Environment variables loaded', name: 'Main');
 
     print('🎯 [MAIN] Running FixIt App');
+
     developer.log('🎯 Running FixIt App', name: 'Main');
     runApp(const FixItApp());
   } catch (e, stackTrace) {
-    print('❌ [MAIN] Error during app initialization: $e');
     developer.log('❌ Error during app initialization: $e',
         name: 'Main', error: e, stackTrace: stackTrace);
     rethrow;
@@ -100,14 +97,14 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('🔐 [AUTH] Building AuthWrapper');
+    developer.log('🔐 [AUTH] Building AuthWrapper', name: 'AuthWrapper');
     return Consumer<AuthService>(
       builder: (context, authService, child) {
-        print(
-            '🔐 [AUTH] AuthService state - Loading: ${authService.isLoading}, User: ${authService.currentUser?.email ?? "null"}');
+        developer.log(
+            '🔐 [AUTH] AuthService state - Loading: ${authService.isLoading}, User: ${authService.currentUser?.email ?? "null"}', name: 'AuthWrapper');
 
         if (authService.isLoading) {
-          print('⏳ [AUTH] Showing loading screen');
+          developer.log('⏳ [AUTH] Showing loading screen', name: 'AuthWrapper');
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -116,19 +113,20 @@ class AuthWrapper extends StatelessWidget {
         }
 
         if (authService.currentUser != null) {
-          print('✅ [AUTH] User authenticated - routing based on user type');
+          developer.log('✅ [AUTH] User authenticated - routing based on user type', name: 'AuthWrapper');
           final user = authService.currentUser!;
           if (user.role == 'vendor') {
             print('🏢 [AUTH] Vendor user - showing VendorHomePage');
             return VendorHomePage(
                 user: user, token: authService.jwtToken ?? '');
+
           } else {
-            print('👤 [AUTH] Client user - showing HomePage');
+            developer.log('👤 [AUTH] Client user - showing HomePage', name: 'AuthWrapper');
             return const HomePage();
           }
         }
 
-        print('🔑 [AUTH] No user - showing LoginPage');
+        developer.log('🔑 [AUTH] No user - showing LoginPage', name: 'AuthWrapper');
         return const LoginPage();
       },
     );
