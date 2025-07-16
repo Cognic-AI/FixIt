@@ -2,7 +2,7 @@
 org = "fixit"
 name = "backend"
 version = "0.1.0"
-distribution = "2201.8.5"
+distribution = "2201.12.4"
 
 [build-options]
 observabilityIncluded = true
@@ -26,6 +26,16 @@ version = "1.7.0"
 org = "ballerina"
 name = "time"
 version = "2.4.0"
+
+[[dependency]]
+org = "ballerina"
+name = "jwt"
+version = "2.13.0"
+
+[[dependency]]
+org = "ballerina"
+name = "crypto"
+version = "2.9.0"
 
 [[dependency]]
 org = "ballerinax"
