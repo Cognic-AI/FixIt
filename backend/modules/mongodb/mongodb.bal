@@ -11,17 +11,7 @@ configurable string mongoAuthSource = "admin"; // Default admin database for aut
 
 // Initialize MongoDB client
 final mongodb:Client mongoDb = check new ({
-    connection: {
-        serverAddress: {
-            host: mongoHost,
-            port: mongoPort
-        },
-        auth: <mongodb:ScramSha256AuthCredential>{
-            username: mongoUsername,
-            password: mongoPassword,
-            database: mongoAuthSource
-        }
-    }
+    connection: connectionString
 });
 
 // Document operations
