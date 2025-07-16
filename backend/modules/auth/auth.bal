@@ -398,12 +398,9 @@ public function authenticateRequest(http:Request req) returns User|error {
     }
 
     // Get full user data from Firestore for verification
-    json|error userData = mongoModule:getDocument("users", email.toString());
-    if userData is error {
-        return error("User not found");
-    }
+    map<json> filter = {"email": email.toString()};
+    User|error user = mongoModule:queryUsers("users", filter);
 
-    User|error user = userData.cloneWithType(User);
     if user is error {
         return error("Failed to parse user data");
     }

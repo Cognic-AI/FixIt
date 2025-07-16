@@ -15,13 +15,13 @@ public type Service record {
     string title;
     string description;
     string category;
+    boolean availability;
     decimal price;
-    string[] tags;
-    boolean isActive;
-    string[] images;
     string location;
     string createdAt;
     string updatedAt;
+    string tags;
+    string images;
 };
 
 public type ServiceCreation record {
@@ -29,8 +29,8 @@ public type ServiceCreation record {
     string description;
     string category;
     decimal price;
-    string[] tags;
-    string[] images;
+    string tags;
+    string images;
     string location;
 };
 
@@ -87,14 +87,13 @@ public function createService(http:Caller caller, http:Request req) returns erro
         title: serviceData.title,
         description: serviceData.description,
         category: serviceData.category,
+        availability: true,
         price: serviceData.price,
-        tags: serviceData.tags,
-        isActive: true,
-        images: serviceData.images,
         location: serviceData.location,
         createdAt: currentTime,
-        updatedAt: currentTime
-    };
+        updatedAt: currentTime,
+        tags: serviceData.tags,
+        images: serviceData.images};
 
     // Save service to Firestore
     string|error createResult = check mongoModule:createDocument("services", mapToJSON(newService.toJson()));
@@ -163,10 +162,9 @@ public function getServices(http:Caller caller, http:Request req) returns error?
     }
     // Get services from Firestore
     map<json> filters = {
-        "active": true // Only fetch active services
-    };
-    map<json>|error servicesData = mongoModule:getDocumentWithFilters("services",
-            filters);
+        "availability": true // Only fetch active services
+};
+    Service[]|error servicesData = mongoModule:queryServices(filters);
     if servicesData is error {
         log:printError("Failed to fetch services from Firestore", servicesData);
         json errorResponse = {
@@ -185,10 +183,10 @@ public function getServices(http:Caller caller, http:Request req) returns error?
 
     json successResponse = {
         "message": "Services retrieved successfully",
-        "services": servicesData,
+        "services": servicesData.toJson(),
         "isAuthenticated": isAuthenticated,
         "userRole": userRole
-    };
+};
 
     http:Response response = new;
     response.statusCode = 200;
@@ -217,9 +215,9 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
     map<json> filters = {
         "providerEmail": user.email // Filter by provider ID
 };
-    map<json>|error allServicesData = mongoModule:getDocumentWithFilters("services", filters);
+    Service[]|error allServicesData = mongoModule:queryServices(filters);
     if allServicesData is error {
-        log:printError("Failed to fetch services from Firestore", allServicesData);
+        log:printError("Failed to fetch services from MongoDB", allServicesData);
         json errorResponse = {
             "message": "Failed to fetch services",
             "statusCode": 500
@@ -233,18 +231,19 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
 
     json successResponse = {
         "message": "Your services retrieved successfully",
-        "services": allServicesData,
+        "services": allServicesData.toJson(),
         "provider": {
             "id": user.id,
             "email": user.email,
             "firstName": user.firstName,
             "lastName": user.lastName
         }
-    };
+};
 
     http:Response response = new;
     response.statusCode = 200;
-    response.setJsonPayload(successResponse);
+    response.setJsonPayload
+(successResponse);
     check caller->respond(response);
 }
 
@@ -335,8 +334,8 @@ public function updateService(http:Caller caller, http:Request req, string servi
     if payload.location is string {
         existingService.location = (check payload.location).toString();
     }
-    if payload.isActive is boolean {
-        existingService.isActive = (check payload.isActive);
+    if payload.availability is boolean {
+        existingService.availability = check payload.availability;
     }
 
     // Update service in Firestore
