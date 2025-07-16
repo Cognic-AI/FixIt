@@ -5,6 +5,8 @@
 */.env
 */target/
 
+.vscode
+
 .idea
 
 # Do not remove or rename entries in this file, only add new ones
@@ -184,3 +186,8 @@ Dependencies.toml
 Config.toml
 # the config files used for testing, Uncomment the following line if you want to commit the test config files
 #!**/tests/Config.toml
+
+backend/firebase-service-account.json
+backend/private.key
+
+mobile/app/google-services.json
