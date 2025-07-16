@@ -303,9 +303,9 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         return;
     }
 
-    // Get user from Firestore
-    json|error userData = mongoModule:getDocument("users", <string>loginData.email);
-    if userData is error {
+    map<json> filter = {"email": loginData.email};
+    User|error user = mongoModule:queryUsers("users", filter);
+    if user is error {
         json errorResponse = {
             "message": "Invalid email or password",
             "statusCode": 401
@@ -316,21 +316,6 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         check caller->respond(response);
         return;
     }
-
-    User|error user = userData.cloneWithType(User);
-    if user is error {
-        log:printError("Failed to parse user data", user);
-        json errorResponse = {
-            "message": "Internal server error",
-            "statusCode": 500
-        };
-        http:Response response = new;
-        response.statusCode = 500;
-        response.setJsonPayload(errorResponse);
-        check caller->respond(response);
-        return;
-    }
-
     // Verify password
     boolean|error passwordValid = verifyPassword(loginData.password, user.password);
     if passwordValid is error || !passwordValid {
@@ -346,14 +331,14 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     }
 
     // Update last login time
-    string currentTime = time:utcToString(time:utcNow());
-    user.lastLoginAt = currentTime;
-    user.updatedAt = currentTime;
+    // string currentTime = time:utcToString(time:utcNow());
+    // user.lastLoginAt = currentTime;
+    // user.updatedAt = currentTime;
 
-    error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
-    if updateResult is error {
-        log:printError("Failed to update last login time", updateResult);
-    }
+    // error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
+    // if updateResult is error {
+    //     log:printError("Failed to update last login time", updateResult);
+    // }
 
     // Generate JWT token
     string token = check generateJWTToken(user);

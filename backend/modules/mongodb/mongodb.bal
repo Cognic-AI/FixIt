@@ -9,7 +9,21 @@ configurable string mongoUsername = ?;
 configurable string mongoPassword = ?;
 configurable string mongoAuthSource = "admin"; // Default admin database for authentication
 
-// Initialize MongoDB client
+public type User record {
+    string id;
+    string email;
+    string firstName;
+    string lastName;
+    string? phoneNumber;
+    string role; // "customer", "provider", "admin"
+    string password; // hashed
+    boolean emailVerified;
+    string? profileImageUrl;
+    string createdAt;
+    string updatedAt;
+    string? lastLoginAt;
+}; // Initialize MongoDB client
+
 final mongodb:Client mongoDb = check new ({
     connection: connectionString
 });
@@ -76,7 +90,7 @@ public function getDocumentWithFilters(string collection, map<json> filter = {})
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
     io:println("🔍 Querying document with filter...");
-    map<json>|error|() result = mongoCollection->findOne(filter);
+    map<json>|error|() result = mongoCollection->findOne(filter, {});
 
     if result is error {
         io:println("❌ Error retrieving document: ", result.message());
@@ -121,46 +135,52 @@ public function deleteDocument(string collection, string documentId) returns err
     io:println("✅ Document deleted successfully");
 }
 
-public function queryDocuments(string collection, map<json>? filters = ()) returns map<json>[]|error {
-    io:println("🔍 Querying documents in collection: ", collection);
+public function queryUsers(
+        string collection,
+        map<json> filter
+) returns User|error {
+    io:println("🔍 Getting document from collection: ", collection);
 
     mongodb:Database db = check mongoDb->getDatabase("main");
     mongodb:Collection mongoCollection = check db->getCollection(collection);
 
-    map<json> filter = filters is map<json> ? filters : {};
-    if filters is map<json> {
-        io:println("📋 Using filters: ", filters.toString());
-    } else {
-        io:println("📋 No filters applied");
-    }
-
+    io:println("📋 Using filter: ", filter.toString());
     io:println("🚀 Executing query...");
-    stream<map<json>, error?>|error resultStream = mongoCollection->find(filter);
 
-    if resultStream is error {
-        io:println("❌ Error executing query: ", resultStream.message());
-        return error("Error executing query: " + resultStream.message());
+    // Query with User type projection
+    User|mongodb:Error|() result = mongoCollection->findOne(
+        filter,
+        {},  // findOptions
+        (),  // projection
+        User
+    );
+
+    // Handle the different result cases
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    } else if result is () {
+        io:println("❌ No document found matching the filter");
+        return error("User not found");
+    }
+    else {
+
+        io:println("✅ User document retrieved successfully");
+        return result;
     }
 
-    map<json>[] results = [];
-    check resultStream.forEach(function(map<json> doc) {
-        results.push(doc);
-    });
-
-    io:println("✅ Query completed. Found ", results.length().toString(), " documents");
-    return results;
 }
 
 // Collection operations
-public function listDocuments(string collection) returns map<json>[]|error {
-    io:println("📋 Listing all documents in collection: ", collection);
-    // Get all documents in a collection (no filters)
-    map<json>[]|error result = queryDocuments(collection);
-    if result is map<json>[] {
-        io:println("✅ Listed ", result.length().toString(), " documents");
-    }
-    return result;
-}
+// public function listDocuments(string collection) returns map<json>[]|error {
+//     io:println("📋 Listing all documents in collection: ", collection);
+//     // Get all documents in a collection (no filters)
+//     map<json>[]|error result = queryDocuments(collection);
+//     if result is map<json>[] {
+//         io:println("✅ Listed ", result.length().toString(), " documents");
+//     }
+//     return result;
+// }
 
 public function clearCollection(string collection) returns error? {
     io:println("🧹 Clearing all documents from collection: ", collection);
