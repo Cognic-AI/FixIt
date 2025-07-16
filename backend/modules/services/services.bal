@@ -1,5 +1,5 @@
 import backend.auth;
-import backend.firestore as firestoreModule;
+import backend.mongodb as mongoModule;
 
 import ballerina/http;
 import ballerina/io;
@@ -97,7 +97,7 @@ public function createService(http:Caller caller, http:Request req) returns erro
     };
 
     // Save service to Firestore
-    string|error createResult = check firestoreModule:createDocument("services", mapToJSON(newService.toJson()));
+    string|error createResult = check mongoModule:createDocument("services", mapToJSON(newService.toJson()));
     if createResult is error {
         log:printError("Failed to create service in Firestore", createResult);
         json errorResponse = {
@@ -165,7 +165,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
     map<json> filters = {
         "active": true // Only fetch active services
     };
-    map<json>|error servicesData = firestoreModule:getDocumentWithFilters("services",
+    map<json>|error servicesData = mongoModule:getDocumentWithFilters("services",
             filters);
     if servicesData is error {
         log:printError("Failed to fetch services from Firestore", servicesData);
@@ -217,7 +217,7 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
     map<json> filters = {
         "providerEmail": user.email // Filter by provider ID
 };
-    map<json>|error allServicesData = firestoreModule:getDocumentWithFilters("services", filters);
+    map<json>|error allServicesData = mongoModule:getDocumentWithFilters("services", filters);
     if allServicesData is error {
         log:printError("Failed to fetch services from Firestore", allServicesData);
         json errorResponse = {
@@ -265,7 +265,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
 
     // Get existing service to verify ownership
-    json|error serviceData = firestoreModule:getDocument("services", serviceId);
+    json|error serviceData = mongoModule:getDocument("services", serviceId);
     if serviceData is error {
         json errorResponse = {
             "message": "Service not found",
@@ -340,7 +340,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
 
     // Update service in Firestore
-    error? updateResult = firestoreModule:updateDocument("services", serviceId, mapToJSON(existingService.toJson()));
+    error? updateResult = mongoModule:updateDocument("services", serviceId, mapToJSON(existingService.toJson()));
     if updateResult is error {
         log:printError("Failed to update service in Firestore", updateResult);
         json errorResponse = {
@@ -383,7 +383,7 @@ public function deleteService(http:Caller caller, http:Request req, string servi
     }
 
     // Get existing service to verify ownership
-    json|error serviceData = firestoreModule:getDocument("services", serviceId);
+    json|error serviceData = mongoModule:getDocument("services", serviceId);
     if serviceData is error {
         json errorResponse = {
             "message": "Service not found",
@@ -423,7 +423,7 @@ public function deleteService(http:Caller caller, http:Request req, string servi
     }
 
     // Delete service from Firestore
-    error? deleteResult = firestoreModule:deleteDocument("services", serviceId);
+    error? deleteResult = mongoModule:deleteDocument("services", serviceId);
     if deleteResult is error {
         log:printError("Failed to delete service from Firestore", deleteResult);
         json errorResponse = {
