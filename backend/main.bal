@@ -159,11 +159,11 @@ isolated service /api/services on new http:Listener(8084) {
     }
 }
 
-// Services
+// Requests
 @http:ServiceConfig {
     cors: corsConfig
 }
-isolated service /api/requests on new http:Listener(8085) {
+isolated service /api/requests on new http:Listener(8086) {
     resource function get .(http:Caller caller, http:Request req) returns error? {
         check controllers:getRequests(caller, req);
     }
@@ -182,6 +182,30 @@ isolated service /api/requests on new http:Listener(8085) {
 
     resource function delete [string requestId](http:Caller caller, http:Request req) returns error? {
         check controllers:deleteRequest(caller, req, requestId);
+// Contracts service
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/contracts on new http:Listener(8085) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check controllers:createContract(caller, req);
+    }
+
+    resource function get my(http:Caller caller, http:Request req) returns error? {
+        check controllers:getMyContracts(caller, req);
+    }
+
+    resource function get [string contractId](http:Caller caller, http:Request req) returns error? {
+        check controllers:getContract(caller, req, contractId);
+    }
+
+    resource function put [string contractId]/status(http:Caller caller, http:Request req) returns error? {
+        check controllers:updateContractStatus(caller, req, contractId);
+    }
+
+    resource function get status/[string status](http:Caller caller, http:Request req) returns error? {
+        check controllers:getContractsByStatus(caller, req, status);
+
     }
 }
 
