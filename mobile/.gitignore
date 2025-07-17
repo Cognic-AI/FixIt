@@ -34,3 +34,7 @@ next-env.d.ts
 
 ./pubspec.lock
 
+./android/.gradle
+./android/.kotlin
+./android/.settings
+./android/app/build
