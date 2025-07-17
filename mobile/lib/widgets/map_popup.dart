@@ -3,12 +3,17 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 class MapPopup extends StatefulWidget {
-  const MapPopup({super.key, this.location, this.name, this.description});
+  const MapPopup(
+      {super.key,
+      this.location,
+      this.name,
+      this.description,
+      this.onRequestService});
 
   final String? location;
   final String? name;
   final String? description;
-
+  final void Function()? onRequestService;
   @override
   _MapPopupState createState() => _MapPopupState();
 }
@@ -21,7 +26,7 @@ class _MapPopupState extends State<MapPopup> {
 
   GoogleMapController? _mapController;
   Position? _currentPosition;
-  Set<Marker> _markers = {};
+  final Set<Marker> _markers = {};
 
   @override
   void initState() {
@@ -69,15 +74,7 @@ class _MapPopupState extends State<MapPopup> {
         final lat = double.tryParse(parts[0].trim());
         final lng = double.tryParse(parts[1].trim());
         if (lat != null && lng != null) {
-          double? distance;
-          if (_currentPosition != null) {
-            distance = Geolocator.distanceBetween(
-              lat,
-              lng,
-              _currentPosition!.latitude,
-              _currentPosition!.longitude,
-            );
-          }
+          if (_currentPosition != null) {}
           final marker = Marker(
             markerId: const MarkerId('custom_location'),
             position: LatLng(lat, lng),
@@ -211,6 +208,7 @@ class _MapPopupState extends State<MapPopup> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           // Handle request service action
+                          widget.onRequestService!();
                           Navigator.pop(context);
                         },
                         icon: const Icon(Icons.handyman),

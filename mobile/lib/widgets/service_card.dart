@@ -2,9 +2,12 @@ import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
+import '../services/user_service.dart' as userService;
 
 class ServiceCard extends StatelessWidget {
   final Service service;
+  final String userId;
+  final String token;
   final bool isHorizontal;
   final void Function()? onTap;
   final void Function()? onMessageTap;
@@ -12,6 +15,8 @@ class ServiceCard extends StatelessWidget {
   const ServiceCard({
     super.key,
     required this.service,
+    required this.userId,
+    required this.token,
     this.isHorizontal = false,
     this.onTap,
     this.onMessageTap,
@@ -106,6 +111,14 @@ class ServiceCard extends StatelessWidget {
                                       location: service.location,
                                       name: service.title,
                                       description: service.description,
+                                      onRequestService: () {
+                                        userService.UserService().createRequest(
+                                          token: token,
+                                          serviceId: service.id,
+                                          clientId: userId,
+                                          providerId: service.providerId,
+                                        );
+                                      },
                                     );
                                   });
                             },
