@@ -69,12 +69,25 @@ class _MapPopupState extends State<MapPopup> {
         final lat = double.tryParse(parts[0].trim());
         final lng = double.tryParse(parts[1].trim());
         if (lat != null && lng != null) {
+          double? distance;
+          if (_currentPosition != null) {
+            distance = Geolocator.distanceBetween(
+              lat,
+              lng,
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            );
+          }
           final marker = Marker(
             markerId: const MarkerId('custom_location'),
             position: LatLng(lat, lng),
             infoWindow: InfoWindow(
               title: widget.name ?? 'Location',
-              snippet: widget.description ?? 'Placeholder details here',
+              snippet: widget.description != null
+                  ? '${widget.description}\n${distance != null ? 'Distance: ${distance.toStringAsFixed(2)} m' : ''}'
+                  : (distance != null
+                      ? 'Distance: ${distance.toStringAsFixed(2)} m'
+                      : 'Placeholder details here'),
             ),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure),
