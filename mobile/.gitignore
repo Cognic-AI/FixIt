@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-.flutter-plugins-dependencies
+/.flutter-plugins-dependencies
 
 # next.js
 /.next/
