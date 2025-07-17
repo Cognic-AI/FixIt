@@ -1,66 +1,24 @@
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as developer;
 import '../models/user.dart' as app_user;
 
 class AuthService extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  User? _firebaseUser;
+  static final String _baseUrl =
+      dotenv.env['AUTH_SERVICE_URL'] ?? 'http://localhost:8080/api/auth';
+  String? _jwtToken;
   app_user.User? _currentUser;
   bool _isLoading = false;
 
-  User? get firebaseUser => _firebaseUser;
   app_user.User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  String? get jwtToken => _jwtToken;
 
   AuthService() {
     print('🔐 [AUTH_SERVICE] AuthService initialized');
     developer.log('🔐 AuthService initialized', name: 'AuthService');
-    // No longer relying on auth state changes
-  }
-
-  // Handle authentication manually instead of using the auth state listener
-  Future<void> _handleAuthentication(String uid) async {
-    print('👤 [AUTH_SERVICE] Authentication successful for UID: $uid');
-    developer.log('👤 Authentication successful for UID: $uid',
-        name: 'AuthService');
-
-    // Set the current Firebase user ID
-    _firebaseUser = _auth.currentUser;
-
-    print('📥 [AUTH_SERVICE] Loading user data for: $uid');
-    developer.log('📥 Loading user data for: $uid', name: 'AuthService');
-
-    // Load user data using the provided UID
-    await _loadUserData(uid);
-
-    print('🔄 [AUTH_SERVICE] Notifying listeners');
-    notifyListeners();
-  }
-
-  Future<void> _loadUserData(String uid) async {
-    try {
-      developer.log('📊 Loading user data from Firestore for uid: $uid',
-          name: 'AuthService');
-      final doc = await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) {
-        developer.log('✅ User data found in Firestore', name: 'AuthService');
-        _currentUser = app_user.User.fromJson({
-          'id': doc.id,
-          ...doc.data()!,
-        });
-      } else {
-        developer.log('⚠️ User document not found in Firestore',
-            name: 'AuthService');
-      }
-    } catch (e) {
-      developer.log('❌ Error loading user data: $e',
-          name: 'AuthService', error: e);
-      debugPrint('Error loading user data: $e');
-    }
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
@@ -71,26 +29,35 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('📡 [AUTH_SERVICE] Making Firebase auth request');
-      developer.log('📡 Making Firebase auth request', name: 'AuthService');
-      final userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
-      print('✅ [AUTH_SERVICE] Firebase sign in successful');
-      developer.log('✅ Firebase sign in successful', name: 'AuthService');
+      final response = await http.post(
+        Uri.parse('$_baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
 
-      // Use the _handleAuthentication method with the user's UID
-      await _handleAuthentication(userCredential.user!.uid);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _jwtToken = data['token'];
+        if (data['user'] != null) {
+          _currentUser = app_user.User.fromJson(data['user']);
+        } else {
+          _currentUser = null;
+          developer.log('⚠️ Login response missing user data',
+              name: 'AuthService');
+        }
+        print('✅ [AUTH_SERVICE] Login successful');
+        developer.log('✅ Login successful', name: 'AuthService');
+      } else {
+        developer.log('❌ Login failed: ${response.body}', name: 'AuthService');
+        throw Exception('Login failed: ${response.body}');
+      }
     } catch (e) {
-      print('❌ [AUTH_SERVICE] Firebase sign in failed: $e');
-      developer.log('❌ Firebase sign in failed: $e',
-          name: 'AuthService', error: e);
+      developer.log('❌ Error during login: $e', name: 'AuthService', error: e);
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<void> createUserWithEmailAndPassword({
@@ -99,57 +66,110 @@ class AuthService extends ChangeNotifier {
     required String firstName,
     required String lastName,
     required String userType,
+    String? phoneNumber,
   }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      final response = await http.post(
+        Uri.parse('$_baseUrl/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'firstName': firstName,
+          'lastName': lastName,
+          'role': userType,
+          'phoneNumber': phoneNumber,
+        }),
       );
 
-      if (credential.user != null) {
-        final userData = app_user.User(
-          id: credential.user!.uid,
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          userType: userType,
-          location: 'Recife, Brazil',
-          createdAt: DateTime.now(),
-        );
-
-        await _firestore
-            .collection('users')
-            .doc(credential.user!.uid)
-            .set(userData.toJson());
-
-        _currentUser = userData;
-
-        // Use the _handleAuthentication method with the user's UID
-        await _handleAuthentication(credential.user!.uid);
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _jwtToken = data['token'];
+        _currentUser = app_user.User.fromJson(data['user']);
+        developer.log('✅ Registration successful', name: 'AuthService');
+      } else {
+        developer.log('❌ Registration failed: ${response.body}',
+            name: 'AuthService');
+        throw Exception('Registration failed: ${response.body}');
       }
     } catch (e) {
+      developer.log('❌ Error during registration: $e',
+          name: 'AuthService', error: e);
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      rethrow;
     }
+  }
 
-    _isLoading = false;
+  Future<void> loadUserProfile() async {
+    if (_jwtToken == null) return;
+    _isLoading = true;
     notifyListeners();
 
-    _isLoading = false;
-    notifyListeners();
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_jwtToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _currentUser = app_user.User.fromJson(data);
+        developer.log('✅ User profile loaded', name: 'AuthService');
+      } else {
+        developer.log('❌ Failed to load profile: ${response.body}',
+            name: 'AuthService');
+        throw Exception('Failed to load profile: ${response.body}');
+      }
+    } catch (e) {
+      developer.log('❌ Error loading profile: $e',
+          name: 'AuthService', error: e);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    _jwtToken = null;
     _currentUser = null;
     notifyListeners();
   }
 
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+  // Password reset would need a backend endpoint, not implemented here
+  Future<void> resetPassword(String email) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        developer.log('✅ Password reset email sent', name: 'AuthService');
+      } else {
+        developer.log('❌ Failed to send reset email: ${response.body}',
+            name: 'AuthService');
+        throw Exception('Failed to send reset email: ${response.body}');
+      }
+    } catch (e) {
+      developer.log('❌ Error sending reset email: $e',
+          name: 'AuthService', error: e);
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }
