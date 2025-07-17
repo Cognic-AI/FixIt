@@ -32,5 +32,5 @@ next-env.d.ts
 .flutter-plugins
 .flutter-plugins-dependencies
 
-pubspec.lock
+./pubspec.lock
 
