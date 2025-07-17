@@ -34,7 +34,10 @@ next-env.d.ts
 
 ./pubspec.lock
 
+./android/.settings
 ./android/.gradle
 ./android/.kotlin
-./android/.settings
+
 ./android/app/build
+
+./macos
