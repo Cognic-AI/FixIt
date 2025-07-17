@@ -1,6 +1,4 @@
-import backend.mongodb as mongoModule;
 import backend.utils as utils;
-
 import ballerina/crypto;
 import ballerina/http;
 import ballerina/io;
@@ -9,26 +7,13 @@ import ballerina/log;
 import ballerina/regex;
 import ballerina/time;
 import ballerina/uuid;
+import backend.models;
 
 // JWT Configuration
 configurable string jwtSecretKey = ?;
 configurable decimal jwtExpirationTime = 86400; // 24 hours in seconds
 
 // User model types
-public type User record {
-    string id;
-    string email;
-    string firstName;
-    string lastName;
-    string? phoneNumber;
-    string role; // "customer", "provider", "admin"
-    string password; // hashed
-    boolean emailVerified;
-    string? profileImageUrl;
-    string createdAt;
-    string updatedAt;
-    string? lastLoginAt;
-};
 
 public type UserRegistration record {
     string email;
@@ -46,7 +31,7 @@ public type UserLogin record {
 
 public type AuthResponse record {
     string token;
-    User user;
+    models:User user;
     string message;
 };
 
@@ -68,7 +53,7 @@ function verifyPassword(string password, string hashedPassword) returns boolean|
 }
 
 // Generate simple JWT token (for development - in production use proper signing)
-function generateJWTToken(User user) returns string|error {
+function generateJWTToken(models:User user) returns string|error {
     // Create a simple token with base64 encoding for development
     string payload = string `{"userId":"${user.id}","email":"${user.email}","role":"${user.role}","firstName":"${user.firstName}","lastName":"${user.lastName}","exp":${<decimal>time:utcNow()[0] + jwtExpirationTime}}`;
     byte[] payloadBytes = payload.toBytes();
@@ -161,7 +146,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
     }
 
     // Check if user already exists
-    json|error existingUser = mongoModule:getDocument("users", <string>userReg.email);
+    json|error existingUser = models:getDocument("users", <string>userReg.email);
     if existingUser is json {
         json errorResponse = {
             "message": "User with this email already exists",
@@ -184,7 +169,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
     string userId = uuid:createType1AsString();
     string currentTime = time:utcToString(time:utcNow());
 
-    User newUser = {
+    models:User newUser = {
         id: userId,
         email: userReg.email,
         firstName: userReg.firstName,
@@ -213,7 +198,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         check caller->respond(response);
         return;
     }
-    string|error createResult = mongoModule:createDocument("users", <map<json>>newUser.toJson());
+    string|error createResult = models:createDocument("users", <map<json>>newUser.toJson());
     if createResult is error {
         log:printError("Failed to create user in Firestore", createResult);
         json errorResponse = {
@@ -234,7 +219,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
     string token = check generateJWTToken(newUser);
 
     // Remove password from response
-    User userResponse = {
+    models:User userResponse = {
         id: newUser.id,
         email: newUser.email,
         firstName: newUser.firstName,
@@ -304,7 +289,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     }
 
     map<json> filter = {"email": loginData.email};
-    User|error user = mongoModule:queryUsers("users", filter);
+    models:User|error user = models:queryUsers("users", filter);
     if user is error {
         json errorResponse = {
             "message": "Invalid email or password",
@@ -335,7 +320,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     user.lastLoginAt = currentTime;
     user.updatedAt = currentTime;
 
-    error? updateResult = mongoModule:updateDocument("users", loginData.email, <map<json>>user.toJson());
+    error? updateResult = models:updateDocument("users", loginData.email, <map<json>>user.toJson());
     if updateResult is error {
         log:printError("Failed to update last login time", updateResult);
     }
@@ -344,7 +329,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     string token = check generateJWTToken(user);
 
     // Remove password from response
-    User userResponse = {
+    models:User userResponse = {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
@@ -373,7 +358,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
 }
 
 // Authentication middleware
-public function authenticateRequest(http:Request req) returns User|error {
+public function authenticateRequest(http:Request req) returns models:User|error {
     string|http:HeaderNotFoundError authHeader = req.getHeader("Authorization");
     if authHeader is http:HeaderNotFoundError {
         return error("Authorization header not found");
@@ -399,7 +384,7 @@ public function authenticateRequest(http:Request req) returns User|error {
 
     // Get full user data from Firestore for verification
     map<json> filter = {"email": email.toString()};
-    User|error user = mongoModule:queryUsers("users", filter);
+    models:User|error user = models:queryUsers("users", filter);
 
     if user is error {
         return error("Failed to parse user data");
@@ -410,7 +395,7 @@ public function authenticateRequest(http:Request req) returns User|error {
 
 // Helper function to extract user ID from token
 function extractUserIdFromToken(http:Request req) returns string|error {
-    User|error user = authenticateRequest(req);
+    models:User|error user = authenticateRequest(req);
     if user is error {
         return user;
     }
@@ -418,8 +403,8 @@ function extractUserIdFromToken(http:Request req) returns string|error {
 }
 
 // Role-based authorization middleware
-public function authorizeRole(http:Request req, string[] allowedRoles) returns User|error {
-    User|error user = authenticateRequest(req);
+public function authorizeRole(http:Request req, string[] allowedRoles) returns models:User|error {
+    models:User|error user = authenticateRequest(req);
     if user is error {
         return user;
     }
@@ -446,7 +431,7 @@ public function authorizeRole(http:Request req, string[] allowedRoles) returns U
 # + req - parameter description
 # + return - return value description
 public function getUserProfile(http:Caller caller, http:Request req) returns error? {
-    User|error user = authenticateRequest(req);
+    models:User|error user = authenticateRequest(req);
     if user is error {
         json errorResponse = {
             "message": "Unauthorized",
@@ -460,7 +445,7 @@ public function getUserProfile(http:Caller caller, http:Request req) returns err
     }
 
     // Remove password from response
-    User userResponse = {
+    models:User userResponse = {
         id: user.id,
         email: user.email,
         firstName: user.firstName,

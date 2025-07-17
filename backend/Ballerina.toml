@@ -10,7 +10,7 @@ observabilityIncluded = true
 [[dependency]]
 org = "ballerina"
 name = "http"
-version = "2.9.3"
+version = "2.14.2"
 
 [[dependency]]
 org = "ballerina"
