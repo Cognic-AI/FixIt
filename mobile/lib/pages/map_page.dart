@@ -15,46 +15,7 @@ class _MapPageState extends State<MapPage> {
   final Set<Marker> _markers = {};
   Service? _selectedService;
 
-  final List<Service> nearbyServices = [
-    Service(
-      id: '1',
-      title: 'Great Apartment',
-      price: 150.0,
-      location: 'Recife',
-      rating: 4.8,
-      imageUrl:
-          'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      dates: 'Mar 12 – Mar 15',
-      hostName: 'Karen Roe',
-      category: 'accommodation',
-      latitude: -8.0476,
-      longitude: -34.877,
-      description: 'A spacious apartment in the heart of Recife.',
-      reviewCount: 45,
-      hostId: 'host123',
-      amenities: ['WiFi', 'Air Conditioning', 'Kitchen'],
-      active: true,
-    ),
-    Service(
-      id: '2',
-      title: 'Cozy Studio',
-      price: 85.0,
-      location: 'Olinda',
-      rating: 4.6,
-      imageUrl:
-          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400',
-      dates: 'Mar 20 – Mar 23',
-      hostName: 'João Silva',
-      category: 'accommodation',
-      latitude: -8.0089,
-      longitude: -34.8553,
-      description: 'A cozy studio apartment in historic Olinda.',
-      reviewCount: 32,
-      hostId: 'host456',
-      amenities: ['WiFi', 'TV', 'Balcony'],
-      active: true,
-    ),
-  ];
+  List<Service> nearbyServices = [];
 
   @override
   void initState() {
@@ -67,7 +28,10 @@ class _MapPageState extends State<MapPage> {
       _markers.add(
         Marker(
           markerId: MarkerId(service.id),
-          position: LatLng(service.latitude!, service.longitude!),
+          position: LatLng(
+            double.parse(service.location.split(',')[0]),
+            double.parse(service.location.split(',')[1]),
+          ),
           infoWindow: InfoWindow(
             title: service.title,
             snippet: '€${service.price.toStringAsFixed(0)}',
@@ -261,7 +225,10 @@ class _MapPageState extends State<MapPage> {
                             });
                             _mapController?.animateCamera(
                               CameraUpdate.newLatLng(
-                                LatLng(service.latitude!, service.longitude!),
+                                LatLng(
+                                  double.parse(service.location.split(',')[0]),
+                                  double.parse(service.location.split(',')[1]),
+                                ),
                               ),
                             );
                           },

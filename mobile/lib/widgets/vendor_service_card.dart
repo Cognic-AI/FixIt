@@ -37,15 +37,15 @@ class VendorServiceCard extends StatelessWidget {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    image: service.imageUrl.isNotEmpty
+                    image: service.images.isNotEmpty
                         ? DecorationImage(
-                            image: NetworkImage(service.imageUrl),
+                            image: NetworkImage(service.images),
                             fit: BoxFit.cover,
                           )
                         : null,
-                    color: service.imageUrl.isEmpty ? Colors.grey[300] : null,
+                    color: service.images.isEmpty ? Colors.grey[300] : null,
                   ),
-                  child: service.imageUrl.isEmpty
+                  child: service.images.isEmpty
                       ? const Center(
                           child: Icon(
                             Icons.image,
@@ -63,11 +63,11 @@ class VendorServiceCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: service.active ? Colors.green : Colors.red,
+                      color: service.availability ? Colors.green : Colors.red,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      service.active ? 'Active' : 'Inactive',
+                      service.availability ? 'Available' : 'Unavailable',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -89,9 +89,12 @@ class VendorServiceCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       _buildQuickActionButton(
-                        icon: service.active ? Icons.pause : Icons.play_arrow,
+                        icon: service.availability
+                            ? Icons.pause
+                            : Icons.play_arrow,
                         onTap: onToggleStatus,
-                        color: service.active ? Colors.orange : Colors.green,
+                        color:
+                            service.availability ? Colors.orange : Colors.green,
                       ),
                       const SizedBox(width: 8),
                       _buildQuickActionButton(
@@ -173,31 +176,6 @@ class VendorServiceCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-
-                // Rating and Reviews
-                Row(
-                  children: [
-                    Icon(Icons.star, size: 16, color: Colors.amber[600]),
-                    const SizedBox(width: 4),
-                    Text(
-                      service.rating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '(${service.reviewCount} reviews)',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-
                 if (service.description.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Text(
@@ -212,13 +190,13 @@ class VendorServiceCard extends StatelessWidget {
                   ),
                 ],
 
-                // Amenities
-                if (service.amenities.isNotEmpty) ...[
+                // Tags
+                if (service.tags.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children: service.amenities.take(3).map((amenity) {
+                    children: service.tags.split(',').take(3).map((tag) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
@@ -227,7 +205,7 @@ class VendorServiceCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          amenity,
+                          tag.trim(),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,

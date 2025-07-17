@@ -35,7 +35,7 @@ class ServiceCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    service.imageUrl,
+                    service.images,
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -74,20 +74,6 @@ class ServiceCard extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            service.rating.toString(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -132,7 +118,7 @@ class ServiceCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Image.network(
-                      service.imageUrl,
+                      service.images,
                       width: double.infinity,
                       height: 150,
                       fit: BoxFit.cover,
@@ -204,22 +190,8 @@ class ServiceCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                size: 14, color: Colors.amber),
-                            const SizedBox(width: 4),
-                            Text(
-                              service.rating.toString(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
                         Text(
-                          service.dates,
+                          service.updatedAt,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -229,7 +201,7 @@ class ServiceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Host: ${service.hostName}',
+                      'Host: ${service.providerEmail}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,

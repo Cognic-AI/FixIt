@@ -232,11 +232,44 @@ class _AddServicePageState extends State<AddServicePage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Availability/Dates
-                      CustomTextField(
-                        controller: _datesController,
-                        label: 'Availability',
-                        hintText: 'e.g., Mon-Fri 9AM-5PM',
+                      // Availability Dropdown
+                      const Text(
+                        'Availability',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _datesController.text.isEmpty
+                                ? 'Available'
+                                : _datesController.text,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'Available',
+                                child: Text('Available'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'Unavailable',
+                                child: Text('Unavailable'),
+                              ),
+                            ],
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _datesController.text = newValue ?? 'Available';
+                              });
+                            },
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -339,19 +372,19 @@ class _AddServicePageState extends State<AddServicePage> {
 
       final service = Service(
         id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
+        providerId: widget.vendorId,
+        providerEmail: currentUser.email,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
+        category: _selectedCategory,
+        availability:
+            _datesController.text.trim().isNotEmpty, // true if dates entered
         price: double.parse(_priceController.text.trim()),
         location: _locationController.text.trim(),
-        rating: 0.0,
-        reviewCount: 0,
-        hostId: currentUser.id,
-        hostName: currentUser.fullName,
-        category: _selectedCategory,
-        amenities: _amenities,
-        imageUrl: _imageUrlController.text.trim(),
-        dates: _datesController.text.trim(),
-        active: true,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+        tags: _amenities.join(','),
+        images: _imageUrlController.text.trim(),
       );
 
       final success = await vendorService.addService(

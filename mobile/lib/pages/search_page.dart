@@ -41,46 +41,7 @@ class _SearchPageState extends State<SearchPage> {
     'Sports'
   ];
 
-  final List<Service> searchResults = [
-    Service(
-      id: '1',
-      title: 'Great Apartment',
-      price: 150.0,
-      location: 'Recife',
-      rating: 4.8,
-      imageUrl:
-          'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      dates: 'Mar 12 – Mar 15',
-      hostName: 'Karen Roe',
-      category: 'accommodation',
-      description: 'A beautiful apartment in the heart of the city.',
-      reviewCount: 120,
-      hostId: 'host1',
-      amenities: ['Wi-Fi', 'Air Conditioning', 'Kitchen'],
-      latitude: -8.0476,
-      longitude: -34.8770,
-      active: true,
-    ),
-    Service(
-      id: '2',
-      title: 'Professional Photography',
-      price: 200.0,
-      location: 'Olinda',
-      rating: 4.9,
-      imageUrl:
-          'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400',
-      dates: 'Available',
-      hostName: 'Maria Santos',
-      category: 'professional',
-      description: 'Capture your moments with a professional photographer.',
-      reviewCount: 85,
-      hostId: 'host2',
-      amenities: ['High Resolution', 'Editing', 'Outdoor Shooting'],
-      latitude: -8.0089,
-      longitude: -34.8550,
-      active: true,
-    ),
-  ];
+  List<Service> searchResults = [];
 
   @override
   Widget build(BuildContext context) {

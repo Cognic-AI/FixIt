@@ -17,40 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Service> featuredServices = [
-    Service(
-      id: '1',
-      title: 'Great Apartment',
-      price: 150.0,
-      location: 'Recife',
-      rating: 4.8,
-      imageUrl:
-          'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      dates: 'Mar 12 – Mar 15',
-      hostName: 'Karen Roe',
-      category: 'accommodation',
-      description: '',
-      reviewCount: 0,
-      hostId: '101',
-      amenities: ['WiFi', 'Kitchen', 'AC'],
-    ),
-    Service(
-      id: '2',
-      title: 'Cozy Studio',
-      price: 85.0,
-      location: 'Olinda',
-      rating: 4.6,
-      imageUrl:
-          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400',
-      dates: 'Mar 20 – Mar 23',
-      hostName: 'João Silva',
-      category: 'accommodation',
-      description: '',
-      reviewCount: 0,
-      hostId: '102',
-      amenities: ['WiFi', 'TV'],
-    ),
-  ];
+  List<Service> featuredServices = [];
 
   final List<Event> nearbyEvents = [
     Event(
