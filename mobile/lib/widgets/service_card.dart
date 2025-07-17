@@ -1,3 +1,4 @@
+import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
@@ -7,13 +8,14 @@ class ServiceCard extends StatelessWidget {
   final bool isHorizontal;
   final void Function()? onTap;
   final void Function()? onMessageTap;
-  final void Function()? onMapTap;
+  // final void Function()? onMapTap;
   const ServiceCard({
     super.key,
     required this.service,
     this.isHorizontal = false,
     this.onTap,
     this.onMessageTap,
+    // this.onMapTap,
   });
 
   @override
@@ -94,6 +96,20 @@ class ServiceCard extends StatelessWidget {
                               fontSize: 12,
                               color: Colors.grey,
                             ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return MapPopup(
+                                      location: service.location,
+                                      name: service.title,
+                                      description: service.description,
+                                    );
+                                  });
+                            },
+                            child: const Text('Show in Map'),
                           ),
                         ],
                       ),
@@ -201,6 +217,12 @@ class ServiceCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Handle message button press
+                          },
+                          child: const Text('Show in Map'),
                         ),
                       ],
                     ),
