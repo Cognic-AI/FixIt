@@ -5,11 +5,14 @@ import '../models/service.dart';
 class ServiceCard extends StatelessWidget {
   final Service service;
   final bool isHorizontal;
-
+  final void Function()? onTap;
+  final void Function()? onMessageTap;
   const ServiceCard({
     super.key,
     required this.service,
     this.isHorizontal = false,
+    this.onTap,
+    this.onMessageTap,
   });
 
   @override
@@ -17,6 +20,23 @@ class ServiceCard extends StatelessWidget {
     developer.log(
         '🏗️ Building ServiceCard for: ${service.title} (horizontal: $isHorizontal)',
         name: 'ServiceCard');
+    final messageButton = Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: ElevatedButton.icon(
+        onPressed: onMessageTap,
+        icon: const Icon(Icons.message),
+        label: const Text('Message'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(100, 36),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
+
     if (isHorizontal) {
       return Card(
         elevation: 2,
@@ -24,9 +44,7 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
-          onTap: () {
-            // Navigate to service details
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -35,7 +53,7 @@ class ServiceCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    service.imageUrl,
+                    service.images,
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -78,20 +96,6 @@ class ServiceCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 14, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            service.rating.toString(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 8),
                       Text(
                         '€${service.price.toStringAsFixed(2)}',
@@ -101,6 +105,7 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
+                      messageButton, // Show message button here
                     ],
                   ),
                 ),
@@ -119,9 +124,7 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
-          onTap: () {
-            // Navigate to service details
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +135,7 @@ class ServiceCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Image.network(
-                      service.imageUrl,
+                      service.images,
                       width: double.infinity,
                       height: 150,
                       fit: BoxFit.cover,
@@ -204,22 +207,8 @@ class ServiceCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                size: 14, color: Colors.amber),
-                            const SizedBox(width: 4),
-                            Text(
-                              service.rating.toString(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
                         Text(
-                          service.dates,
+                          service.updatedAt,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -229,12 +218,13 @@ class ServiceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Host: ${service.hostName}',
+                      'Host: ${service.providerEmail}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
                     ),
+                    messageButton, // Show message button here
                   ],
                 ),
               ),

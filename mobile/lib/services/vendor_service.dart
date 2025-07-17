@@ -46,22 +46,32 @@ class VendorService extends ChangeNotifier {
     try {
       print('[VendorService] Loading services from $_baseUrl');
       final response = await http.get(
-        Uri.parse(_baseUrl),
+        Uri.parse("$_baseUrl/my"),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
-      print('[VendorService] Response status: ${response.statusCode}');
+      developer.log('[VendorService] Response status: ${response.statusCode}',
+          name: 'VendorService');
       if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-        _myServices = data.map((json) => Service.fromJson(json)).toList();
-        print('[VendorService] Loaded ${_myServices.length} services');
-        developer.log('Loaded ${_myServices.length} services',
-            name: 'VendorService');
+        final decoded = (jsonDecode(response.body))["services"];
+        if (decoded is List) {
+          _myServices = decoded.map((json) => Service.fromJson(json)).toList();
+          print(
+              '[VendorService] Loaded ${_myServices.length} services successfully.');
+          developer.log('[VendorService] Loaded ${_myServices.length} services',
+              name: 'VendorService');
+        } else {
+          print('[VendorService] Unexpected response format: ${response.body}');
+          developer.log(
+              '[VendorService] Unexpected response format: ${response.body}',
+              name: 'VendorService');
+          _myServices = [];
+        }
       } else {
-        print('[VendorService] Error loading services: ${response.body}');
-        developer.log('Error loading services: ${response.body}',
+        developer.log(
+            '[VendorService] Error loading services: ${response.body}',
             name: 'VendorService');
       }
       notifyListeners();
@@ -85,10 +95,10 @@ class VendorService extends ChangeNotifier {
       serviceData['hostId'] = currentUserId;
       print('[VendorService] Adding service: $serviceData');
       final response = await http.post(
-        Uri.parse('$_baseUrl/services'),
+        Uri.parse(_baseUrl),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
         body: jsonEncode(serviceData),
       );
@@ -113,10 +123,10 @@ class VendorService extends ChangeNotifier {
     try {
       print('[VendorService] Updating service $serviceId with $updates');
       final response = await http.put(
-        Uri.parse('$_baseUrl/services/$serviceId'),
+        Uri.parse('$_baseUrl/$serviceId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
         body: jsonEncode(updates),
       );
@@ -146,7 +156,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/services/$serviceId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
       print(
@@ -173,7 +183,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/requests?vendorId=$currentUserId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
       if (response.statusCode == 200) {
@@ -204,7 +214,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/requests/$requestId/accept'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
       if (response.statusCode == 200) {
@@ -232,7 +242,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/requests/$requestId/reject'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
       if (response.statusCode == 200) {
@@ -261,7 +271,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/requests/$requestId/status'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
         body: jsonEncode({'status': status.toString().split('.').last}),
       );
@@ -289,7 +299,7 @@ class VendorService extends ChangeNotifier {
         Uri.parse('$_baseUrl/conversations?vendorId=$currentUserId'),
         headers: {
           'Content-Type': 'application/json',
-          'Authentication': "Bearer $token"
+          'Authorization': "Bearer $token"
         },
       );
       if (response.statusCode == 200) {

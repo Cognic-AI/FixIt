@@ -958,7 +958,7 @@ class _VendorHomePageState extends State<VendorHomePage>
   void _toggleServiceStatus(Service service) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
     vendorService.updateService(
-        service.id, {'active': !service.active}, widget.token);
+        service.id, {'availability': !service.availability}, widget.token);
   }
 
   void _viewServiceDetails(Service service) {
