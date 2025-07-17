@@ -1,3 +1,4 @@
+// Add this import at the top if not present
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
@@ -5,11 +6,12 @@ import '../models/service.dart';
 class ServiceCard extends StatelessWidget {
   final Service service;
   final bool isHorizontal;
-
+  final bool isVendor;
   const ServiceCard({
     super.key,
     required this.service,
     this.isHorizontal = false,
+    this.isVendor = true,
   });
 
   @override
@@ -87,6 +89,25 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
+                      if (!isVendor)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // Handle messaging
+                            },
+                            icon: const Icon(Icons.message),
+                            label: const Text('Message'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(100, 36),
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -207,6 +228,25 @@ class ServiceCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
+                    if (!isVendor)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // Handle messaging
+                          },
+                          icon: const Icon(Icons.message),
+                          label: const Text('Message'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(100, 36),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
