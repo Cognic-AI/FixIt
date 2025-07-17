@@ -23,7 +23,7 @@ buildscript {
         mavenCentral() // Required for dependencies from Maven Central
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1' // Adjust version as needed
+        classpath 'com.android.tools.build:gradle:8.3.0' // Adjust version as needed
         classpath 'com.google.gms:google-services:4.4.2' // Ensure the correct version
     }
 }
