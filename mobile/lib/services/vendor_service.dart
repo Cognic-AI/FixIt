@@ -10,7 +10,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class VendorService extends ChangeNotifier {
   static final String _baseUrl =
       dotenv.env['VENDOR_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
-
+  static final String _baseRequestUrl =
+      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8085/api/requests';
   List<Service> _myServices = [];
   List<ServiceRequest> _pendingRequests = [];
   List<ServiceRequest> _activeServices = [];
@@ -175,12 +176,11 @@ class VendorService extends ChangeNotifier {
     }
   }
 
-  Future<void> loadServiceRequests(String? token, String? currentUserId) async {
-    if (currentUserId == null) return;
+  Future<void> loadServiceRequests(String? token) async {
     _setLoading(true);
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/requests?vendorId=$currentUserId'),
+        Uri.parse("$_baseRequestUrl/my"),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': "Bearer $token"
@@ -220,7 +220,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -248,7 +247,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -278,7 +276,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -355,6 +352,8 @@ class VendorService extends ChangeNotifier {
     // print(
     //     '[VENDOR_SERVICE] Initializing VendorService with userId: $userId and token: $token');
     await loadMyServices(token);
-    await loadServiceRequests(token, userId);
+    await loadServiceRequests(
+      token,
+    );
   }
 }

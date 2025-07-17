@@ -463,7 +463,6 @@ class _VendorHomePageState extends State<VendorHomePage>
                     onPressed: () {
                       vendorService.loadServiceRequests(
                         widget.token,
-                        widget.user.id,
                       );
                     },
                     icon: const Icon(Icons.refresh, color: Colors.white),

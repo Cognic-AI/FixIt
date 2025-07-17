@@ -19,6 +19,25 @@ public type Request record {
     string chatId;
 };
 
+public type RequestResponse record {
+    string id;
+    string serviceId;
+    string providerId;
+    string clientId;
+    string state;
+    string location;
+    string createdAt;
+    string updatedAt;
+    string chatId;
+    string title;
+    string description;
+    string category;
+    boolean availability;
+    decimal price;
+    string tags;
+    string images;
+};
+
 public type RequestCreation record {
     string serviceId;
     string clientId;
@@ -140,9 +159,14 @@ public function getRequests(http:Caller caller, http:Request req) returns error?
     }
     // Get requests from Firestore
     map<json> filters = {
-        "availability": true // Only fetch active requests
     };
-    Request[]|error requestsData = check models:queryRequests(filters);
+    if user is models:User && user.role == "client" {
+        filters["clientId"] = user.id; // Filter by client ID if authenticated as client
+    }
+    else if user is models:User && user.role == "vendor" {
+        filters["providerId"] = user.id; // Filter by provider ID if authenticated as vendor
+    }
+    RequestResponse|error requestsData = check models:queryRequest(filters);
     if requestsData is error {
         io:println("Failed to fetch requests from Firestore: " + requestsData.toString()); // IO log
         log:printError("Failed to fetch requests from Firestore", requestsData);
@@ -177,7 +201,7 @@ public function getRequests(http:Caller caller, http:Request req) returns error?
 public function getMyRequests(http:Caller caller, http:Request req) returns error? {
     io:println("getMyRequests called"); // IO log
     // Authenticate and authorize provider role
-    models:User|error user = authorizeRole(req, ["client"]);
+    models:User|error user = authorizeRole(req, ["client", "vendor"]);
     if user is error {
         io:println("Unauthorized access attempt in getMyRequests"); // IO log
         json errorResponse = {
@@ -191,10 +215,14 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
         return;
     }
 
-    // Filter requests by provider ID
-    map<json> filters = {
-        "providerEmail": user.email // Filter by provider email
-    };
+    map<json> filters = {};
+    if user is models:User {
+        if user.role == "client" {
+            filters["clientId"] = user.id; // Filter by client ID if authenticated as client
+        } else if user.role == "vendor" {
+            filters["providerId"] = user.id; // Filter by provider ID if authenticated as vendor
+        }
+    }
     Request[]|error allRequestsData = models:queryRequests(filters);
     if allRequestsData is error {
         io:println("Failed to fetch requests from Firestore: " + allRequestsData.toString()); // IO log
