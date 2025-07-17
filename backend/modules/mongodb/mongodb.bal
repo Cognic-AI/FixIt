@@ -1,28 +1,11 @@
 import ballerina/io;
 import ballerinax/mongodb;
-
+import backend.models;
+import backend.utils;
 // MongoDB configuration
-configurable string connectionString = ?;
-configurable string mongoHost = ?;
-configurable int mongoPort = 27017;
-configurable string mongoUsername = ?;
-configurable string mongoPassword = ?;
-configurable string mongoAuthSource = "admin"; // Default admin database for authentication
 
-public type User record {
-    string id;
-    string email;
-    string firstName;
-    string lastName;
-    string? phoneNumber;
-    string role; // "customer", "provider", "admin"
-    string password; // hashed
-    boolean emailVerified;
-    string? profileImageUrl;
-    string createdAt;
-    string updatedAt;
-    string? lastLoginAt;
-}; // Initialize MongoDB client
+mongodb:Client mongoDb = utils:mongoDb;
+type User models:User;
 
 public type _Service record {
     string id;
@@ -40,9 +23,6 @@ public type _Service record {
     string images;
 };
 
-final mongodb:Client mongoDb = check new ({
-    connection: connectionString
-});
 
 // Document operations
 public function createDocument(string collection, map<json> data, string? documentId = ()) returns string|error {

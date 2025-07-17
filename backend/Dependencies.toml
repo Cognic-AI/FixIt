@@ -372,7 +372,7 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "mongodb"
-version = "5.1.0"
+version = "5.0.0"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"},
@@ -409,6 +409,7 @@ modules = [
 	{org = "fixit", packageName = "backend", moduleName = "backend.feedback"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.maps"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.messaging"},
+	{org = "fixit", packageName = "backend", moduleName = "backend.models"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.mongodb"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.reviews"},
 	{org = "fixit", packageName = "backend", moduleName = "backend.services"},
