@@ -10,3 +10,7 @@ mobile/.flutter-plugins-dependencies
 backend/Dependencies.toml
 backend/backup.txt
 backend/firebase-service-account.json
+*/.flutter-plugins-dependencies
+*/pubspec.lock
+
+.idea
