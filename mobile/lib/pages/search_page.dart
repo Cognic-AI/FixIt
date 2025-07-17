@@ -22,11 +22,18 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
 
   final List<String> categories = [
-    'All',
-    'Accommodation',
-    'Events',
-    'Home Services',
-    'Professional Services'
+    'cleaning',
+    'plumbing',
+    'electrical',
+    'painting',
+    'gardening',
+    'handyman',
+    'moving',
+    'tutoring',
+    'beauty',
+    'photography',
+    'catering',
+    'other'
   ];
 
   final List<String> filters = [
@@ -293,29 +300,33 @@ class _SearchPageState extends State<SearchPage> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: FilterChip(
-                          label: Text(category),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = category;
-                            });
-                          },
-                          backgroundColor: Colors.white,
-                          selectedColor:
-                              const Color(0xFF2563EB).withOpacity(0.2),
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? const Color(0xFF2563EB)
-                                : Colors.grey[700],
-                          ),
-                        ),
-                      );
-                    },
+                      label: Text(category),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                      setState(() {
+                        if (isSelected) {
+                        _selectedCategory = 'All';
+                        } else {
+                        _selectedCategory = category;
+                        }
+                      });
+                      },
+                      backgroundColor: Colors.white,
+                      selectedColor:
+                        const Color(0xFF2563EB).withOpacity(0.2),
+                      labelStyle: TextStyle(
+                      color: isSelected
+                        ? const Color(0xFF2563EB)
+                        : Colors.grey[700],
+                      ),
+                    ),
+                    );
+                  },
                   ),
                 ),
-              ],
-            ),
-          ),
+                ],
+              ),
+              ),
 
           // Filters Button
           Container(
