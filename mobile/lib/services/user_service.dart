@@ -9,7 +9,7 @@ class UserService {
   static final String _baseServiceUrl =
       dotenv.env['USER_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
   static final String _baseRequestUrl =
-      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8085/api/requests';
+      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
 
   Future<List<Service>> loadServices(String token) async {
     developer.log('[UserService] Loading services from $_baseServiceUrl',
