@@ -374,6 +374,7 @@ class _SearchPageState extends State<SearchPage> {
                               child: ServiceCard(
                                 service: searchResults[index],
                                 isHorizontal: true,
+                                onMessageTap: () => {},
                               ),
                             );
                           },

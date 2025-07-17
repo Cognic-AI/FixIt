@@ -7,6 +7,7 @@ class VendorServiceCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onToggleStatus;
   final VoidCallback? onViewDetails;
+  final VoidCallback? onMessage; // Added for message button
 
   const VendorServiceCard({
     super.key,
@@ -15,6 +16,7 @@ class VendorServiceCard extends StatelessWidget {
     this.onDelete,
     this.onToggleStatus,
     this.onViewDetails,
+    this.onMessage, // Added for message button
   });
 
   @override
@@ -101,6 +103,12 @@ class VendorServiceCard extends StatelessWidget {
                         icon: Icons.delete,
                         onTap: onDelete,
                         color: Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickActionButton(
+                        icon: Icons.message,
+                        onTap: onMessage,
+                        color: Colors.teal,
                       ),
                     ],
                   ),

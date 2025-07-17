@@ -1,4 +1,3 @@
-// Add this import at the top if not present
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
@@ -6,12 +5,14 @@ import '../models/service.dart';
 class ServiceCard extends StatelessWidget {
   final Service service;
   final bool isHorizontal;
-  final bool isVendor;
+  final void Function()? onTap;
+  final void Function()? onMessageTap;
   const ServiceCard({
     super.key,
     required this.service,
     this.isHorizontal = false,
-    this.isVendor = true,
+    this.onTap,
+    this.onMessageTap,
   });
 
   @override
@@ -19,6 +20,23 @@ class ServiceCard extends StatelessWidget {
     developer.log(
         '🏗️ Building ServiceCard for: ${service.title} (horizontal: $isHorizontal)',
         name: 'ServiceCard');
+    final messageButton = Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: ElevatedButton.icon(
+        onPressed: onMessageTap,
+        icon: const Icon(Icons.message),
+        label: const Text('Message'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(100, 36),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
+
     if (isHorizontal) {
       return Card(
         elevation: 2,
@@ -26,9 +44,7 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
-          onTap: () {
-            // Navigate to service details
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -89,25 +105,7 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
-                      if (!isVendor)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              // Handle messaging
-                            },
-                            icon: const Icon(Icons.message),
-                            label: const Text('Message'),
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(100, 36),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
+                      messageButton, // Show message button here
                     ],
                   ),
                 ),
@@ -126,9 +124,7 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
-          onTap: () {
-            // Navigate to service details
-          },
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,25 +224,7 @@ class ServiceCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
-                    if (!isVendor)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Handle messaging
-                          },
-                          icon: const Icon(Icons.message),
-                          label: const Text('Message'),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(100, 36),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
+                    messageButton, // Show message button here
                   ],
                 ),
               ),
