@@ -1,67 +1,67 @@
-import 'dart:developer' as developer;
-
 class User {
   final String id;
+  final String email;
   final String firstName;
   final String lastName;
-  final String email;
-  final String userType; // 'client' or 'vendor'
-  final String? avatar;
-  final double rating;
-  final int reviewCount;
-  final String location;
-  final bool verified;
+  final String? phoneNumber;
+  final String role; // "customer", "provider", "admin"
+  final String password; // hashed
+  final bool emailVerified;
+  final String? profileImageUrl;
   final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? lastLoginAt;
 
   User({
     required this.id,
+    required this.email,
     required this.firstName,
     required this.lastName,
-    required this.email,
-    required this.userType,
-    this.avatar,
-    this.rating = 0.0,
-    this.reviewCount = 0,
-    required this.location,
-    this.verified = false,
+    this.phoneNumber,
+    required this.role,
+    required this.password,
+    required this.emailVerified,
+    this.profileImageUrl,
     required this.createdAt,
+    required this.updatedAt,
+    this.lastLoginAt,
   });
 
   String get fullName => '$firstName $lastName';
-  String get username => '@${email.split('@')[0]}';
 
   factory User.fromJson(Map<String, dynamic> json) {
-    developer.log(
-        '👤 Creating User from JSON: ${json['firstName']} ${json['lastName']}',
-        name: 'User');
     return User(
       id: json['id'],
+      email: json['email'],
       firstName: json['firstName'],
       lastName: json['lastName'],
-      email: json['email'],
-      userType: json['userType'],
-      avatar: json['avatar'],
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      reviewCount: json['reviewCount'] ?? 0,
-      location: json['location'],
-      verified: json['verified'] ?? false,
+      phoneNumber: json['phoneNumber'],
+      role: json['role'],
+      password: json['password'],
+      emailVerified: json['emailVerified'] ?? false,
+      profileImageUrl: json['profileImageUrl'],
       createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+      lastLoginAt: json['lastLoginAt'] != null
+          ? DateTime.parse(json['lastLoginAt'])
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'email': email,
       'firstName': firstName,
       'lastName': lastName,
-      'email': email,
-      'userType': userType,
-      'avatar': avatar,
-      'rating': rating,
-      'reviewCount': reviewCount,
-      'location': location,
-      'verified': verified,
+      'phoneNumber': phoneNumber,
+      'role': role,
+      'password': password,
+      'emailVerified': emailVerified,
+      'profileImageUrl': profileImageUrl,
       'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+      'lastLoginAt': lastLoginAt?.toIso8601String(),
     };
   }
 }
