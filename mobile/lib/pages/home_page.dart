@@ -1,3 +1,4 @@
+import 'package:fixit/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -10,8 +11,10 @@ import 'search_page.dart';
 import 'map_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.user, required this.token});
 
+  final User user;
+  final String token;
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -91,7 +94,10 @@ class _HomePageState extends State<HomePage> {
                       name: 'HomePage');
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SearchPage()),
+                    MaterialPageRoute(
+                        builder: (context) => SearchPage(
+                              token: widget.token,
+                            )),
                   );
                 },
               ),
@@ -173,7 +179,9 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const SearchPage()),
+                                  builder: (context) => SearchPage(
+                                        token: widget.token,
+                                      )),
                             );
                           },
                           icon: const Icon(Icons.search),
@@ -230,7 +238,9 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SearchPage()),
+                            builder: (context) => SearchPage(
+                                  token: widget.token,
+                                )),
                       );
                     },
                     child: const Text('See More'),

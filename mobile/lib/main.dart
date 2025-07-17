@@ -27,7 +27,11 @@ void main() async {
 
     print('🎯 [MAIN] Running FixIt App');
     developer.log('🎯 Running FixIt App', name: 'Main');
-    runApp(const FixItApp());
+    runApp(MultiProvider(providers: [
+      ChangeNotifierProvider(create: (_) => AuthService()),
+      ChangeNotifierProvider(create: (_) => ThemeService()),
+      ChangeNotifierProvider(create: (_) => VendorService()),
+    ], child: const FixItApp()));
   } catch (e, stackTrace) {
     print('❌ [MAIN] Error during app initialization: $e');
     developer.log('❌ Error during app initialization: $e',
@@ -81,7 +85,10 @@ class FixItApp extends StatelessWidget {
             home: const AuthWrapper(),
             routes: {
               '/login': (context) => const LoginPage(),
-              '/home': (context) => const HomePage(),
+              '/home': (context) => HomePage(
+                    user: AuthService().currentUser!,
+                    token: AuthService().jwtToken ?? '',
+                  ),
               '/interests': (context) => const InterestsPage(),
               '/vendor_home': (context) => VendorHomePage(
                     user: AuthService().currentUser!,
@@ -124,7 +131,10 @@ class AuthWrapper extends StatelessWidget {
                 user: user, token: authService.jwtToken ?? '');
           } else {
             print('👤 [AUTH] Client user - showing HomePage');
-            return const HomePage();
+            return HomePage(
+              user: user,
+              token: authService.jwtToken ?? '',
+            );
           }
         }
 

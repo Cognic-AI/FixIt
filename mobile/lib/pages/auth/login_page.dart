@@ -116,8 +116,8 @@ class _LoginPageState extends State<LoginPage> {
         email = 'sahan2@fixit.lk';
         password = 'sahan123';
       } else {
-        email = 'sahan@fixit.lk';
-        password = 'sahan123';
+        email = 'nishan@fixit.lk';
+        password = 'nishan123';
       }
 
       _emailController.text = email;
