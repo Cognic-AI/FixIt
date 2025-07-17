@@ -8,7 +8,7 @@ class ServiceCard extends StatelessWidget {
   final bool isHorizontal;
   final void Function()? onTap;
   final void Function()? onMessageTap;
-  // final void Function()? onMapTap;
+  final void Function()? onMapTap;
   const ServiceCard({
     super.key,
     required this.service,
