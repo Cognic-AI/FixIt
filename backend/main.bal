@@ -160,6 +160,17 @@ isolated service /api/services on new http:Listener(8084) {
     }
 }
 
+// Location service
+// @http:ServiceConfig {
+//     cors: corsConfig
+// }
+// isolated service /api/location on new http:Listener(8085) {
+//     resource function get login(http:Caller caller, http:Request req) returns error? {
+//         check maps:_location(caller, req);
+//     }
+// }
+
+
 // Events service (commented out)
 // @http:ServiceConfig {
 //     cors: corsConfig
