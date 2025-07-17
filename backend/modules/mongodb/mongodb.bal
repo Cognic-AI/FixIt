@@ -22,6 +22,9 @@ public type User record {
     string createdAt;
     string updatedAt;
     string? lastLoginAt;
+    float? latitude; 
+    float? longitude;
+    string? category;
 }; // Initialize MongoDB client
 
 public type _Service record {
