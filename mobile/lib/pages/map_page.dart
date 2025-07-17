@@ -167,15 +167,10 @@ class _MapPageState extends State<MapPage> {
       final coordinates = _parseLocationString(service.location);
       
       if (coordinates != null) {
-        final distance = _calculateDistance(coordinates);
         final marker = Marker(
           markerId: MarkerId(service.id),
           position: coordinates,
-          infoWindow: InfoWindow(
-            title: service.title,
-            snippet: '${service.category.toUpperCase()} - €${service.price.toStringAsFixed(2)} • $distance\n${service.description.length > 150 ? '${service.description.substring(0, 150)}...' : service.description}',
-            onTap: () => _onMarkerTap(service),
-          ),
+          onTap: () => _onMarkerTap(service),
           icon: _getMarkerIcon(service.category),
         );
         newMarkers.add(marker);
@@ -336,7 +331,7 @@ class _MapPageState extends State<MapPage> {
       ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(20),
-        height: MediaQuery.of(context).size.height * 0.4,
+        height: MediaQuery.of(context).size.height * 0.5,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -425,31 +420,53 @@ class _MapPageState extends State<MapPage> {
             const Spacer(),
             
             // Action buttons
-            Row(
+            Column(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
+                // First row of buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Handle request service action
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.handyman),
+                        label: const Text('Request Service'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Handle directions action
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.directions),
+                        label: const Text('Directions'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF34D399),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Second row of buttons
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
                     onPressed: () {
                       // Handle contact action
                       Navigator.pop(context);
                     },
                     icon: const Icon(Icons.message),
                     label: const Text('Message'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // Handle view details action
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.visibility),
-                    label: const Text('View Details'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF2563EB),
                     ),

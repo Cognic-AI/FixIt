@@ -81,14 +81,7 @@ class _MapPopupState extends State<MapPopup> {
           final marker = Marker(
             markerId: const MarkerId('custom_location'),
             position: LatLng(lat, lng),
-            infoWindow: InfoWindow(
-              title: widget.name ?? 'Location',
-              snippet: widget.description != null
-                  ? '${widget.description}\n${distance != null ? 'Distance: ${distance.toStringAsFixed(2)} m' : ''}'
-                  : (distance != null
-                      ? 'Distance: ${distance.toStringAsFixed(2)} m'
-                      : 'Placeholder details here'),
-            ),
+            onTap: () => _onMarkerTap(LatLng(lat, lng)),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure),
           );
@@ -98,6 +91,175 @@ class _MapPopupState extends State<MapPopup> {
         }
       }
     }
+  }
+
+  void _onMarkerTap(LatLng markerPosition) {
+    _showServiceBottomSheet(markerPosition);
+  }
+
+  String _calculateDistance(LatLng serviceLocation) {
+    if (_currentPosition == null) {
+      return 'Distance unknown';
+    }
+
+    // Calculate distance using Geolocator's distanceBetween method
+    double distanceInMeters = Geolocator.distanceBetween(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+      serviceLocation.latitude,
+      serviceLocation.longitude,
+    );
+
+    // Convert to appropriate unit
+    if (distanceInMeters < 1000) {
+      return '${distanceInMeters.round()}m away';
+    } else {
+      double distanceInKm = distanceInMeters / 1000;
+      return '${distanceInKm.toStringAsFixed(1)}km away';
+    }
+  }
+
+  void _showServiceBottomSheet(LatLng markerPosition) {
+    final distance = _calculateDistance(markerPosition);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.name ?? 'Service Location',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Service details
+            if (widget.description != null) ...[
+              Text(
+                widget.description!,
+                style: const TextStyle(fontSize: 14),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Location and distance
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    widget.location ?? 'Unknown location',
+                    style: const TextStyle(color: Colors.grey),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Distance information
+            Row(
+              children: [
+                const Icon(Icons.directions,
+                    size: 16, color: Color(0xFF2563EB)),
+                const SizedBox(width: 4),
+                Text(
+                  distance,
+                  style: const TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+
+            const Spacer(),
+
+            // Action buttons
+            Column(
+              children: [
+                // First row of buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Handle request service action
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.handyman),
+                        label: const Text('Request Service'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Handle directions action
+                          Navigator.pop(context);
+                        },
+                        icon: const Icon(Icons.directions),
+                        label: const Text('Directions'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF34D399),
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Second row of buttons
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // Handle contact action
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.message),
+                    label: const Text('Message'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2563EB),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
