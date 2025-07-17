@@ -1,6 +1,5 @@
-import backend.ai;
-import backend.auth;
-import backend.services;
+import backend.controllers;
+import backend.models;
 
 // import backend.bookings;
 // import backend.services;
@@ -46,19 +45,19 @@ isolated service /api on new http:Listener(8083) {
 }
 isolated service /api/auth on new http:Listener(8080) {
     resource function post register(http:Caller caller, http:Request req) returns error? {
-        check auth:_registerUser(caller, req);
+        check controllers:_registerUser(caller, req);
     }
 
     resource function post login(http:Caller caller, http:Request req) returns error? {
-        check auth:_login(caller, req);
+        check controllers:_login(caller, req);
     }
 
     resource function get profile(http:Caller caller, http:Request req) returns error? {
-        check auth:getUserProfile(caller, req);
+        check controllers:getUserProfile(caller, req);
     }
 
     resource function get test(http:Caller caller, http:Request req) returns error? {
-        auth:User|error user = auth:authenticateRequest(req);
+        models:User|error user = controllers:authenticateRequest(req);
         if user is error {
             json errorResponse = {
                 "message": "Unauthorized: " + user.message(),
@@ -95,7 +94,7 @@ isolated service /api/auth on new http:Listener(8080) {
 }
 isolated service /api/admin on new http:Listener(8081) {
     resource function get users(http:Caller caller, http:Request req) returns error? {
-        auth:User|error user = auth:authorizeRole(req, ["admin"]);
+        models:User|error user = controllers:authorizeRole(req, ["admin"]);
         if user is error {
             json errorResponse = {
                 "message": "Forbidden: " + user.message(),
@@ -126,7 +125,7 @@ isolated service /api/admin on new http:Listener(8081) {
 }
 isolated service /api/ai on new http:Listener(8082) {
     resource function post chat(http:Caller caller, http:Request req) returns error? {
-        check ai:chatWithGemini(caller, req);
+        check controllers:chatWithGemini(caller, req);
     }
 
     // resource function post recommendations(http:Caller caller, http:Request req) returns error? {
@@ -140,23 +139,23 @@ isolated service /api/ai on new http:Listener(8082) {
 }
 isolated service /api/services on new http:Listener(8084) {
     resource function get .(http:Caller caller, http:Request req) returns error? {
-        check services:getServices(caller, req);
+        check controllers:getServices(caller, req);
     }
 
     resource function post .(http:Caller caller, http:Request req) returns error? {
-        check services:createService(caller, req);
+        check controllers:createService(caller, req);
     }
 
     resource function get my(http:Caller caller, http:Request req) returns error? {
-        check services:getMyServices(caller, req);
+        check controllers:getMyServices(caller, req);
     }
 
     resource function put [string serviceId](http:Caller caller, http:Request req) returns error? {
-        check services:updateService(caller, req, serviceId);
+        check controllers:updateService(caller, req, serviceId);
     }
 
     resource function delete [string serviceId](http:Caller caller, http:Request req) returns error? {
-        check services:deleteService(caller, req, serviceId);
+        check controllers:deleteService(caller, req, serviceId);
     }
 }
 

@@ -1,3 +1,4 @@
+import 'package:fixit/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -10,47 +11,16 @@ import 'search_page.dart';
 import 'map_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.user, required this.token});
 
+  final User user;
+  final String token;
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Service> featuredServices = [
-    Service(
-      id: '1',
-      title: 'Great Apartment',
-      price: 150.0,
-      location: 'Recife',
-      rating: 4.8,
-      imageUrl:
-          'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-      dates: 'Mar 12 – Mar 15',
-      hostName: 'Karen Roe',
-      category: 'accommodation',
-      description: '',
-      reviewCount: 0,
-      hostId: '101',
-      amenities: ['WiFi', 'Kitchen', 'AC'],
-    ),
-    Service(
-      id: '2',
-      title: 'Cozy Studio',
-      price: 85.0,
-      location: 'Olinda',
-      rating: 4.6,
-      imageUrl:
-          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400',
-      dates: 'Mar 20 – Mar 23',
-      hostName: 'João Silva',
-      category: 'accommodation',
-      description: '',
-      reviewCount: 0,
-      hostId: '102',
-      amenities: ['WiFi', 'TV'],
-    ),
-  ];
+  List<Service> featuredServices = [];
 
   final List<Event> nearbyEvents = [
     Event(
@@ -124,7 +94,10 @@ class _HomePageState extends State<HomePage> {
                       name: 'HomePage');
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SearchPage()),
+                    MaterialPageRoute(
+                        builder: (context) => SearchPage(
+                              token: widget.token,
+                            )),
                   );
                 },
               ),
@@ -206,7 +179,9 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const SearchPage()),
+                                  builder: (context) => SearchPage(
+                                        token: widget.token,
+                                      )),
                             );
                           },
                           icon: const Icon(Icons.search),
@@ -263,7 +238,9 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SearchPage()),
+                            builder: (context) => SearchPage(
+                                  token: widget.token,
+                                )),
                       );
                     },
                     child: const Text('See More'),

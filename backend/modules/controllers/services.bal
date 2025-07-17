@@ -1,11 +1,11 @@
-import backend.auth;
-import backend.mongodb as mongoModule;
 
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
 import ballerina/time;
 import ballerina/uuid;
+
+import backend.models;
 
 // Service model types
 public type Service record {
@@ -37,7 +37,7 @@ public type ServiceCreation record {
 // Create a new service (Provider only)
 public function createService(http:Caller caller, http:Request req) returns error? {
     // Authenticate and authorize vendor role
-    auth:User|error user = auth:authorizeRole(req, ["vendor"]);
+    models:User|error user = authorizeRole(req, ["vendor"]);
     if user is error {
         json errorResponse = {
             "message": "Unauthorized: Only service vendors can create services",
@@ -96,7 +96,7 @@ public function createService(http:Caller caller, http:Request req) returns erro
         images: serviceData.images};
 
     // Save service to Firestore
-    string|error createResult = check mongoModule:createDocument("services", mapToJSON(newService.toJson()));
+    string|error createResult = check models:createDocument("services", mapToJSON(newService.toJson()));
     if createResult is error {
         log:printError("Failed to create service in Firestore", createResult);
         json errorResponse = {
@@ -147,8 +147,8 @@ public isolated function mapToJSON(json data) returns map<json> {
 // Get all services (Public endpoint, but shows user info if authenticated)
 public function getServices(http:Caller caller, http:Request req) returns error? {
     // Optional authentication - show additional info if user is authenticated
-    auth:User|error user = auth:authenticateRequest(req);
-    boolean isAuthenticated = user is auth:User;
+    models:User|error user = authenticateRequest(req);
+    boolean isAuthenticated = user is models:User;
     if user is error && user.message() != "Unauthorized" {
         json errorResponse = {
             "message": "Failed to authenticate user",
@@ -164,7 +164,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
     map<json> filters = {
         "availability": true // Only fetch active services
 };
-    Service[]|error servicesData = mongoModule:queryServices(filters);
+    Service[]|error servicesData = models:queryServices(filters);
     if servicesData is error {
         log:printError("Failed to fetch services from Firestore", servicesData);
         json errorResponse = {
@@ -179,7 +179,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
         return;
     }
 
-    string userRole = isAuthenticated && user is auth:User ? user.role : "guest";
+    string userRole = isAuthenticated && user is models:User ? user.role : "guest";
 
     json successResponse = {
         "message": "Services retrieved successfully",
@@ -197,7 +197,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
 // Get user's own services (Provider only)
 public function getMyServices(http:Caller caller, http:Request req) returns error? {
     // Authenticate and authorize provider role
-    auth:User|error user = auth:authorizeRole(req, ["vendor"]);
+    models:User|error user = authorizeRole(req, ["vendor"]);
     if user is error {
         json errorResponse = {
             "message": "Unauthorized: Only service vendors can view their services",
@@ -215,7 +215,7 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
     map<json> filters = {
         "providerEmail": user.email // Filter by provider ID
 };
-    Service[]|error allServicesData = mongoModule:queryServices(filters);
+    Service[]|error allServicesData = models:queryServices(filters);
     if allServicesData is error {
         log:printError("Failed to fetch services from MongoDB", allServicesData);
         json errorResponse = {
@@ -250,7 +250,7 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
 // Update service (Provider only, own services)
 public function updateService(http:Caller caller, http:Request req, string serviceId) returns error? {
     // Authenticate and authorize vendor role
-    auth:User|error user = auth:authorizeRole(req, ["vendor"]);
+    models:User|error user = authorizeRole(req, ["vendor"]);
     if user is error {
         json errorResponse = {
             "message": "Unauthorized: Only service vendors can update services",
@@ -268,7 +268,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
         "id": serviceId,
         "providerId": user.id // Ensure the service belongs to the user
     };
-    Service|error serviceData = mongoModule:queryService(filters);
+    Service|error serviceData = models:queryService(filters);
     if serviceData is error {
         json errorResponse = {
             "message": "Service not found",
@@ -329,7 +329,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
 
     // Update service in Firestore
-    error? updateResult = mongoModule:updateDocument("services", serviceId, mapToJSON(serviceData.toJson()));
+    error? updateResult = models:updateDocument("services", serviceId, mapToJSON(serviceData.toJson()));
     if updateResult is error {
         log:printError("Failed to update service in Firestore", updateResult);
         json errorResponse = {
@@ -358,7 +358,7 @@ public function updateService(http:Caller caller, http:Request req, string servi
 // Delete service (Vendor only, own services)
 public function deleteService(http:Caller caller, http:Request req, string serviceId) returns error? {
     // Authenticate and authorize vendor role
-    auth:User|error user = auth:authorizeRole(req, ["vendor"]);
+    models:User|error user = authorizeRole(req, ["vendor"]);
     if user is error {
         json errorResponse = {
             "message": "Unauthorized: Only service vendors can delete services",
@@ -376,7 +376,7 @@ public function deleteService(http:Caller caller, http:Request req, string servi
         "id": serviceId,
         "providerId": user.id // Ensure the service belongs to the user
     };
-    Service|error existingService = mongoModule:queryService(filters);
+    Service|error existingService = models:queryService(filters);
     if existingService is error {
         json errorResponse = {
             "message": "Service not found",
@@ -402,8 +402,8 @@ public function deleteService(http:Caller caller, http:Request req, string servi
         return;
     }
 
-    // Delete service from Firestore
-    error? deleteResult = mongoModule:deleteDocument("services", serviceId);
+    // Delete service from mongoDB
+    error? deleteResult = models:deleteDocument("services", serviceId);
     if deleteResult is error {
         log:printError("Failed to delete service from Firestore", deleteResult);
         json errorResponse = {
