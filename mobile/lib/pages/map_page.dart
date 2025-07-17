@@ -167,12 +167,13 @@ class _MapPageState extends State<MapPage> {
       final coordinates = _parseLocationString(service.location);
       
       if (coordinates != null) {
+        final distance = _calculateDistance(coordinates);
         final marker = Marker(
           markerId: MarkerId(service.id),
           position: coordinates,
           infoWindow: InfoWindow(
             title: service.title,
-            snippet: '${service.category.toUpperCase()} - €${service.price.toStringAsFixed(2)}\n${service.description.length > 200 ? '${service.description.substring(0, 200)}...' : service.description}',
+            snippet: '${service.category.toUpperCase()} - €${service.price.toStringAsFixed(2)} • $distance\n${service.description.length > 150 ? '${service.description.substring(0, 150)}...' : service.description}',
             onTap: () => _onMarkerTap(service),
           ),
           icon: _getMarkerIcon(service.category),
@@ -235,11 +236,11 @@ class _MapPageState extends State<MapPage> {
       }
       
       // If no valid coordinates found, log and return null
-      developer.log('⚠️ MapPage: Could not parse location: $locationStr', name: 'MapPage');
+      developer.log('MapPage: Could not parse location: $locationStr', name: 'MapPage');
       return null;
       
     } catch (e) {
-      developer.log('⚠️ MapPage: Error parsing location "$locationStr": $e', name: 'MapPage');
+      developer.log('MapPage: Error parsing location "$locationStr": $e', name: 'MapPage');
       return null;
     }
   }
@@ -261,6 +262,28 @@ class _MapPageState extends State<MapPage> {
     };
     
     return cityMap[cityName];
+  }
+
+  String _calculateDistance(LatLng serviceLocation) {
+    if (_currentPosition == null) {
+      return 'Distance unknown';
+    }
+    
+    // Calculate distance using Geolocator's distanceBetween method
+    double distanceInMeters = Geolocator.distanceBetween(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+      serviceLocation.latitude,
+      serviceLocation.longitude,
+    );
+    
+    // Convert to appropriate unit
+    if (distanceInMeters < 1000) {
+      return '${distanceInMeters.round()}m away';
+    } else {
+      double distanceInKm = distanceInMeters / 1000;
+      return '${distanceInKm.toStringAsFixed(1)}km away';
+    }
   }
 
   BitmapDescriptor _getMarkerIcon(String category) {
@@ -294,13 +317,17 @@ class _MapPageState extends State<MapPage> {
 
   void _onMarkerTap(Service service) {
     // Handle marker tap - show service details
-    developer.log('🗺️ MapPage: Marker tapped for service: ${service.title}', name: 'MapPage');
+    developer.log('MapPage: Marker tapped for service: ${service.title}', name: 'MapPage');
     
     // You can implement a bottom sheet or dialog to show service details
     _showServiceBottomSheet(service);
   }
 
   void _showServiceBottomSheet(Service service) {
+    // Calculate distance for the bottom sheet
+    final coordinates = _parseLocationString(service.location);
+    final distance = coordinates != null ? _calculateDistance(coordinates) : 'Distance unknown';
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -352,7 +379,7 @@ class _MapPageState extends State<MapPage> {
             ),
             const SizedBox(height: 16),
             
-            // Price and location
+            // Price, location and distance
             Row(
               children: [
                 const Icon(Icons.euro, size: 16, color: Colors.green),
@@ -373,6 +400,23 @@ class _MapPageState extends State<MapPage> {
                     service.location,
                     style: const TextStyle(color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            
+            // Distance information
+            Row(
+              children: [
+                const Icon(Icons.directions, size: 16, color: Color(0xFF2563EB)),
+                const SizedBox(width: 4),
+                Text(
+                  distance,
+                  style: const TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
                   ),
                 ),
               ],
