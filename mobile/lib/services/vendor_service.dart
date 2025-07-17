@@ -1,3 +1,4 @@
+import 'package:fixit/models/request.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -10,18 +11,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class VendorService extends ChangeNotifier {
   static final String _baseUrl =
       dotenv.env['VENDOR_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
-
+  static final String _baseRequestUrl =
+      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8085/api/requests';
   List<Service> _myServices = [];
-  List<ServiceRequest> _pendingRequests = [];
-  List<ServiceRequest> _activeServices = [];
-  List<ServiceRequest> _completedServices = [];
+  List<Request> _pendingRequests = [];
+  List<Request> _activeServices = [];
+  List<Request> _completedServices = [];
   List<Conversation> _conversations = [];
   bool _isLoading = false;
 
   List<Service> get myServices => _myServices;
-  List<ServiceRequest> get pendingRequests => _pendingRequests;
-  List<ServiceRequest> get activeServices => _activeServices;
-  List<ServiceRequest> get completedServices => _completedServices;
+  List<Request> get pendingRequests => _pendingRequests;
+  List<Request> get activeServices => _activeServices;
+  List<Request> get completedServices => _completedServices;
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
 
@@ -175,27 +177,35 @@ class VendorService extends ChangeNotifier {
     }
   }
 
-  Future<void> loadServiceRequests(String? token, String? currentUserId) async {
-    if (currentUserId == null) return;
+  Future<void> loadServiceRequests(String? token) async {
     _setLoading(true);
     try {
+      print(
+          '[VendorService] Loading service requests from $_baseRequestUrl/my');
       final response = await http.get(
-        Uri.parse('$_baseUrl/requests?vendorId=$currentUserId'),
+        Uri.parse("$_baseRequestUrl/my"),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': "Bearer $token"
         },
       );
+      print('[VendorService] Response status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-        final allRequests =
-            data.map((json) => ServiceRequest.fromJson(json)).toList();
-        _pendingRequests = allRequests.where((req) => req.isPending).toList();
+        final List data = jsonDecode(response.body)["requests"];
+        print(
+            '[VendorService] Loaded ${data.length} service requests successfully.');
+        print('[VendorService] Parsing service requests...');
+        final allRequests = _pendingRequests =
+            data.map((json) => Request.fromJson(json)).cast<Request>().toList();
+        print('[VendorService] Total requests loaded: ${allRequests.length}');
         _activeServices = allRequests
-            .where((req) => req.isAccepted || req.isInProgress)
+            .where((req) => req.isAccepted || req.isAccepted)
             .toList();
+        print('[VendorService] Active services: ${_activeServices.length}');
         _completedServices =
             allRequests.where((req) => req.isCompleted).toList();
+        print(
+            '[VendorService] Completed services: ${_completedServices.length}');
         developer.log('Loaded requests', name: 'VendorService');
       }
       notifyListeners();
@@ -220,7 +230,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -248,7 +257,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -278,7 +286,6 @@ class VendorService extends ChangeNotifier {
       if (response.statusCode == 200) {
         await loadServiceRequests(
           token,
-          currentUserId,
         );
         return true;
       }
@@ -355,6 +362,8 @@ class VendorService extends ChangeNotifier {
     // print(
     //     '[VENDOR_SERVICE] Initializing VendorService with userId: $userId and token: $token');
     await loadMyServices(token);
-    await loadServiceRequests(token, userId);
+    await loadServiceRequests(
+      token,
+    );
   }
 }
