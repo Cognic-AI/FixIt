@@ -28,7 +28,7 @@ dependencies:
   flutter_polyline_points: ^2.1.0
   google_maps_flutter_android: ^2.16.2
   google_maps_flutter_ios: ^2.15.4
-  geolocator: ^10.1.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:
