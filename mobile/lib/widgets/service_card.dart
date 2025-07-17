@@ -14,6 +14,7 @@ class ServiceCard extends StatelessWidget {
     this.isHorizontal = false,
     this.onTap,
     this.onMessageTap,
+    this.onMapTap,
   });
 
   @override

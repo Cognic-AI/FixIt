@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const MapPage()),
+                                  builder: (context) => MapPage(token: widget.token)),
                             );
                           },
                           icon: const Icon(Icons.map),
