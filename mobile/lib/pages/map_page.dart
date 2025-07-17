@@ -17,7 +17,6 @@ class _MapPageState extends State<MapPage> {
 
   GoogleMapController? _mapController;
   Position? _currentPosition;
-  bool _isMapCreated = false;
 
   @override
   void initState() {
@@ -65,7 +64,6 @@ class _MapPageState extends State<MapPage> {
         initialCameraPosition: _initialCameraPosition,
         onMapCreated: (controller) {
           _mapController = controller;
-          _isMapCreated = true;
           _moveCameraToCurrentLocation(); // Try moving camera when map is created
         },
       ),
