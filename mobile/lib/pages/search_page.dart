@@ -90,133 +90,11 @@ class _SearchPageState extends State<SearchPage> {
       final matchesPrice = service.price >= _priceRange.start &&
           service.price <= _priceRange.end;
       final matchesTags = _selectedFilters.isEmpty ||
-          _selectedFilters.any((tag) => service.tags.contains(tag));
+          _selectedFilters
+              .any((tag) => service.tags.contains(tag.toLowerCase()));
 
       return matchesSearch && matchesCategory && matchesPrice && matchesTags;
     }).toList();
-  }
-
-  void _showFiltersBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: const EdgeInsets.all(24),
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Filters',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setModalState(() {
-                        _priceRange = const RangeValues(0, 500);
-                        _selectedFilters.clear();
-                      });
-                    },
-                    child: const Text('Clear All'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Price Range
-              const Text(
-                'Price Range',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '€${_priceRange.start.round()} - €${_priceRange.end.round()}',
-                style: const TextStyle(color: Colors.grey),
-              ),
-              RangeSlider(
-                values: _priceRange,
-                min: 0,
-                max: 500,
-                divisions: 50,
-                onChanged: (values) {
-                  setModalState(() {
-                    _priceRange = values;
-                  });
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Tags
-              const Text(
-                'Tags',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: filters.map((filter) {
-                  final isSelected = _selectedFilters.contains(filter);
-                  return FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setModalState(() {
-                        if (selected) {
-                          _selectedFilters.add(filter);
-                        } else {
-                          _selectedFilters.remove(filter);
-                        }
-                      });
-                    },
-                    backgroundColor: Colors.grey.shade100,
-                    selectedColor: const Color(0xFF2563EB).withOpacity(0.2),
-                  );
-                }).toList(),
-              ),
-
-              const Spacer(),
-
-              // Apply Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {});
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Apply Filters',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildEmptyState() {
@@ -300,33 +178,33 @@ class _SearchPageState extends State<SearchPage> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: FilterChip(
-                      label: Text(category),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                      setState(() {
-                        if (isSelected) {
-                        _selectedCategory = 'All';
-                        } else {
-                        _selectedCategory = category;
-                        }
-                      });
-                      },
-                      backgroundColor: Colors.white,
-                      selectedColor:
-                        const Color(0xFF2563EB).withOpacity(0.2),
-                      labelStyle: TextStyle(
-                      color: isSelected
-                        ? const Color(0xFF2563EB)
-                        : Colors.grey[700],
-                      ),
-                    ),
-                    );
-                  },
+                          label: Text(category),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedCategory = 'All';
+                              } else {
+                                _selectedCategory = category;
+                              }
+                            });
+                          },
+                          backgroundColor: Colors.white,
+                          selectedColor:
+                              const Color(0xFF2563EB).withOpacity(0.2),
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : Colors.grey[700],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                ],
-              ),
-              ),
+              ],
+            ),
+          ),
 
           // Filters Button
           Container(
@@ -335,7 +213,182 @@ class _SearchPageState extends State<SearchPage> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _showFiltersBottomSheet,
+                    onPressed: () async {
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (context) => StatefulBuilder(
+                          builder: (context, setModalState) {
+                            final TextEditingController _tagController =
+                                TextEditingController();
+                            return Container(
+                              padding: const EdgeInsets.all(24),
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Filters',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          setModalState(() {
+                                            _priceRange =
+                                                const RangeValues(0, 500);
+                                            _selectedFilters.clear();
+                                          });
+                                        },
+                                        child: const Text('Clear All'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Price Range
+                                  const Text(
+                                    'Price Range',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '€${_priceRange.start.round()} - €${_priceRange.end.round()}',
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                  RangeSlider(
+                                    values: _priceRange,
+                                    min: 0,
+                                    max: 500,
+                                    divisions: 50,
+                                    activeColor: const Color(0xFF2563EB),
+                                    inactiveColor: const Color(0xFF2563EB)
+                                        .withOpacity(0.2),
+                                    onChanged: (values) {
+                                      setModalState(() {
+                                        _priceRange = values;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(height: 24),
+
+                                  // Custom Tags
+                                  const Text(
+                                    'Tags',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _tagController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Add a tag...',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          final tag =
+                                              _tagController.text.trim();
+                                          if (tag.isNotEmpty &&
+                                              !_selectedFilters.contains(tag)) {
+                                            setModalState(() {
+                                              _selectedFilters.add(tag);
+                                              _tagController.clear();
+                                            });
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF2563EB),
+                                          textStyle: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                          ),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 12),
+                                        ),
+                                        child: const Text('Add'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: _selectedFilters.map((filter) {
+                                      return Chip(
+                                        label: Text(filter),
+                                        onDeleted: () {
+                                          setModalState(() {
+                                            _selectedFilters.remove(filter);
+                                          });
+                                        },
+                                        backgroundColor: Colors.grey.shade100,
+                                        deleteIcon: const Icon(Icons.close),
+                                      );
+                                    }).toList(),
+                                  ),
+
+                                  const Spacer(),
+
+                                  // Apply Button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {});
+                                        Navigator.pop(context);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFF2563EB),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                      ),
+                                      child: const Text(
+                                        'Apply Filters',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.tune),
                     label: const Text('Filters'),
                     style: OutlinedButton.styleFrom(
