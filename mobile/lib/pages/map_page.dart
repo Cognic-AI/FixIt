@@ -172,7 +172,7 @@ class _MapPageState extends State<MapPage> {
           position: coordinates,
           infoWindow: InfoWindow(
             title: service.title,
-            snippet: '${service.category.toUpperCase()} - €${service.price.toStringAsFixed(2)}',
+            snippet: '${service.category.toUpperCase()} - €${service.price.toStringAsFixed(2)}\n${service.description.length > 200 ? '${service.description.substring(0, 200)}...' : service.description}',
             onTap: () => _onMarkerTap(service),
           ),
           icon: _getMarkerIcon(service.category),
