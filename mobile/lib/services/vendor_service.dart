@@ -12,7 +12,7 @@ class VendorService extends ChangeNotifier {
   static final String _baseUrl =
       dotenv.env['VENDOR_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
   static final String _baseRequestUrl =
-      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8085/api/requests';
+      dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
   List<Service> _myServices = [];
   List<Request> _pendingRequests = [];
   List<Request> _activeServices = [];
