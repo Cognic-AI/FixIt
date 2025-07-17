@@ -4,6 +4,12 @@
 */Config.toml
 */.env
 */target/
+backend/private.key
+mobile/.flutter-plugins-dependencies
+.gitignore
+backend/Dependencies.toml
+backend/backup.txt
+backend/firebase-service-account.json
 */.flutter-plugins-dependencies
 */pubspec.lock
 
