@@ -57,17 +57,17 @@ class ServiceRequest {
   String get statusDisplayName {
     switch (status) {
       case ServiceRequestStatus.pending:
-        return 'Pending';
+        return 'pending';
       case ServiceRequestStatus.accepted:
-        return 'Accepted';
+        return 'accepted';
       case ServiceRequestStatus.inProgress:
-        return 'In Progress';
+        return 'in progress';
       case ServiceRequestStatus.completed:
-        return 'Completed';
+        return 'completed';
       case ServiceRequestStatus.cancelled:
-        return 'Cancelled';
+        return 'cancelled';
       case ServiceRequestStatus.rejected:
-        return 'Rejected';
+        return 'rejected';
     }
   }
 

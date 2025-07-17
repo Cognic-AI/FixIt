@@ -1,3 +1,4 @@
+import 'package:fixit/models/request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -758,7 +759,7 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  Widget _buildRequestsList(List<ServiceRequest> requests, String type) {
+  Widget _buildRequestsList(List<Request> requests, String type) {
     if (requests.isEmpty) {
       return Center(
         child: Column(
@@ -796,7 +797,7 @@ class _VendorHomePageState extends State<VendorHomePage>
           request: request,
           onAccept: request.isPending ? () => _acceptRequest(request.id) : null,
           onReject: request.isPending ? () => _rejectRequest(request.id) : null,
-          onUpdateStatus: (request.isAccepted || request.isInProgress)
+          onUpdateStatus: (request.isAccepted || request.isAccepted)
               ? () => _updateRequestStatus(request)
               : null,
           onViewDetails: () => _viewRequestDetails(request),
@@ -974,7 +975,7 @@ class _VendorHomePageState extends State<VendorHomePage>
     vendorService.rejectServiceRequest(requestId, widget.token, widget.user.id);
   }
 
-  void _updateRequestStatus(ServiceRequest request) {
+  void _updateRequestStatus(Request request) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
     if (request.isAccepted) {
       vendorService.updateServiceStatus(
@@ -983,13 +984,13 @@ class _VendorHomePageState extends State<VendorHomePage>
         widget.token,
         widget.user.id,
       );
-    } else if (request.isInProgress) {
+    } else if (request.isAccepted) {
       vendorService.updateServiceStatus(request.id,
           ServiceRequestStatus.completed, widget.token, widget.user.id);
     }
   }
 
-  void _viewRequestDetails(ServiceRequest request) {
+  void _viewRequestDetails(Request request) {
     // TODO: Navigate to request details page
   }
 

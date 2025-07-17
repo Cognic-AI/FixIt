@@ -8,7 +8,13 @@ class Request {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String chatId;
-
+  final String title;
+  final String description;
+  final String category;
+  final bool availability;
+  final double price;
+  final String tags;
+  final String images;
   Request({
     required this.id,
     required this.serviceId,
@@ -19,6 +25,13 @@ class Request {
     required this.createdAt,
     required this.updatedAt,
     required this.chatId,
+    required this.title,
+    required this.description,
+    required this.category,
+    required this.availability,
+    required this.price,
+    required this.tags,
+    required this.images,
   });
 
   factory Request.fromJson(Map<String, dynamic> json) {
@@ -32,6 +45,13 @@ class Request {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       chatId: json['chatId'],
+      title: json['title'],
+      description: json['description'],
+      category: json['category'],
+      availability: json['availability'] ?? false,
+      price: (json['price'] as num).toDouble(),
+      tags: json['tags'] ?? '',
+      images: json['images'] ?? '',
     );
   }
 
@@ -46,6 +66,13 @@ class Request {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'chatId': chatId,
+      'title': title,
+      'description': description,
+      'category': category,
+      'availability': availability,
+      'price': price,
+      'tags': tags,
+      'images': images,
     };
   }
 
