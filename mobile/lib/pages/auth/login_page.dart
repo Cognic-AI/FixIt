@@ -29,9 +29,7 @@ class _LoginPageState extends State<LoginPage> {
       print('[LOGIN] User already logged in - navigating to home');
       developer.log('[LOGIN] User already logged in - navigating to home',
           name: 'LoginPage');
-      if (Provider.of<AuthService>(context, listen: false)
-              .currentUser!
-              .userType ==
+      if (Provider.of<AuthService>(context, listen: false).currentUser!.role ==
           'client') {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
@@ -80,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         developer.log('[LOGIN] Login successful - navigating to home',
             name: 'LoginPage');
-        authService.currentUser?.userType == 'client'
+        authService.currentUser?.role == 'client'
             ? Navigator.pushReplacementNamed(context, '/home')
             : Navigator.pushReplacementNamed(context, '/vendor_home');
       }

@@ -1,3 +1,4 @@
+import 'package:fixit/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -13,7 +14,10 @@ import 'chat_page.dart';
 import 'edit_profile_page.dart';
 
 class VendorHomePage extends StatefulWidget {
-  const VendorHomePage({super.key});
+  const VendorHomePage({super.key, required this.user, required this.token});
+
+  final User user;
+  final String token;
 
   @override
   State<VendorHomePage> createState() => _VendorHomePageState();
@@ -37,7 +41,10 @@ class _VendorHomePageState extends State<VendorHomePage>
       final vendorService = Provider.of<VendorService>(context, listen: false);
       print('[VENDOR_HOME] Got VendorService instance');
       print('[VENDOR_HOME] About to call vendorService.initialize()');
-      vendorService.initialize();
+      vendorService.initialize(
+        widget.user.id,
+        widget.token,
+      );
       print('[VENDOR_HOME] vendorService.initialize() called');
     });
     print('[VENDOR_HOME] initState completed');
@@ -378,7 +385,10 @@ class _VendorHomePageState extends State<VendorHomePage>
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const AddServicePage()),
+                              builder: (context) => AddServicePage(
+                                    token: widget.token,
+                                    vendorId: widget.user.id,
+                                  )),
                         ),
                         icon: const Icon(Icons.add),
                         label: const Text('Add Service'),
@@ -451,7 +461,10 @@ class _VendorHomePageState extends State<VendorHomePage>
                   const Spacer(),
                   IconButton(
                     onPressed: () {
-                      vendorService.loadServiceRequests();
+                      vendorService.loadServiceRequests(
+                        widget.token,
+                        widget.user.id,
+                      );
                     },
                     icon: const Icon(Icons.refresh, color: Colors.white),
                   ),
@@ -565,10 +578,10 @@ class _VendorHomePageState extends State<VendorHomePage>
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
-                      child: user?.avatar != null
+                      child: user?.profileImageUrl != null
                           ? ClipOval(
                               child: Image.network(
-                                user!.avatar!,
+                                user!.profileImageUrl!,
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,
@@ -598,20 +611,6 @@ class _VendorHomePageState extends State<VendorHomePage>
                         fontSize: 16,
                         color: Colors.grey[600],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star, color: Colors.amber[600], size: 20),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${user?.rating.toStringAsFixed(1) ?? '0.0'} (${user?.reviewCount ?? 0} reviews)',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -687,7 +686,9 @@ class _VendorHomePageState extends State<VendorHomePage>
         IconButton(
           onPressed: () async {
             print('[VENDOR_HOME] Refresh button pressed');
-            await vendorService.loadMyServices();
+            await vendorService.loadMyServices(
+              widget.token,
+            );
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -902,7 +903,9 @@ class _VendorHomePageState extends State<VendorHomePage>
   void _showAddServiceDialog() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddServicePage()),
+      MaterialPageRoute(
+          builder: (context) =>
+              AddServicePage(token: widget.token, vendorId: widget.user.id)),
     );
   }
 
@@ -940,7 +943,10 @@ class _VendorHomePageState extends State<VendorHomePage>
               Navigator.pop(context);
               final vendorService =
                   Provider.of<VendorService>(context, listen: false);
-              vendorService.deleteService(serviceId);
+              vendorService.deleteService(
+                serviceId,
+                widget.token,
+              );
             },
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
@@ -951,7 +957,8 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   void _toggleServiceStatus(Service service) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.updateService(service.id, {'active': !service.active});
+    vendorService.updateService(
+        service.id, {'active': !service.active}, widget.token);
   }
 
   void _viewServiceDetails(Service service) {
@@ -960,22 +967,26 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   void _acceptRequest(String requestId) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.acceptServiceRequest(requestId);
+    vendorService.acceptServiceRequest(requestId, widget.token, widget.user.id);
   }
 
   void _rejectRequest(String requestId) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.rejectServiceRequest(requestId);
+    vendorService.rejectServiceRequest(requestId, widget.token, widget.user.id);
   }
 
   void _updateRequestStatus(ServiceRequest request) {
     final vendorService = Provider.of<VendorService>(context, listen: false);
     if (request.isAccepted) {
       vendorService.updateServiceStatus(
-          request.id, ServiceRequestStatus.inProgress);
+        request.id,
+        ServiceRequestStatus.inProgress,
+        widget.token,
+        widget.user.id,
+      );
     } else if (request.isInProgress) {
-      vendorService.updateServiceStatus(
-          request.id, ServiceRequestStatus.completed);
+      vendorService.updateServiceStatus(request.id,
+          ServiceRequestStatus.completed, widget.token, widget.user.id);
     }
   }
 
@@ -987,7 +998,10 @@ class _VendorHomePageState extends State<VendorHomePage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatPage(conversation: conversation),
+        builder: (context) => ChatPage(
+          conversation: conversation,
+          token: widget.token,
+        ),
       ),
     );
   }
