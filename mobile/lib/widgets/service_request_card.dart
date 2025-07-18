@@ -199,7 +199,7 @@ class ServiceRequestCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: OutlinedButton.icon(
               onPressed: onReject,
@@ -208,6 +208,21 @@ class ServiceRequestCard extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
                 side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onMessage,
+              icon: const Icon(Icons.message, size: 18),
+              label: const Text('Message'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2563EB),
+                side: const BorderSide(color: Color(0xFF2563EB)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -237,26 +252,6 @@ class ServiceRequestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onMessage,
-              icon: const Icon(Icons.message, size: 18),
-              label: const Text('Message'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF2563EB),
-                side: const BorderSide(color: Color(0xFF2563EB)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-    if (request.state.toLowerCase() == 'pending') {
-      return Row(
-        children: [
           Expanded(
             child: OutlinedButton.icon(
               onPressed: onMessage,
