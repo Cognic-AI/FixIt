@@ -105,14 +105,17 @@ class ServiceRequestCard extends StatelessWidget {
                 ? ElevatedButton.icon(
                     onPressed: () {
                       showDialog(
-                        context: context,
-                        builder: (context) => MapPopup(
-                          location: request.location,
-                          name: request.title,
-                          description: request.description,
-                          onRequestService: () {},
-                        ),
-                      );
+                          context: context,
+                          builder: (context) {
+                            return MapPopup(
+                              location: request.location,
+                              name: request.title,
+                              description: request.description,
+                              onRequestService: () {
+                                print('Request');
+                              },
+                            );
+                          });
                     },
                     icon: const Icon(Icons.location_on, size: 18),
                     label: const Text('Show in map'),

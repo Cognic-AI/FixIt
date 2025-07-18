@@ -41,6 +41,7 @@ public type RequestResponse record {
 public type RequestCreation record {
     string serviceId;
     string clientId;
+    string location;
     string providerId;
 };
 
@@ -100,7 +101,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         clientId: requestData.clientId,
         providerId: requestData.providerId,
         state: "pending",
-        location: "",
+        location: requestData.location,
         chatId: "",
         createdAt: currentTime,
         updatedAt: currentTime

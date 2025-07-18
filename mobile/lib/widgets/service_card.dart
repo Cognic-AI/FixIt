@@ -117,6 +117,7 @@ class ServiceCard extends StatelessWidget {
                                           serviceId: service.id,
                                           clientId: userId,
                                           providerId: service.providerId,
+                                          location: service.location,
                                         );
                                       },
                                     );
