@@ -1,20 +1,21 @@
 import 'package:fixit/models/request.dart';
+import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 
 class ServiceRequestCard extends StatelessWidget {
   final Request request;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
-  final VoidCallback? onViewDetails;
-  final VoidCallback? onUpdateStatus;
+  final VoidCallback? onMessage;
+  final VoidCallback? onComplete;
 
   const ServiceRequestCard({
     super.key,
     required this.request,
     this.onAccept,
     this.onReject,
-    this.onViewDetails,
-    this.onUpdateStatus,
+    this.onMessage,
+    this.onComplete,
   });
 
   @override
@@ -99,7 +100,31 @@ class ServiceRequestCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Details
-            _buildDetailRow(Icons.location_on, request.location),
+            // if (!request.isCancelled) {
+            !request.isCancelled
+                ? ElevatedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => MapPopup(
+                          location: request.location,
+                          name: request.title,
+                          description: request.description,
+                          onRequestService: () {},
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.location_on, size: 18),
+                    label: const Text('Show in map'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  )
+                : SizedBox(),
             _buildDetailRow(Icons.calendar_today,
                 '${request.createdAt.day}/${request.createdAt.month}/${request.createdAt.year}'),
             _buildDetailRow(
@@ -199,11 +224,9 @@ class ServiceRequestCard extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: onUpdateStatus,
-              icon: const Icon(Icons.update, size: 18),
-              label: Text(request.state.toLowerCase() == 'accepted'
-                  ? 'Start Service'
-                  : 'Complete Service'),
+              onPressed: onComplete,
+              icon: const Icon(Icons.done, size: 18),
+              label: const Text('Complete Service'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
@@ -216,9 +239,9 @@ class ServiceRequestCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: onViewDetails,
-              icon: const Icon(Icons.visibility, size: 18),
-              label: const Text('Details'),
+              onPressed: onMessage,
+              icon: const Icon(Icons.message, size: 18),
+              label: const Text('Message'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF2563EB),
                 side: const BorderSide(color: Color(0xFF2563EB)),
@@ -231,22 +254,28 @@ class ServiceRequestCard extends StatelessWidget {
         ],
       );
     }
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onViewDetails,
-        icon: const Icon(Icons.visibility, size: 18),
-        label: const Text('View Details'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF2563EB),
-          side: const BorderSide(color: Color(0xFF2563EB)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+    if (request.state.toLowerCase() == 'pending') {
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onMessage,
+              icon: const Icon(Icons.message, size: 18),
+              label: const Text('Message'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2563EB),
+                side: const BorderSide(color: Color(0xFF2563EB)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ],
+      );
+    } else {
+      return SizedBox();
+    }
   }
 
   Color _getStatusColor() {

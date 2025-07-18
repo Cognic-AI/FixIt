@@ -103,6 +103,37 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
     }
 }
 
+public function queryRequestForStatusUpdate(map<json> filter) returns Request|error {
+    string collection = "requests";
+    io:println("🔍 Getting document from collection: ", collection);
+
+    mongodb:Database db = check utils:mongoDb->getDatabase("main");
+    mongodb:Collection mongoCollection = check db->getCollection(collection);
+
+    io:println("📋 Using filter: ", filter.toString());
+    io:println("🚀 Executing query...");
+
+    // Query with User type projection
+    Request|mongodb:Error|() result = mongoCollection->findOne(
+                    filter,
+                    {},  // findOptions
+                    (),  // projection
+                    Request
+                    );
+
+    // Handle the different result cases
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    } else if result is () {
+        io:println("❌ No document found matching the filter");
+        return error("User not found");
+    }
+    else {
+        return result;
+    }
+}
+
 public function queryRequests(map<json> filter) returns RequestResponse[]|error {
     string collection = "requests";
 

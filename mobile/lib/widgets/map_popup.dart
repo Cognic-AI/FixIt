@@ -87,6 +87,8 @@ class _MapPopupState extends State<MapPopup> {
           });
         }
       }
+    } else {
+      print("No location found");
     }
   }
 

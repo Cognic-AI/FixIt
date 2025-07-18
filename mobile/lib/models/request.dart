@@ -85,5 +85,5 @@ class Request {
   bool get isPending => state == 'pending';
   bool get isAccepted => state == 'accepted';
   bool get isCompleted => state == 'completed';
-  bool get isCancelled => state == 'cancelled';
+  bool get isCancelled => state == 'rejected';
 }
