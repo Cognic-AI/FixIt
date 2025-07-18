@@ -5,6 +5,7 @@ class User {
   final String lastName;
   final String? phoneNumber;
   final String role; // "customer", "provider", "admin"
+  final String location; // New field for location
   final String password; // hashed
   final bool emailVerified;
   final String? profileImageUrl;
@@ -19,6 +20,7 @@ class User {
     required this.lastName,
     this.phoneNumber,
     required this.role,
+    required this.location,
     required this.password,
     required this.emailVerified,
     this.profileImageUrl,
@@ -37,6 +39,8 @@ class User {
       lastName: json['lastName'],
       phoneNumber: json['phoneNumber'],
       role: json['role'],
+      location:
+          json['location'] ?? '', // Default to empty string if not provided
       password: json['password'],
       emailVerified: json['emailVerified'] ?? false,
       profileImageUrl: json['profileImageUrl'],
@@ -56,6 +60,7 @@ class User {
       'lastName': lastName,
       'phoneNumber': phoneNumber,
       'role': role,
+      'location': location,
       'password': password,
       'emailVerified': emailVerified,
       'profileImageUrl': profileImageUrl,

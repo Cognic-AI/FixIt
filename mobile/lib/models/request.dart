@@ -15,6 +15,12 @@ class Request {
   final double price;
   final String tags;
   final String images;
+  final String clientName;
+  final String clientEmail;
+  final String providerName;
+  final String providerEmail;
+  final String clientLocation;
+  final String providerLocation;
   Request({
     required this.id,
     required this.serviceId,
@@ -32,6 +38,12 @@ class Request {
     required this.price,
     required this.tags,
     required this.images,
+    required this.clientName,
+    required this.clientEmail,
+    required this.providerName,
+    required this.providerEmail,
+    required this.clientLocation,
+    required this.providerLocation,
   });
 
   factory Request.fromJson(Map<String, dynamic> json) {
@@ -52,6 +64,12 @@ class Request {
       price: (json['price'] as num).toDouble(),
       tags: json['tags'] ?? '',
       images: json['images'] ?? '',
+      clientName: json['clientName'] ?? '',
+      clientEmail: json['clientEmail'] ?? '',
+      providerName: json['providerName'] ?? '',
+      providerEmail: json['providerEmail'] ?? '',
+      clientLocation: json['clientLocation'] ?? '',
+      providerLocation: json['providerLocation'] ?? '',
     );
   }
 
@@ -73,6 +91,12 @@ class Request {
       'price': price,
       'tags': tags,
       'images': images,
+      'clientName': clientName,
+      'clientEmail': clientEmail,
+      'providerName': providerName,
+      'providerEmail': providerEmail,
+      'clientLocation': clientLocation,
+      'providerLocation': providerLocation,
     };
   }
 

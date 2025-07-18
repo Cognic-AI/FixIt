@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 class ServiceRequestCard extends StatelessWidget {
   final Request request;
+  final String location;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
   final VoidCallback? onMessage;
@@ -12,6 +13,7 @@ class ServiceRequestCard extends StatelessWidget {
   const ServiceRequestCard({
     super.key,
     required this.request,
+    required this.location,
     this.onAccept,
     this.onReject,
     this.onMessage,

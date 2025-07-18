@@ -299,6 +299,9 @@ class _VendorHomePageState extends State<VendorHomePage>
                     final request = vendorService.pendingRequests[index];
                     return ServiceRequestCard(
                       request: request,
+                      location: widget.user.role == "client"
+                          ? request.location
+                          : request.clientLocation,
                       onAccept: () => _acceptRequest(request.id),
                       onReject: () => _rejectRequest(request.id),
                     );
@@ -797,6 +800,9 @@ class _VendorHomePageState extends State<VendorHomePage>
         final request = requests[index];
         return ServiceRequestCard(
           request: request,
+          location: widget.user.role == "client"
+              ? request.location
+              : request.clientLocation,
           onAccept: request.isPending ? () => _acceptRequest(request.id) : null,
           onReject: request.isPending ? () => _rejectRequest(request.id) : null,
           onComplete:

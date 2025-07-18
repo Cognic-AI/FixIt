@@ -36,6 +36,11 @@ public type RequestResponse record {
     decimal price;
     string tags;
     string images;
+    string clientName;
+    string clientEmail;
+    string providerName;
+    string providerEmail;
+    string clientLocation;
 };
 
 public type RequestCreation record {
