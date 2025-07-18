@@ -125,6 +125,7 @@ class UserService {
     required String serviceId,
     required String clientId,
     required String providerId,
+    required String location,
   }) async {
     developer.log('[UserService] Creating new request at $_baseRequestUrl',
         name: 'UserService');
@@ -140,7 +141,8 @@ class UserService {
           'serviceId': serviceId,
           'clientId': clientId,
           'providerId': providerId,
-        }),
+          'location': location,
+          }),
       );
 
       if (response.statusCode == 201) {

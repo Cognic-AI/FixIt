@@ -1,20 +1,23 @@
 import 'package:fixit/models/request.dart';
+import 'package:fixit/widgets/map_popup_vendor.dart';
 import 'package:flutter/material.dart';
 
 class ServiceRequestCard extends StatelessWidget {
   final Request request;
+  final String location;
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
-  final VoidCallback? onViewDetails;
-  final VoidCallback? onUpdateStatus;
+  final VoidCallback? onMessage;
+  final VoidCallback? onComplete;
 
   const ServiceRequestCard({
     super.key,
     required this.request,
+    required this.location,
     this.onAccept,
     this.onReject,
-    this.onViewDetails,
-    this.onUpdateStatus,
+    this.onMessage,
+    this.onComplete,
   });
 
   @override
@@ -30,19 +33,42 @@ class ServiceRequestCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header with client info
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    request.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                // Client avatar/icon
+                CircleAvatar(
+                  backgroundColor: Colors.blue[100],
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.blue[800],
                   ),
                 ),
+                const SizedBox(width: 12),
+                // Client details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request.clientName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        request.clientEmail,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Status badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -61,7 +87,17 @@ class ServiceRequestCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+
+            // Service title
+            Text(
+              request.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Service Info
             _buildDetailRow(Icons.category, request.category),
@@ -98,8 +134,37 @@ class ServiceRequestCard extends StatelessWidget {
             ],
             const SizedBox(height: 12),
 
-            // Details
-            _buildDetailRow(Icons.location_on, request.location),
+            // Location and date
+            if (!request.isCancelled) ...[
+              ElevatedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return MapPopupVendor(
+                        request: request,
+                        location: request.location,
+                        name: request.title,
+                        description: request.description,
+                        onMessage: onMessage,
+                      );
+                    },
+                  );
+                },
+                icon: const Icon(Icons.location_on, size: 18),
+                label: const Text('Show in map'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Additional details
             _buildDetailRow(Icons.calendar_today,
                 '${request.createdAt.day}/${request.createdAt.month}/${request.createdAt.year}'),
             _buildDetailRow(
@@ -174,7 +239,7 @@ class ServiceRequestCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: OutlinedButton.icon(
               onPressed: onReject,
@@ -183,6 +248,21 @@ class ServiceRequestCard extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,
                 side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onMessage,
+              icon: const Icon(Icons.message, size: 18),
+              label: const Text('Message'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2563EB),
+                side: const BorderSide(color: Color(0xFF2563EB)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -199,11 +279,9 @@ class ServiceRequestCard extends StatelessWidget {
         children: [
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: onUpdateStatus,
-              icon: const Icon(Icons.update, size: 18),
-              label: Text(request.state.toLowerCase() == 'accepted'
-                  ? 'Start Service'
-                  : 'Complete Service'),
+              onPressed: onComplete,
+              icon: const Icon(Icons.done, size: 18),
+              label: const Text('Complete Service'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
@@ -216,9 +294,9 @@ class ServiceRequestCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: onViewDetails,
-              icon: const Icon(Icons.visibility, size: 18),
-              label: const Text('Details'),
+              onPressed: onMessage,
+              icon: const Icon(Icons.message, size: 18),
+              label: const Text('Message'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFF2563EB),
                 side: const BorderSide(color: Color(0xFF2563EB)),
@@ -230,23 +308,9 @@ class ServiceRequestCard extends StatelessWidget {
           ),
         ],
       );
+    } else {
+      return const SizedBox();
     }
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onViewDetails,
-        icon: const Icon(Icons.visibility, size: 18),
-        label: const Text('View Details'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF2563EB),
-          side: const BorderSide(color: Color(0xFF2563EB)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    );
   }
 
   Color _getStatusColor() {

@@ -36,11 +36,17 @@ public type RequestResponse record {
     decimal price;
     string tags;
     string images;
+    string clientName;
+    string clientEmail;
+    string providerName;
+    string providerEmail;
+    string clientLocation;
 };
 
 public type RequestCreation record {
     string serviceId;
     string clientId;
+    string location;
     string providerId;
 };
 
@@ -100,7 +106,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         clientId: requestData.clientId,
         providerId: requestData.providerId,
         state: "pending",
-        location: "",
+        location: requestData.location,
         chatId: "",
         createdAt: currentTime,
         updatedAt: currentTime
@@ -260,7 +266,7 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
 public function updateRequest(http:Caller caller, http:Request req, string requestId) returns error? {
     io:println("updateRequest called for ID: " + requestId); // IO log
     // Authenticate and authorize client role
-    models:User|error user = authorizeRole(req, ["client"]);
+    models:User|error user = authorizeRole(req, ["vendor"]);
     if user is error {
         io:println("Unauthorized access attempt in updateRequest"); // IO log
         json errorResponse = {
@@ -276,10 +282,9 @@ public function updateRequest(http:Caller caller, http:Request req, string reque
 
     // Get existing request to verify ownership
     map<json> filters = {
-        "id": requestId,
-        "providerId": user.id // Ensure the request belongs to the user
+        "id": requestId
     };
-    Request|error requestData = models:queryRequest(filters);
+    Request|error requestData = models:queryRequestForStatusUpdate(filters);
     if requestData is error {
         io:println("Request not found in updateRequest"); // IO log
         json errorResponse = {

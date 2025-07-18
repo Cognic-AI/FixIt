@@ -32,6 +32,12 @@ public type RequestResponse record {
     decimal price;
     string tags;
     string images;
+    string clientName;
+    string clientEmail;
+    string providerName;
+    string providerEmail;
+    string clientLocation;
+    string providerLocation;
 };
 
 public function queryRequest(map<json> filter) returns RequestResponse|error {
@@ -94,12 +100,49 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
                 availability: res.availability,
                 price: res.price,
                 tags: res.tags,
-                images: res.images
+                images: res.images,
+                clientName: "",
+                clientEmail: "",
+                providerName: "",
+                providerEmail: "",
+                clientLocation: "",
+                providerLocation: ""
             };
             io:println("✅ User document retrieved successfully");
             return result_;
         }
         return error("Unexpected result type");
+    }
+}
+
+public function queryRequestForStatusUpdate(map<json> filter) returns Request|error {
+    string collection = "requests";
+    io:println("🔍 Getting document from collection: ", collection);
+
+    mongodb:Database db = check utils:mongoDb->getDatabase("main");
+    mongodb:Collection mongoCollection = check db->getCollection(collection);
+
+    io:println("📋 Using filter: ", filter.toString());
+    io:println("🚀 Executing query...");
+
+    // Query with User type projection
+    Request|mongodb:Error|() result = mongoCollection->findOne(
+                    filter,
+                    {},  // findOptions
+                    (),  // projection
+                    Request
+                    );
+
+    // Handle the different result cases
+    if result is mongodb:Error {
+        io:println("❌ Error executing query: ", result.message());
+        return error("MongoDB error: " + result.message());
+    } else if result is () {
+        io:println("❌ No document found matching the filter");
+        return error("User not found");
+    }
+    else {
+        return result;
     }
 }
 
@@ -136,6 +179,25 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
                 io:println("⚠️ Request with ID ", req.id, " has no associated service ID");
                 return;
             }
+            map<json> filterUser = {"id": req.clientId};
+                User|error user = queryUsers("users", filterUser);
+                map<json> userData = {"clientName":"", "providerName":"", "clientEmail":"","providerEmail":"","clientLocation":"", "providerLocation":""};
+                if user is error {
+                    io:println("Failed to parse user data: ", user.message());
+                }else{
+                    userData["clientName"] = user.firstName + " " + user.lastName;
+                    userData["clientEmail"] = user.email;
+                    userData["clientLocation"] = user.location;
+                }
+                map<json> filterProvider = {"id": req.providerId};
+                User|error providerUser = queryUsers("users", filterProvider);
+                if providerUser is error {
+                    io:println("Failed to parse provider user data: ", providerUser.message());
+                }else{
+                    userData["providerName"] = providerUser.firstName + " " + providerUser.lastName;
+                    userData["providerEmail"] = providerUser.email;
+                    userData["providerLocation"] = providerUser.location;
+                }
 
             map<json> serviceFilter = {};
             _Service|error res = queryService(serviceFilter);
@@ -159,7 +221,13 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
                     availability: res.availability,
                     price: res.price,
                     tags: res.tags,
-                    images: res.images
+                    images: res.images,
+                    clientName: <string>userData["clientName"],
+                    clientEmail: <string>userData["clientEmail"],
+                    providerName: <string>userData["providerName"],
+                    providerEmail: <string>userData["providerEmail"],
+                    clientLocation: <string>userData["clientLocation"],
+                    providerLocation: <string>userData["providerLocation"]
                 };
                 requests.push(requestResponse);
                 io:println("✅ Request with ID ", req.id, " processed successfully");

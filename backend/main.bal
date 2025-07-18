@@ -183,6 +183,10 @@ isolated service /api/requests on new http:Listener(8086) {
     resource function delete [string requestId](http:Caller caller, http:Request req) returns error? {
         check controllers:deleteRequest(caller, req, requestId);
 // Contracts service
+    }
+}
+
+
 @http:ServiceConfig {
     cors: corsConfig
 }

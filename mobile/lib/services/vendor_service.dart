@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer' as developer;
 import '../models/service.dart';
-import '../models/service_request.dart';
 import '../models/message.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -18,12 +17,14 @@ class VendorService extends ChangeNotifier {
   List<Request> _activeServices = [];
   List<Request> _completedServices = [];
   List<Conversation> _conversations = [];
+  List<Request> _rejectedServices = [];
   bool _isLoading = false;
 
   List<Service> get myServices => _myServices;
   List<Request> get pendingRequests => _pendingRequests;
   List<Request> get activeServices => _activeServices;
   List<Request> get completedServices => _completedServices;
+  List<Request> get rejectedServices => _rejectedServices;
   List<Conversation> get conversations => _conversations;
   bool get isLoading => _isLoading;
 
@@ -195,9 +196,11 @@ class VendorService extends ChangeNotifier {
         print(
             '[VendorService] Loaded ${data.length} service requests successfully.');
         print('[VendorService] Parsing service requests...');
-        final allRequests = _pendingRequests =
+        final allRequests =
             data.map((json) => Request.fromJson(json)).cast<Request>().toList();
         print('[VendorService] Total requests loaded: ${allRequests.length}');
+        _pendingRequests = allRequests.where((req) => req.isPending).toList();
+        print('[VendorService] Pending requests: ${_pendingRequests.length}');
         _activeServices = allRequests
             .where((req) => req.isAccepted || req.isAccepted)
             .toList();
@@ -206,6 +209,9 @@ class VendorService extends ChangeNotifier {
             allRequests.where((req) => req.isCompleted).toList();
         print(
             '[VendorService] Completed services: ${_completedServices.length}');
+        _rejectedServices =
+            allRequests.where((req) => req.isCancelled).toList();
+        print('[VendorService] Rejected services: ${_rejectedServices.length}');
         developer.log('Loaded requests', name: 'VendorService');
       }
       notifyListeners();
@@ -220,21 +226,29 @@ class VendorService extends ChangeNotifier {
   Future<bool> acceptServiceRequest(
       String requestId, String? token, String? currentUserId) async {
     try {
+      print('[VendorService] Accepting service request: $requestId');
       final response = await http.put(
-        Uri.parse('$_baseUrl/requests/$requestId/accept'),
+        Uri.parse('$_baseRequestUrl/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': "Bearer $token"
         },
+        body: jsonEncode({
+          "state": "accepted",
+        }),
       );
+      print(
+          '[VendorService] Accept service request response status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        await loadServiceRequests(
-          token,
-        );
+        print('[VendorService] Service request accepted successfully.');
+        await loadServiceRequests(token);
         return true;
       }
+      print(
+          '[VendorService] Failed to accept service request: ${response.body}');
       return false;
     } catch (e) {
+      print('[VendorService] Exception while accepting service request: $e');
       developer.log('Error accepting service request: $e',
           name: 'VendorService');
       return false;
@@ -248,11 +262,14 @@ class VendorService extends ChangeNotifier {
   ) async {
     try {
       final response = await http.put(
-        Uri.parse('$_baseUrl/requests/$requestId/reject'),
+        Uri.parse('$_baseRequestUrl/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': "Bearer $token"
         },
+        body: jsonEncode({
+          "state": "rejected",
+        }),
       );
       if (response.statusCode == 200) {
         await loadServiceRequests(
@@ -268,20 +285,21 @@ class VendorService extends ChangeNotifier {
     }
   }
 
-  Future<bool> updateServiceStatus(
+  Future<bool> completeServiceRequest(
     String requestId,
-    ServiceRequestStatus status,
     String? token,
     String? currentUserId,
   ) async {
     try {
       final response = await http.put(
-        Uri.parse('$_baseUrl/requests/$requestId/status'),
+        Uri.parse('$_baseRequestUrl/$requestId'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': "Bearer $token"
         },
-        body: jsonEncode({'status': status.toString().split('.').last}),
+        body: jsonEncode({
+          "state": "completed",
+        }),
       );
       if (response.statusCode == 200) {
         await loadServiceRequests(
@@ -291,7 +309,8 @@ class VendorService extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      developer.log('Error updating service status: $e', name: 'VendorService');
+      developer.log('Error rejecting service request: $e',
+          name: 'VendorService');
       return false;
     }
   }
