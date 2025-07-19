@@ -2,7 +2,7 @@ import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
-// import '../services/user_service.dart' as userService;
+import '../pages/client/request_service_page.dart'; 
 
 class ServiceCard extends StatelessWidget {
   final Service service;
@@ -49,7 +49,18 @@ class ServiceCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8.0),
       child: ElevatedButton.icon(
         onPressed: () {
-          // Handle request service button press
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RequestServicePage(
+                token: token,
+                uid: userId,
+                category: service.category,
+                title: service.title,
+                price: service.price,
+              ),
+            ),
+          );
         },
         icon: const Icon(Icons.handyman),
         label: const Text('Request Service'),
@@ -127,18 +138,9 @@ class ServiceCard extends StatelessWidget {
                                   context: context,
                                   builder: (context) {
                                     return MapPopup(
-                                      location: service.location,
-                                      name: service.title,
-                                      description: service.description,
-                                      // onRequestService: () {
-                                      //   userService.UserService().createRequest(
-                                      //     token: token,
-                                      //     serviceId: service.id,
-                                      //     clientId: userId,
-                                      //     providerId: service.providerId,
-                                      //     location: service.location,
-                                      //   );
-                                      // },
+                                      service: service,
+                                      token: token,
+                                      uid: userId,
                                     );
                                   });
                             },
@@ -254,7 +256,15 @@ class ServiceCard extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Handle message button press
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return MapPopup(
+                                    service: service,
+                                    token: token,
+                                    uid: userId,
+                                  );
+                                });
                           },
                           child: const Text('Show in Map'),
                         ),

@@ -1,17 +1,23 @@
+import 'package:fixit/pages/client/request_service_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:developer' as developer;
+import '../models/service.dart';
 
 const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
 
 class MapPopup extends StatefulWidget {
-  const MapPopup({super.key, this.location, this.name, this.description});
+  const MapPopup(
+      {super.key,
+      required this.service,
+      required this.token,
+      required this.uid});
 
-  final String? location;
-  final String? name;
-  final String? description;
+  final Service service;
+  final String token;
+  final String uid;
 
   @override
   _MapPopupState createState() => _MapPopupState();
@@ -34,6 +40,13 @@ class _MapPopupState extends State<MapPopup> {
     super.initState();
     _requestLocationPermission();
     _addLocationMarkerIfNeeded();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_destinationLocation != null) {
+        _moveCameraToServiceLocation();
+      } else {
+        _moveCameraToCurrentLocation();
+      }
+    });
   }
 
   Future<void> _requestLocationPermission() async {
@@ -57,7 +70,9 @@ class _MapPopupState extends State<MapPopup> {
       _currentPosition = position;
     });
 
-    _moveCameraToCurrentLocation();
+    if (_destinationLocation == null) {
+      _moveCameraToCurrentLocation();
+    }
   }
 
   void _moveCameraToCurrentLocation() {
@@ -69,8 +84,8 @@ class _MapPopupState extends State<MapPopup> {
   }
 
   void _addLocationMarkerIfNeeded() {
-    if (widget.location != null) {
-      final parts = widget.location!.split(',');
+    if (widget.service.location.isNotEmpty) {
+      final parts = widget.service.location.split(',');
       if (parts.length == 2) {
         final lat = double.tryParse(parts[0].trim());
         final lng = double.tryParse(parts[1].trim());
@@ -100,7 +115,7 @@ class _MapPopupState extends State<MapPopup> {
     if (_currentPosition == null) {
       return 'Distance unknown';
     }
-    
+
     // Calculate distance using Geolocator's distanceBetween method
     double distanceInMeters = Geolocator.distanceBetween(
       _currentPosition!.latitude,
@@ -108,7 +123,7 @@ class _MapPopupState extends State<MapPopup> {
       serviceLocation.latitude,
       serviceLocation.longitude,
     );
-    
+
     // Convert to appropriate unit
     if (distanceInMeters < 1000) {
       return '${distanceInMeters.round()}m away';
@@ -148,18 +163,18 @@ class _MapPopupState extends State<MapPopup> {
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         _destinationLocation!,
       );
-      
+
       if (coordinates.isNotEmpty) {
         _generatePolylineFromPoints(coordinates);
         _fitCameraToRoute(
           LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           _destinationLocation!,
         );
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Route to ${widget.name ?? "location"} displayed'),
+              content: Text('Route to ${widget.service.title} displayed'),
               backgroundColor: Colors.green,
             ),
           );
@@ -187,7 +202,8 @@ class _MapPopupState extends State<MapPopup> {
     }
   }
 
-  Future<List<LatLng>> _getPolyLinePoints(LatLng origin, LatLng destination) async {
+  Future<List<LatLng>> _getPolyLinePoints(
+      LatLng origin, LatLng destination) async {
     List<LatLng> polylineCoordinates = [];
     PolylinePoints polylinePoints = PolylinePoints();
 
@@ -200,18 +216,19 @@ class _MapPopupState extends State<MapPopup> {
         ),
         googleApiKey: googleMapsApiKey,
       );
-      
+
       if (result.points.isNotEmpty) {
         for (PointLatLng point in result.points) {
           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         }
       } else {
-        developer.log('No route points found: ${result.errorMessage}', name: 'MapPopup');
+        developer.log('No route points found: ${result.errorMessage}',
+            name: 'MapPopup');
       }
     } catch (e) {
       developer.log('Error getting polyline points: $e', name: 'MapPopup');
     }
-    
+
     return polylineCoordinates;
   }
 
@@ -224,7 +241,7 @@ class _MapPopupState extends State<MapPopup> {
       width: 5,
       patterns: [], // Solid line
     );
-    
+
     setState(() {
       _polylines[id] = polyline;
     });
@@ -234,10 +251,18 @@ class _MapPopupState extends State<MapPopup> {
     if (_mapController == null) return;
 
     // Calculate bounds that include both origin and destination
-    double minLat = origin.latitude < destination.latitude ? origin.latitude : destination.latitude;
-    double maxLat = origin.latitude > destination.latitude ? origin.latitude : destination.latitude;
-    double minLng = origin.longitude < destination.longitude ? origin.longitude : destination.longitude;
-    double maxLng = origin.longitude > destination.longitude ? origin.longitude : destination.longitude;
+    double minLat = origin.latitude < destination.latitude
+        ? origin.latitude
+        : destination.latitude;
+    double maxLat = origin.latitude > destination.latitude
+        ? origin.latitude
+        : destination.latitude;
+    double minLng = origin.longitude < destination.longitude
+        ? origin.longitude
+        : destination.longitude;
+    double maxLng = origin.longitude > destination.longitude
+        ? origin.longitude
+        : destination.longitude;
 
     // Add padding
     const padding = 0.01;
@@ -255,9 +280,25 @@ class _MapPopupState extends State<MapPopup> {
     });
   }
 
+  void _navigateToRequestService() {
+    // Now we have complete service information
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RequestServicePage(
+          token: widget.token,
+          uid: widget.uid,
+          category: widget.service.category,
+          title: widget.service.title,
+          price: widget.service.price,
+        ),
+      ),
+    );
+  }
+
   void _showServiceBottomSheet(LatLng markerPosition) {
     final distance = _calculateDistance(markerPosition);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -276,7 +317,7 @@ class _MapPopupState extends State<MapPopup> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.name ?? 'Service Location',
+                    widget.service.title,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -290,18 +331,50 @@ class _MapPopupState extends State<MapPopup> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Service details
-            if (widget.description != null) ...[
+            if (widget.service.description.isNotEmpty) ...[
               Text(
-                widget.description!,
+                widget.service.description,
                 style: const TextStyle(fontSize: 14),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 16),
             ],
-            
+
+            // Category and Price
+            Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    widget.service.category.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '€${widget.service.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // Location and distance
             Row(
               children: [
@@ -309,7 +382,7 @@ class _MapPopupState extends State<MapPopup> {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    widget.location ?? 'Unknown location',
+                    widget.service.location,
                     style: const TextStyle(color: Colors.grey),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -317,11 +390,12 @@ class _MapPopupState extends State<MapPopup> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             // Distance information
             Row(
               children: [
-                const Icon(Icons.directions, size: 16, color: Color(0xFF2563EB)),
+                const Icon(Icons.directions,
+                    size: 16, color: Color(0xFF2563EB)),
                 const SizedBox(width: 4),
                 Text(
                   distance,
@@ -333,9 +407,9 @@ class _MapPopupState extends State<MapPopup> {
                 ),
               ],
             ),
-            
+
             const Spacer(),
-            
+
             // Action buttons
             Column(
               children: [
@@ -343,16 +417,15 @@ class _MapPopupState extends State<MapPopup> {
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: OutlinedButton.icon(
                         onPressed: () {
-                          // Handle request service action
+                          // Handle contact action
                           Navigator.pop(context);
                         },
-                        icon: const Icon(Icons.handyman),
-                        label: const Text('Request Service'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          foregroundColor: Colors.white,
+                        icon: const Icon(Icons.message),
+                        label: const Text('Message'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF2563EB),
                         ),
                       ),
                     ),
@@ -378,15 +451,17 @@ class _MapPopupState extends State<MapPopup> {
                 // Second row of buttons
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () {
-                      // Handle contact action
+                      // Handle request service action
                       Navigator.pop(context);
+                      _navigateToRequestService();
                     },
-                    icon: const Icon(Icons.message),
-                    label: const Text('Message'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2563EB),
+                    icon: const Icon(Icons.handyman),
+                    label: const Text('Request Service'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
                     ),
                   ),
                 ),
@@ -398,6 +473,13 @@ class _MapPopupState extends State<MapPopup> {
     );
   }
 
+  void _moveCameraToServiceLocation() {
+    if (_mapController != null && _destinationLocation != null) {
+      _mapController!
+          .animateCamera(CameraUpdate.newLatLng(_destinationLocation!));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -406,10 +488,11 @@ class _MapPopupState extends State<MapPopup> {
         myLocationButtonEnabled: true,
         initialCameraPosition: _initialCameraPosition,
         markers: _markers,
-        polylines: Set<Polyline>.of(_polylines.values), // Add the polylines to the map
+        polylines:
+            Set<Polyline>.of(_polylines.values), // Add the polylines to the map
         onMapCreated: (controller) {
           _mapController = controller;
-          _moveCameraToCurrentLocation();
+          _moveCameraToServiceLocation();
         },
       ),
       // Clear route button (only shown when there's an active route)
@@ -417,7 +500,7 @@ class _MapPopupState extends State<MapPopup> {
           ? FloatingActionButton.extended(
               onPressed: _clearRoute,
               icon: const Icon(Icons.clear),
-              label: Text('Clear Route to ${widget.name ?? "location"}'),
+              label: Text('Clear Route to ${widget.service.title}'),
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             )
