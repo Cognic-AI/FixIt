@@ -138,18 +138,9 @@ class ServiceCard extends StatelessWidget {
                                   context: context,
                                   builder: (context) {
                                     return MapPopup(
-                                      location: service.location,
-                                      name: service.title,
-                                      description: service.description,
-                                      // onRequestService: () {
-                                      //   userService.UserService().createRequest(
-                                      //     token: token,
-                                      //     serviceId: service.id,
-                                      //     clientId: userId,
-                                      //     providerId: service.providerId,
-                                      //     location: service.location,
-                                      //   );
-                                      // },
+                                      service: service,
+                                      token: token,
+                                      uid: userId,
                                     );
                                   });
                             },
@@ -265,7 +256,15 @@ class ServiceCard extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Handle message button press
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return MapPopup(
+                                    service: service,
+                                    token: token,
+                                    uid: userId,
+                                  );
+                                });
                           },
                           child: const Text('Show in Map'),
                         ),

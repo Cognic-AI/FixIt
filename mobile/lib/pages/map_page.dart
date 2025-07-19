@@ -70,8 +70,9 @@ class _MapPageState extends State<MapPage> {
         _services = services;
         _filteredServices = services; // Initially show all services
       });
-      developer.log('🗺️ MapPage: Loaded ${_services.length} services', name: 'MapPage');
-      
+      developer.log('🗺️ MapPage: Loaded ${_services.length} services',
+          name: 'MapPage');
+
       // Update markers after loading services
       _updateMapMarkers();
     } catch (e) {
@@ -90,7 +91,8 @@ class _MapPageState extends State<MapPage> {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
         return;
       }
     }
@@ -114,43 +116,52 @@ class _MapPageState extends State<MapPage> {
   void _onSearchChanged(String value) {
     // Cancel previous timer if it exists
     _searchDebouncer?.cancel();
-    
+
     // Create a new timer that will trigger search after 500ms of no typing
     _searchDebouncer = Timer(const Duration(milliseconds: 500), () {
       _performSearch();
     });
-    
+
     setState(() {});
   }
 
   void _performSearch() {
     String searchQuery = _searchController.text.trim();
     String serviceType = _selectedServiceType;
-    
+
     // Set searching state
     setState(() {
       _isSearching = true;
     });
-    
-    developer.log('🔍 MapPage: Searching for: "$searchQuery" in category: "$serviceType"', name: 'MapPage');
-    
+
+    developer.log(
+        '🔍 MapPage: Searching for: "$searchQuery" in category: "$serviceType"',
+        name: 'MapPage');
+
     // Perform the actual search filtering
     List<Service> filteredResults = _services.where((service) {
       // Apply search filters similar to search page
       final matchesSearch = searchQuery.isEmpty ||
           service.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
           service.description.toLowerCase().contains(searchQuery.toLowerCase());
-      
-      final matchesCategory = serviceType == 'All' || service.category.toLowerCase() == serviceType.toLowerCase();
-      
+
+      final matchesCategory = serviceType == 'All' ||
+          service.category.toLowerCase() == serviceType.toLowerCase();
+
       // Note: tags field might be a string, so we need to handle it appropriately
-      final serviceTags = service.tags.toLowerCase().split(',').map((tag) => tag.trim()).toList();
+      final serviceTags = service.tags
+          .toLowerCase()
+          .split(',')
+          .map((tag) => tag.trim())
+          .toList();
       final matchesTags = searchQuery.isEmpty ||
           serviceTags.any((tag) => tag.contains(searchQuery.toLowerCase()));
 
-      return matchesSearch && matchesCategory && (searchQuery.isEmpty || matchesTags);
+      return matchesSearch &&
+          matchesCategory &&
+          (searchQuery.isEmpty || matchesTags);
     }).toList();
-    
+
     // Simulate search delay (you can remove this in production)
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -158,8 +169,10 @@ class _MapPageState extends State<MapPage> {
           _filteredServices = filteredResults;
           _isSearching = false;
         });
-        developer.log('MapPage: Search completed. Found ${_filteredServices.length} services', name: 'MapPage');
-        
+        developer.log(
+            'MapPage: Search completed. Found ${_filteredServices.length} services',
+            name: 'MapPage');
+
         // TODO: Update map markers with filtered services
         _updateMapMarkers();
       }
@@ -168,11 +181,11 @@ class _MapPageState extends State<MapPage> {
 
   void _updateMapMarkers() {
     Set<Marker> newMarkers = {};
-    
+
     for (int i = 0; i < _filteredServices.length; i++) {
       final service = _filteredServices[i];
       final coordinates = _parseLocationString(service.location);
-      
+
       if (coordinates != null) {
         final marker = Marker(
           markerId: MarkerId(service.id),
@@ -183,13 +196,14 @@ class _MapPageState extends State<MapPage> {
         newMarkers.add(marker);
       }
     }
-    
+
     setState(() {
       _markers = newMarkers;
     });
-    
-    developer.log('🗺️ MapPage: Updated map with ${_markers.length} markers', name: 'MapPage');
-    
+
+    developer.log('🗺️ MapPage: Updated map with ${_markers.length} markers',
+        name: 'MapPage');
+
     // Removed `_fitCameraToMarkers` to prevent overriding the user's current location focus
   }
 
@@ -197,49 +211,58 @@ class _MapPageState extends State<MapPage> {
     try {
       // Handle different location formats
       if (locationStr.isEmpty) return null;
-      
+
       // Remove any whitespace
       locationStr = locationStr.trim();
-      
+
       // Format 1: "lat,lng" (e.g., "6.9271,79.8612")
       if (locationStr.contains(',')) {
         final parts = locationStr.split(',');
         if (parts.length == 2) {
           final lat = double.tryParse(parts[0].trim());
           final lng = double.tryParse(parts[1].trim());
-          if (lat != null && lng != null && 
-              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+          if (lat != null &&
+              lng != null &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180) {
             return LatLng(lat, lng);
           }
         }
       }
-      
+
       // Format 2: "lat lng" (space separated)
       if (locationStr.contains(' ')) {
         final parts = locationStr.split(' ');
         if (parts.length == 2) {
           final lat = double.tryParse(parts[0].trim());
           final lng = double.tryParse(parts[1].trim());
-          if (lat != null && lng != null && 
-              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+          if (lat != null &&
+              lng != null &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180) {
             return LatLng(lat, lng);
           }
         }
       }
-      
+
       // Format 3: For demonstration, if location is a city name in Sri Lanka
       // You can add a mapping of city names to coordinates
       final cityCoordinates = _getCityCoordinates(locationStr.toLowerCase());
       if (cityCoordinates != null) {
         return cityCoordinates;
       }
-      
+
       // If no valid coordinates found, log and return null
-      developer.log('MapPage: Could not parse location: $locationStr', name: 'MapPage');
+      developer.log('MapPage: Could not parse location: $locationStr',
+          name: 'MapPage');
       return null;
-      
     } catch (e) {
-      developer.log('MapPage: Error parsing location "$locationStr": $e', name: 'MapPage');
+      developer.log('MapPage: Error parsing location "$locationStr": $e',
+          name: 'MapPage');
       return null;
     }
   }
@@ -259,7 +282,7 @@ class _MapPageState extends State<MapPage> {
       'batticaloa': const LatLng(7.7170, 81.7000),
       'trincomalee': const LatLng(8.5874, 81.2152),
     };
-    
+
     return cityMap[cityName];
   }
 
@@ -267,7 +290,7 @@ class _MapPageState extends State<MapPage> {
     if (_currentPosition == null) {
       return 'Distance unknown';
     }
-    
+
     // Calculate distance using Geolocator's distanceBetween method
     double distanceInMeters = Geolocator.distanceBetween(
       _currentPosition!.latitude,
@@ -275,7 +298,7 @@ class _MapPageState extends State<MapPage> {
       serviceLocation.latitude,
       serviceLocation.longitude,
     );
-    
+
     // Convert to appropriate unit
     if (distanceInMeters < 1000) {
       return '${distanceInMeters.round()}m away';
@@ -294,17 +317,21 @@ class _MapPageState extends State<MapPage> {
       case 'plumbing':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
       case 'electrical':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueYellow);
       case 'painting':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       case 'gardening':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange);
       case 'handyman':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       case 'moving':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueMagenta);
       case 'tutoring':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueViolet);
       case 'beauty':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose);
       case 'photography':
@@ -316,8 +343,9 @@ class _MapPageState extends State<MapPage> {
 
   void _onMarkerTap(Service service) {
     // Handle marker tap - show service details
-    developer.log('MapPage: Marker tapped for service: ${service.title}', name: 'MapPage');
-    
+    developer.log('MapPage: Marker tapped for service: ${service.title}',
+        name: 'MapPage');
+
     // You can implement a bottom sheet or dialog to show service details
     _showServiceBottomSheet(service);
   }
@@ -325,8 +353,10 @@ class _MapPageState extends State<MapPage> {
   void _showServiceBottomSheet(Service service) {
     // Calculate distance for the bottom sheet
     final coordinates = _parseLocationString(service.location);
-    final distance = coordinates != null ? _calculateDistance(coordinates) : 'Distance unknown';
-    
+    final distance = coordinates != null
+        ? _calculateDistance(coordinates)
+        : 'Distance unknown';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -359,7 +389,7 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Service details
             Text(
               service.category.toUpperCase(),
@@ -377,7 +407,7 @@ class _MapPageState extends State<MapPage> {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 16),
-            
+
             // Price, location and distance
             Row(
               children: [
@@ -404,11 +434,12 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             // Distance information
             Row(
               children: [
-                const Icon(Icons.directions, size: 16, color: Color(0xFF2563EB)),
+                const Icon(Icons.directions,
+                    size: 16, color: Color(0xFF2563EB)),
                 const SizedBox(width: 4),
                 Text(
                   distance,
@@ -420,9 +451,9 @@ class _MapPageState extends State<MapPage> {
                 ),
               ],
             ),
-            
+
             const Spacer(),
-            
+
             // Action buttons
             Column(
               children: [
@@ -430,17 +461,15 @@ class _MapPageState extends State<MapPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: OutlinedButton.icon(
                         onPressed: () {
-                          // Navigate to request service page
+                          // Handle contact action
                           Navigator.pop(context);
-                          _navigateToRequestService(service);
                         },
-                        icon: const Icon(Icons.handyman),
-                        label: const Text('Request Service'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          foregroundColor: Colors.white,
+                        icon: const Icon(Icons.message),
+                        label: const Text('Message'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF2563EB),
                         ),
                       ),
                     ),
@@ -466,15 +495,17 @@ class _MapPageState extends State<MapPage> {
                 // Second row of buttons
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () {
-                      // Handle contact action
+                      // Navigate to request service page
                       Navigator.pop(context);
+                      _navigateToRequestService(service);
                     },
-                    icon: const Icon(Icons.message),
-                    label: const Text('Message'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2563EB),
+                    icon: const Icon(Icons.handyman),
+                    label: const Text('Request Service'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
                     ),
                   ),
                 ),
@@ -538,14 +569,14 @@ class _MapPageState extends State<MapPage> {
         LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         serviceCoordinates,
       );
-      
+
       if (coordinates.isNotEmpty) {
         _generatePolylineFromPoints(coordinates);
         _fitCameraToRoute(
           LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           serviceCoordinates,
         );
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -577,7 +608,8 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  Future<List<LatLng>> _getPolyLinePoints(LatLng origin, LatLng destination) async {
+  Future<List<LatLng>> _getPolyLinePoints(
+      LatLng origin, LatLng destination) async {
     List<LatLng> polylineCoordinates = [];
     PolylinePoints polylinePoints = PolylinePoints();
 
@@ -590,18 +622,19 @@ class _MapPageState extends State<MapPage> {
         ),
         googleApiKey: googleMapsApiKey,
       );
-      
+
       if (result.points.isNotEmpty) {
         for (PointLatLng point in result.points) {
           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         }
       } else {
-        developer.log('No route points found: ${result.errorMessage}', name: 'MapPage');
+        developer.log('No route points found: ${result.errorMessage}',
+            name: 'MapPage');
       }
     } catch (e) {
       developer.log('Error getting polyline points: $e', name: 'MapPage');
     }
-    
+
     return polylineCoordinates;
   }
 
@@ -614,7 +647,7 @@ class _MapPageState extends State<MapPage> {
       width: 5,
       patterns: [], // Solid line
     );
-    
+
     setState(() {
       _polylines[id] = polyline;
     });
@@ -624,10 +657,18 @@ class _MapPageState extends State<MapPage> {
     if (_mapController == null) return;
 
     // Calculate bounds that include both origin and destination
-    double minLat = origin.latitude < destination.latitude ? origin.latitude : destination.latitude;
-    double maxLat = origin.latitude > destination.latitude ? origin.latitude : destination.latitude;
-    double minLng = origin.longitude < destination.longitude ? origin.longitude : destination.longitude;
-    double maxLng = origin.longitude > destination.longitude ? origin.longitude : destination.longitude;
+    double minLat = origin.latitude < destination.latitude
+        ? origin.latitude
+        : destination.latitude;
+    double maxLat = origin.latitude > destination.latitude
+        ? origin.latitude
+        : destination.latitude;
+    double minLng = origin.longitude < destination.longitude
+        ? origin.longitude
+        : destination.longitude;
+    double maxLng = origin.longitude > destination.longitude
+        ? origin.longitude
+        : destination.longitude;
 
     // Add padding
     const padding = 0.01;
@@ -693,7 +734,7 @@ class _MapPageState extends State<MapPage> {
                   child: Row(
                     children: [
                       // Search icon or loading indicator
-                      _isSearching 
+                      _isSearching
                           ? const SizedBox(
                               width: 20,
                               height: 20,
@@ -709,7 +750,7 @@ class _MapPageState extends State<MapPage> {
                               padding: EdgeInsets.all(12.0),
                               child: Icon(Icons.search, color: Colors.grey),
                             ),
-                      
+
                       // Search text field
                       Expanded(
                         child: TextField(
@@ -722,12 +763,13 @@ class _MapPageState extends State<MapPage> {
                           onChanged: _onSearchChanged,
                         ),
                       ),
-                      
+
                       // Service type chip
                       if (_selectedServiceType != 'All') ...[
                         Container(
                           margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: const Color(0xFF2563EB).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -780,7 +822,7 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
           ),
-          
+
           // Dropdown list of service types
           if (_isSearchExpanded) ...[
             const Divider(height: 1),
@@ -790,12 +832,13 @@ class _MapPageState extends State<MapPage> {
                 onTap: () {}, // Absorb tap gestures
                 child: ListView.builder(
                   shrinkWrap: true,
-                  physics: const ClampingScrollPhysics(), // Prevent gesture conflicts
+                  physics:
+                      const ClampingScrollPhysics(), // Prevent gesture conflicts
                   itemCount: serviceTypes.length,
                   itemBuilder: (context, index) {
                     final serviceType = serviceTypes[index];
                     final isSelected = _selectedServiceType == serviceType;
-                    
+
                     return GestureDetector(
                       onTap: () {
                         _onServiceTypeChanged(serviceType);
@@ -805,14 +848,20 @@ class _MapPageState extends State<MapPage> {
                         color: Colors.transparent,
                         child: ListTile(
                           title: Text(
-                            serviceType == 'All' ? 'All Services' : serviceType.toUpperCase(),
+                            serviceType == 'All'
+                                ? 'All Services'
+                                : serviceType.toUpperCase(),
                             style: TextStyle(
                               fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              color: isSelected ? const Color(0xFF2563EB) : Colors.black87,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF2563EB)
+                                  : Colors.black87,
                             ),
                           ),
-                          trailing: isSelected 
+                          trailing: isSelected
                               ? const Icon(
                                   Icons.check,
                                   color: Color(0xFF2563EB),
@@ -820,7 +869,8 @@ class _MapPageState extends State<MapPage> {
                                 )
                               : null,
                           dense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 4),
                         ),
                       ),
                     );
@@ -843,19 +893,24 @@ class _MapPageState extends State<MapPage> {
           GoogleMap(
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
-            scrollGesturesEnabled: !_isSearchExpanded, // Disable scroll when dropdown is open
-            zoomGesturesEnabled: !_isSearchExpanded,   // Disable zoom when dropdown is open
-            tiltGesturesEnabled: !_isSearchExpanded,   // Disable tilt when dropdown is open
-            rotateGesturesEnabled: !_isSearchExpanded, // Disable rotate when dropdown is open
+            scrollGesturesEnabled:
+                !_isSearchExpanded, // Disable scroll when dropdown is open
+            zoomGesturesEnabled:
+                !_isSearchExpanded, // Disable zoom when dropdown is open
+            tiltGesturesEnabled:
+                !_isSearchExpanded, // Disable tilt when dropdown is open
+            rotateGesturesEnabled:
+                !_isSearchExpanded, // Disable rotate when dropdown is open
             initialCameraPosition: _initialCameraPosition,
             markers: _markers, // Add the markers to the map
-            polylines: Set<Polyline>.of(_polylines.values), // Add the polylines to the map
+            polylines: Set<Polyline>.of(
+                _polylines.values), // Add the polylines to the map
             onMapCreated: (controller) {
               _mapController = controller;
               _moveCameraToCurrentLocation(); // Try moving camera when map is created
             },
           ),
-          
+
           // Search overlay
           Positioned(
             top: MediaQuery.of(context).padding.top,
@@ -868,7 +923,8 @@ class _MapPageState extends State<MapPage> {
                 if (!_isSearchExpanded && _services.isNotEmpty)
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(8),
@@ -905,7 +961,7 @@ class _MapPageState extends State<MapPage> {
           ? FloatingActionButton.extended(
               onPressed: _clearRoute,
               icon: const Icon(Icons.clear),
-              label: Text(_selectedService != null 
+              label: Text(_selectedService != null
                   ? 'Clear Route to ${_selectedService!.title}'
                   : 'Clear Route'),
               backgroundColor: Colors.red,
