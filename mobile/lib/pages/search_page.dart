@@ -3,10 +3,11 @@ import 'dart:developer' as developer;
 import '../widgets/service_card.dart';
 import '../models/service.dart';
 import '../services/user_service.dart';
+import './client/request_service_page.dart'; 
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.token});
-
+  const SearchPage({super.key, required this.token, required this.uid});
+  final String uid; 
   final String token;
 
   @override
@@ -435,10 +436,32 @@ class _SearchPageState extends State<SearchPage> {
                           itemBuilder: (context, index) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: ServiceCard(
-                                service: searchResults[index],
-                                isHorizontal: true,
-                                onMessageTap: () => {},
+                              child: GestureDetector(
+                                onTap: () {
+                                  // Navigate to RequestServicePage on tap
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RequestServicePage(
+                                        token: widget.token,
+                                        uid: widget.uid,
+                                        category: searchResults[index]
+                                            .category, // Pass the category here
+                                        title: searchResults[index]
+                                            .title, // Pass the title
+                                        price: searchResults[index]
+                                            .price
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: ServiceCard(
+                                  service: searchResults[index],
+                                  userId: widget.uid,
+                                  token: widget.token,
+                                  isHorizontal: true,
+                                  onMessageTap: () => {},
+                                ),
                               ),
                             );
                           },

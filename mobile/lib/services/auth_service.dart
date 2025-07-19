@@ -82,6 +82,7 @@ class AuthService extends ChangeNotifier {
           'lastName': lastName,
           'role': userType,
           'phoneNumber': phoneNumber,
+          'location': "6.7879,79.8889"
         }),
       );
 

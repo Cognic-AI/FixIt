@@ -1,11 +1,10 @@
+import backend.models;
 
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
 import ballerina/time;
 import ballerina/uuid;
-
-import backend.models;
 
 // Service model types
 public type Service record {
@@ -93,7 +92,8 @@ public function createService(http:Caller caller, http:Request req) returns erro
         createdAt: currentTime,
         updatedAt: currentTime,
         tags: serviceData.tags,
-        images: serviceData.images};
+        images: serviceData.images
+    };
 
     // Save service to Firestore
     string|error createResult = check models:createDocument("services", mapToJSON(newService.toJson()));
@@ -163,7 +163,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
     // Get services from Firestore
     map<json> filters = {
         "availability": true // Only fetch active services
-};
+    };
     Service[]|error servicesData = models:queryServices(filters);
     if servicesData is error {
         log:printError("Failed to fetch services from Firestore", servicesData);
@@ -186,7 +186,7 @@ public function getServices(http:Caller caller, http:Request req) returns error?
         "services": servicesData.toJson(),
         "isAuthenticated": isAuthenticated,
         "userRole": userRole
-};
+    };
 
     http:Response response = new;
     response.statusCode = 200;
@@ -214,7 +214,7 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
     // For now, we'll get all services and filter them
     map<json> filters = {
         "providerEmail": user.email // Filter by provider ID
-};
+    };
     Service[]|error allServicesData = models:queryServices(filters);
     if allServicesData is error {
         log:printError("Failed to fetch services from MongoDB", allServicesData);
@@ -238,7 +238,7 @@ public function getMyServices(http:Caller caller, http:Request req) returns erro
             "firstName": user.firstName,
             "lastName": user.lastName
         }
-};
+    };
 
     http:Response response = new;
     response.statusCode = 200;
