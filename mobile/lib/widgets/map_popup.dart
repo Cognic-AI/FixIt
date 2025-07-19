@@ -35,7 +35,11 @@ class _MapPopupState extends State<MapPopup> {
     _requestLocationPermission();
     _addLocationMarkerIfNeeded();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _moveCameraToServiceLocation();
+      if (_destinationLocation != null) {
+        _moveCameraToServiceLocation();
+      } else {
+        _moveCameraToCurrentLocation();
+      }
     });
   }
 
@@ -60,7 +64,9 @@ class _MapPopupState extends State<MapPopup> {
       _currentPosition = position;
     });
 
-    _moveCameraToCurrentLocation();
+    if (_destinationLocation == null) {
+      _moveCameraToCurrentLocation();
+    }
   }
 
   void _moveCameraToCurrentLocation() {
