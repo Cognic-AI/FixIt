@@ -188,10 +188,7 @@ class _MapPageState extends State<MapPage> {
     
     developer.log('🗺️ MapPage: Updated map with ${_markers.length} markers', name: 'MapPage');
     
-    // Optionally adjust camera to show all markers
-    if (_markers.isNotEmpty) {
-      _fitCameraToMarkers();
-    }
+    // Removed `_fitCameraToMarkers` to prevent overriding the user's current location focus
   }
 
   LatLng? _parseLocationString(String locationStr) {
@@ -484,32 +481,6 @@ class _MapPageState extends State<MapPage> {
         ),
       ),
     );
-  }
-
-  void _fitCameraToMarkers() {
-    if (_markers.isEmpty || _mapController == null) return;
-    
-    // Calculate bounds to fit all markers
-    double minLat = _markers.first.position.latitude;
-    double maxLat = _markers.first.position.latitude;
-    double minLng = _markers.first.position.longitude;
-    double maxLng = _markers.first.position.longitude;
-    
-    for (final marker in _markers) {
-      minLat = minLat < marker.position.latitude ? minLat : marker.position.latitude;
-      maxLat = maxLat > marker.position.latitude ? maxLat : marker.position.latitude;
-      minLng = minLng < marker.position.longitude ? minLng : marker.position.longitude;
-      maxLng = maxLng > marker.position.longitude ? maxLng : marker.position.longitude;
-    }
-    
-    // Add some padding
-    const padding = 0.01;
-    final bounds = LatLngBounds(
-      southwest: LatLng(minLat - padding, minLng - padding),
-      northeast: LatLng(maxLat + padding, maxLng + padding),
-    );
-    
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100.0));
   }
 
   int get searchResultsCount => _filteredServices.length;
