@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import '../models/service.dart';
 import '../services/user_service.dart';
+
+const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.token});
@@ -31,6 +34,8 @@ class _MapPageState extends State<MapPage> {
   List<Service> _services = [];
   List<Service> _filteredServices = [];
   Set<Marker> _markers = {};
+  Map<PolylineId, Polyline> _polylines = {};
+  Service? _selectedService;
 
   final List<String> serviceTypes = [
     'All',
@@ -380,7 +385,7 @@ class _MapPageState extends State<MapPage> {
                 const Icon(Icons.euro, size: 16, color: Colors.green),
                 const SizedBox(width: 4),
                 Text(
-                  '${service.price.toStringAsFixed(2)}',
+                  service.price.toStringAsFixed(2),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -445,6 +450,7 @@ class _MapPageState extends State<MapPage> {
                         onPressed: () {
                           // Handle directions action
                           Navigator.pop(context);
+                          _showDirections(service);
                         },
                         icon: const Icon(Icons.directions),
                         label: const Text('Directions'),
@@ -521,6 +527,149 @@ class _MapPageState extends State<MapPage> {
       // Trigger search with the new service type
       _performSearch();
     }
+  }
+
+  Future<void> _showDirections(Service service) async {
+    if (_currentPosition == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Current location not available'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    final serviceCoordinates = _parseLocationString(service.location);
+    if (serviceCoordinates == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Service location not available'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _selectedService = service;
+    });
+
+    try {
+      final coordinates = await _getPolyLinePoints(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        serviceCoordinates,
+      );
+      
+      if (coordinates.isNotEmpty) {
+        _generatePolylineFromPoints(coordinates);
+        _fitCameraToRoute(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          serviceCoordinates,
+        );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Route to ${service.title} displayed'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not find route'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      developer.log('Error getting directions: $e', name: 'MapPage');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error getting directions'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<List<LatLng>> _getPolyLinePoints(LatLng origin, LatLng destination) async {
+    List<LatLng> polylineCoordinates = [];
+    PolylinePoints polylinePoints = PolylinePoints();
+
+    try {
+      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(origin.latitude, origin.longitude),
+          destination: PointLatLng(destination.latitude, destination.longitude),
+          mode: TravelMode.driving,
+        ),
+        googleApiKey: googleMapsApiKey,
+      );
+      
+      if (result.points.isNotEmpty) {
+        for (PointLatLng point in result.points) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        }
+      } else {
+        developer.log('No route points found: ${result.errorMessage}', name: 'MapPage');
+      }
+    } catch (e) {
+      developer.log('Error getting polyline points: $e', name: 'MapPage');
+    }
+    
+    return polylineCoordinates;
+  }
+
+  void _generatePolylineFromPoints(List<LatLng> polylineCoordinates) {
+    const PolylineId id = PolylineId("route");
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: const Color(0xFF2563EB),
+      points: polylineCoordinates,
+      width: 5,
+      patterns: [], // Solid line
+    );
+    
+    setState(() {
+      _polylines[id] = polyline;
+    });
+  }
+
+  void _fitCameraToRoute(LatLng origin, LatLng destination) {
+    if (_mapController == null) return;
+
+    // Calculate bounds that include both origin and destination
+    double minLat = origin.latitude < destination.latitude ? origin.latitude : destination.latitude;
+    double maxLat = origin.latitude > destination.latitude ? origin.latitude : destination.latitude;
+    double minLng = origin.longitude < destination.longitude ? origin.longitude : destination.longitude;
+    double maxLng = origin.longitude > destination.longitude ? origin.longitude : destination.longitude;
+
+    // Add padding
+    const padding = 0.01;
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat - padding, minLng - padding),
+      northeast: LatLng(maxLat + padding, maxLng + padding),
+    );
+
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100.0));
+  }
+
+  void _clearRoute() {
+    setState(() {
+      _polylines.clear();
+      _selectedService = null;
+    });
   }
 
   void _toggleSearchExpanded() {
@@ -711,6 +860,7 @@ class _MapPageState extends State<MapPage> {
             rotateGesturesEnabled: !_isSearchExpanded, // Disable rotate when dropdown is open
             initialCameraPosition: _initialCameraPosition,
             markers: _markers, // Add the markers to the map
+            polylines: Set<Polyline>.of(_polylines.values), // Add the polylines to the map
             onMapCreated: (controller) {
               _mapController = controller;
               _moveCameraToCurrentLocation(); // Try moving camera when map is created
@@ -738,7 +888,7 @@ class _MapPageState extends State<MapPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${searchResultsCount} services found',
+                          '$searchResultsCount services found',
                           style: const TextStyle(
                             color: Colors.grey,
                             fontWeight: FontWeight.w500,
@@ -761,6 +911,18 @@ class _MapPageState extends State<MapPage> {
           ),
         ],
       ),
+      // Clear route button (only shown when there's an active route)
+      floatingActionButton: _polylines.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _clearRoute,
+              icon: const Icon(Icons.clear),
+              label: Text(_selectedService != null 
+                  ? 'Clear Route to ${_selectedService!.title}'
+                  : 'Clear Route'),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            )
+          : null,
     );
   }
 

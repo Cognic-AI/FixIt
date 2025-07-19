@@ -111,15 +111,15 @@ class ServiceCard extends StatelessWidget {
                                       location: service.location,
                                       name: service.title,
                                       description: service.description,
-                                      onRequestService: () {
-                                        userService.UserService().createRequest(
-                                          token: token,
-                                          serviceId: service.id,
-                                          clientId: userId,
-                                          providerId: service.providerId,
-                                          location: service.location,
-                                        );
-                                      },
+                                      // onRequestService: () {
+                                      //   userService.UserService().createRequest(
+                                      //     token: token,
+                                      //     serviceId: service.id,
+                                      //     clientId: userId,
+                                      //     providerId: service.providerId,
+                                      //     location: service.location,
+                                      //   );
+                                      // },
                                     );
                                   });
                             },
