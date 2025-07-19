@@ -2,9 +2,19 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 
 class RequestServicePage extends StatefulWidget {
-  const RequestServicePage({super.key, required this.token, required this.uid});
-  final String uid; // User ID for the current user
+  const RequestServicePage({
+    super.key,
+    required this.token,
+    required this.uid,
+    required this.category,
+    required this.title,
+    required this.price,
+  });
+  final String uid; 
   final String token;
+  final String category; 
+  final String title; 
+  final double price; 
 
   @override
   State<RequestServicePage> createState() => _RequestServicePageState();
@@ -75,19 +85,33 @@ class _RequestServicePageState extends State<RequestServicePage> {
           key: _formKey,
           child: ListView(
             children: [
-              // Service Title
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Service Title',
-                  border: OutlineInputBorder(),
+              // Display the service title
+              Text(
+                'Service Provider: ${widget.title}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
+              ),
+              const SizedBox(height: 16),
+
+              // Category
+              Text(
+                'Category: ${widget.category.toUpperCase()}', 
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Price
+              Text(
+                'Price: €${widget.price.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -95,37 +119,13 @@ class _RequestServicePageState extends State<RequestServicePage> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
-                  labelText: 'Description',
+                  labelText: 'Description (Optional)',
+                  hintText: 'Describe your required service',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Category Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                items: categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(),
-                ),
+                style: const TextStyle(color: Colors.black), 
               ),
               const SizedBox(height: 16),
 
@@ -134,6 +134,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                 controller: _budgetController,
                 decoration: const InputDecoration(
                   labelText: 'Budget (Optional)',
+                  hintText: 'Enter your budget',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,

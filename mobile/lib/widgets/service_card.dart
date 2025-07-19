@@ -55,6 +55,9 @@ class ServiceCard extends StatelessWidget {
               builder: (context) => RequestServicePage(
                 token: token,
                 uid: userId,
+                category: service.category,
+                title: service.title,
+                price: service.price,
               ),
             ),
           );
