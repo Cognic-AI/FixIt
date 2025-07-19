@@ -6,13 +6,15 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import '../models/service.dart';
 import '../services/user_service.dart';
+import 'client/request_service_page.dart';
 
 const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key, required this.token});
+  const MapPage({super.key, required this.token, required this.uid});
 
   final String token;
+  final String uid;
 
   @override
   _MapPageState createState() => _MapPageState();
@@ -430,8 +432,9 @@ class _MapPageState extends State<MapPage> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Handle request service action
+                          // Navigate to request service page
                           Navigator.pop(context);
+                          _navigateToRequestService(service);
                         },
                         icon: const Icon(Icons.handyman),
                         label: const Text('Request Service'),
@@ -641,6 +644,21 @@ class _MapPageState extends State<MapPage> {
       _polylines.clear();
       _selectedService = null;
     });
+  }
+
+  void _navigateToRequestService(Service service) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RequestServicePage(
+          token: widget.token,
+          uid: widget.uid,
+          category: service.category,
+          title: service.title,
+          price: service.price,
+        ),
+      ),
+    );
   }
 
   void _toggleSearchExpanded() {
