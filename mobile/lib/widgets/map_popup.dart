@@ -34,6 +34,9 @@ class _MapPopupState extends State<MapPopup> {
     super.initState();
     _requestLocationPermission();
     _addLocationMarkerIfNeeded();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _moveCameraToServiceLocation();
+    });
   }
 
   Future<void> _requestLocationPermission() async {
@@ -398,6 +401,12 @@ class _MapPopupState extends State<MapPopup> {
     );
   }
 
+  void _moveCameraToServiceLocation() {
+    if (_mapController != null && _destinationLocation != null) {
+      _mapController!.animateCamera(CameraUpdate.newLatLng(_destinationLocation!));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -409,7 +418,7 @@ class _MapPopupState extends State<MapPopup> {
         polylines: Set<Polyline>.of(_polylines.values), // Add the polylines to the map
         onMapCreated: (controller) {
           _mapController = controller;
-          _moveCameraToCurrentLocation();
+          _moveCameraToServiceLocation();
         },
       ),
       // Clear route button (only shown when there's an active route)
