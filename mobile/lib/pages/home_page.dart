@@ -10,6 +10,7 @@ import '../models/event.dart';
 import 'search_page.dart';
 import 'map_page.dart';
 import 'client/edit_profile_page.dart';
+import 'client/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.user, required this.token});
@@ -113,6 +114,14 @@ class _HomePageState extends State<HomePage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const EditProfilePage(),
+                      ),
+                    );
+                  } else if (value == 'settings') {
+                    developer.log('⚙️ Navigating to settings page', name: 'HomePage');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsPage(),
                       ),
                     );
                   } else if (value == 'logout') {
