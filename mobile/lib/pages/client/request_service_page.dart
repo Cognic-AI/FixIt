@@ -54,6 +54,35 @@ class _RequestServicePageState extends State<RequestServicePage> {
     _loadUserLocation();
   }
 
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'cleaning':
+        return Icons.cleaning_services;
+      case 'plumbing':
+        return Icons.plumbing;
+      case 'electrical':
+        return Icons.electrical_services;
+      case 'painting':
+        return Icons.format_paint;
+      case 'gardening':
+        return Icons.grass;
+      case 'handyman':
+        return Icons.build;
+      case 'moving':
+        return Icons.moving;
+      case 'tutoring':
+        return Icons.school;
+      case 'beauty':
+        return Icons.face;
+      case 'photography':
+        return Icons.camera_alt;
+      case 'catering':
+        return Icons.restaurant;
+      default:
+        return Icons.handyman;
+    }
+  }
+
   void _loadUserLocation() {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
@@ -86,7 +115,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
     if (result != null) {
       setState(() {
         _selectedLocation = result;
-        _locationController.text = "${result.latitude}, ${result.longitude}";
+        _locationController.text = "${result.latitude.toStringAsFixed(4)}, ${result.longitude.toStringAsFixed(4)}";
       });
     }
   }
@@ -98,63 +127,128 @@ class _RequestServicePageState extends State<RequestServicePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Select Location'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.location_on, color: Color(0xFF2563EB)),
+            SizedBox(width: 8),
+            Text(
+              'Select Location',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (user?.location.isNotEmpty == true)
-              ListTile(
-                leading: const Icon(Icons.person_pin_circle, color: Color(0xFF2563EB)),
-                title: const Text('Use Profile Location'),
-                subtitle: Text(user!.location),
-                onTap: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    _locationController.text = user.location;
-                    // Try to parse coordinates
-                    final parts = user.location.split(',');
-                    if (parts.length == 2) {
-                      try {
-                        final lat = double.parse(parts[0].trim());
-                        final lng = double.parse(parts[1].trim());
-                        _selectedLocation = LatLng(lat, lng);
-                      } catch (e) {
-                        developer.log('Could not parse coordinates: $e', name: 'RequestServicePage');
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF2563EB).withOpacity(0.3)),
+                  color: const Color(0xFF2563EB).withOpacity(0.05),
+                ),
+                child: ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.person_pin_circle, color: Color(0xFF2563EB), size: 20),
+                  ),
+                  title: const Text('Profile Location', style: TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text(user!.location, style: TextStyle(color: Colors.grey[600])),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _locationController.text = user.location;
+                      // Try to parse coordinates
+                      final parts = user.location.split(',');
+                      if (parts.length == 2) {
+                        try {
+                          final lat = double.parse(parts[0].trim());
+                          final lng = double.parse(parts[1].trim());
+                          _selectedLocation = LatLng(lat, lng);
+                        } catch (e) {
+                          developer.log('Could not parse coordinates: $e', name: 'RequestServicePage');
+                        }
                       }
-                    }
-                  });
-                },
+                    });
+                  },
+                ),
               ),
             if (user?.location.isEmpty != false)
-              ListTile(
-                leading: const Icon(Icons.person_pin_circle_outlined, color: Colors.grey),
-                title: const Text('Profile Location'),
-                subtitle: const Text('No location set in profile'),
-                enabled: false,
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                  color: Colors.grey.shade50,
+                ),
+                child: const ListTile(
+                  leading: Icon(Icons.person_pin_circle_outlined, color: Colors.grey),
+                  title: Text('Profile Location', style: TextStyle(color: Colors.grey)),
+                  subtitle: Text('No location set in profile', style: TextStyle(color: Colors.grey)),
+                  enabled: false,
+                ),
               ),
-            ListTile(
-              leading: const Icon(Icons.my_location, color: Color(0xFF2563EB)),
-              title: const Text('Use Current Location'),
-              subtitle: const Text('Get your current GPS location'),
-              onTap: () {
-                Navigator.pop(context);
-                _useCurrentLocation();
-              },
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                color: const Color(0xFF10B981).withOpacity(0.05),
+              ),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.my_location, color: Color(0xFF10B981), size: 20),
+                ),
+                title: const Text('Current Location', style: TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text('Use your GPS location', style: TextStyle(color: Colors.grey[600])),
+                onTap: () {
+                  Navigator.pop(context);
+                  _useCurrentLocation();
+                },
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.map, color: Color(0xFF2563EB)),
-              title: const Text('Select on Map'),
-              subtitle: const Text('Choose a specific location'),
-              onTap: () {
-                Navigator.pop(context);
-                _openMapDialog();
-              },
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.3)),
+                color: const Color(0xFF7C3AED).withOpacity(0.05),
+              ),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.map, color: Color(0xFF7C3AED), size: 20),
+                ),
+                title: const Text('Select on Map', style: TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text('Choose a specific location', style: TextStyle(color: Colors.grey[600])),
+                onTap: () {
+                  Navigator.pop(context);
+                  _openMapDialog();
+                },
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+            ),
             child: const Text('Cancel'),
           ),
         ],
@@ -210,7 +304,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
 
       setState(() {
         _selectedLocation = LatLng(position.latitude, position.longitude);
-        _locationController.text = "${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}";
+        _locationController.text = "${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -228,28 +322,161 @@ class _RequestServicePageState extends State<RequestServicePage> {
 
   Future<void> _submitRequest() async {
     if (_formKey.currentState!.validate()) {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          content: const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF2563EB)),
+                SizedBox(width: 20),
+                Text('Submitting your request...'),
+              ],
+            ),
+          ),
+        ),
+      );
+
       final requestData = {
         'title': _titleController.text,
-        'description': _descriptionController.text,
+        'description': _descriptionController.text.isNotEmpty 
+            ? _descriptionController.text 
+            : 'No additional description provided',
         'category': _selectedCategory,
-        'budget': _budgetController.text,
+        'budget': _budgetController.text.isNotEmpty 
+            ? _budgetController.text 
+            : 'Budget not specified',
         'userId': widget.uid,
         'location': _locationController.text.isNotEmpty ? _locationController.text : 'No location specified',
+        'serviceProvider': widget.title,
+        'servicePrice': widget.price,
       };
 
       try {
-        // Simulate API call
+        // Simulate API call with delay
+        await Future.delayed(const Duration(seconds: 2));
         developer.log('Submitting request: $requestData', name: 'RequestServicePage');
         // Add your API call logic here
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Service request submitted successfully!')),
+        Navigator.pop(context); // Close loading dialog
+
+        // Show success dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 32),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Request Submitted!',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Your service request has been submitted successfully. The service provider will contact you soon.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close success dialog
+                    Navigator.pop(context); // Go back to previous screen
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
-        Navigator.pop(context);
       } catch (e) {
+        Navigator.pop(context); // Close loading dialog
         developer.log('Error submitting request: $e', name: 'RequestServicePage');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit service request.')),
+        
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.error, color: Colors.white, size: 32),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Submission Failed',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Failed to submit your service request. Please check your connection and try again.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Try Again',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       }
     }
@@ -259,115 +486,301 @@ class _RequestServicePageState extends State<RequestServicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Request Service'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text(
+          'Request Service',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Display the service title
-              Text(
-                'Service Provider: ${widget.title}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Service Details Header Card
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
                 ),
               ),
-              const SizedBox(height: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _getCategoryIcon(widget.category),
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  widget.category.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.euro, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Starting Price: ',
+                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                          ),
+                          Text(
+                            '€${widget.price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-              // Category
-              Text(
-                'Category: ${widget.category.toUpperCase()}', 
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
+            // Form Section
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Service Details',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-              // Price
-              Text(
-                'Price: €${widget.price.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
+                    // Location Field with improved design
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        color: Colors.white,
+                      ),
+                      child: TextFormField(
+                        controller: _locationController,
+                        decoration: InputDecoration(
+                          labelText: 'Service Location',
+                          hintText: 'Where do you need the service?',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                          prefixIcon: const Icon(Icons.location_on, color: Color(0xFF2563EB)),
+                          suffixIcon: Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.map, color: Colors.white, size: 20),
+                              onPressed: _showLocationOptions,
+                            ),
+                          ),
+                          labelStyle: const TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        readOnly: true,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please select a location for the service';
+                          }
+                          return null;
+                        },
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-              // Location
-              TextFormField(
-                controller: _locationController,
-                decoration: InputDecoration(
-                  labelText: 'Service Location *',
-                  hintText: 'Select service location',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.location_on),
-                    onPressed: _showLocationOptions,
-                  ),
-                ),
-                readOnly: true,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please select a location for the service';
-                  }
-                  return null;
-                },
-                style: const TextStyle(color: Colors.black),
-              ),
-              const SizedBox(height: 16),
+                    // Description Field
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        color: Colors.white,
+                      ),
+                      child: TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                          hintText: 'Tell us more about what you need...',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(16),
+                          prefixIcon: Icon(Icons.description, color: Color(0xFF2563EB)),
+                          labelStyle: TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        maxLines: 4,
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  hintText: 'Describe your required service',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 4,
-                style: const TextStyle(color: Colors.black), 
-              ),
-              const SizedBox(height: 16),
+                    // Budget Field
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        color: Colors.white,
+                      ),
+                      child: TextFormField(
+                        controller: _budgetController,
+                        decoration: const InputDecoration(
+                          labelText: 'Your Budget (Optional)',
+                          hintText: 'Enter your budget in €',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.all(16),
+                          prefixIcon: Icon(Icons.euro, color: Color(0xFF2563EB)),
+                          labelStyle: TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
 
-              // Budget
-              TextFormField(
-                controller: _budgetController,
-                decoration: const InputDecoration(
-                  labelText: 'Budget (Optional)',
-                  hintText: 'Enter your budget',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
+                    // Submit Button
+                    Container(
+                      width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF2563EB).withOpacity(0.3),
+                            spreadRadius: 0,
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _submitRequest,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.send, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Submit Request',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
-                keyboardType: TextInputType.number,
               ),
-              const SizedBox(height: 24),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _submitRequest,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Submit Request',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -405,33 +818,42 @@ class _MapDialogState extends State<_MapDialog> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      await Geolocator.openLocationSettings();
-      return;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
         return;
       }
-    }
 
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-      if (_selectedLocation == null) {
-        _selectedLocation = _currentLocation;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+          return;
+        }
       }
-    });
 
-    // Pan the map to the current location
-    if (_mapController != null && _currentLocation != null) {
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLng(_currentLocation!),
-      );
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+        if (_selectedLocation == null) {
+          _selectedLocation = _currentLocation;
+        }
+      });
+
+      // Pan the map to the current location
+      if (_mapController != null && _currentLocation != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: _currentLocation!,
+              zoom: 15.0,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      developer.log('Error getting current location in map: $e', name: 'MapDialog');
     }
   }
 
@@ -449,11 +871,19 @@ class _MapDialogState extends State<_MapDialog> {
           ),
           onMapCreated: (controller) {
             _mapController = controller;
-            // Pan to current location if available
+            // Pan to current location if available, otherwise get current location
             if (_currentLocation != null) {
               _mapController!.animateCamera(
-                CameraUpdate.newLatLng(_currentLocation!),
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: _currentLocation!,
+                    zoom: 15.0,
+                  ),
+                ),
               );
+            } else {
+              // Trigger getting current location which will then pan the map
+              _getCurrentLocation();
             }
           },
           markers: _selectedLocation != null
