@@ -2,7 +2,7 @@ import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
-// import '../services/user_service.dart' as userService;
+import '../pages/client/request_service_page.dart'; 
 
 class ServiceCard extends StatelessWidget {
   final Service service;
@@ -49,7 +49,15 @@ class ServiceCard extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8.0),
       child: ElevatedButton.icon(
         onPressed: () {
-          // Handle request service button press
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RequestServicePage(
+                token: token,
+                uid: userId,
+              ),
+            ),
+          );
         },
         icon: const Icon(Icons.handyman),
         label: const Text('Request Service'),
