@@ -1,0 +1,517 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:developer' as developer;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../services/auth_service.dart';
+import '../../widgets/custom_text_field.dart';
+
+class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({super.key});
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  final _formKey = GlobalKey<FormState>();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _phoneController = TextEditingController();
+  bool _isLoading = false;
+  LatLng? _selectedLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    if (user != null) {
+      _firstNameController.text = user.firstName;
+      _lastNameController.text = user.lastName;
+      _emailController.text = user.email;
+      _locationController.text = user.location;
+      _phoneController.text = user.phoneNumber ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _locationController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _openMapDialog() async {
+    LatLng? result = await showDialog<LatLng>(
+      context: context,
+      builder: (context) => _MapDialog(initialLocation: _selectedLocation),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedLocation = result;
+        _locationController.text = "${result.latitude}, ${result.longitude}";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'), // Changed title to 'Profile'
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Consumer<AuthService>(
+        builder: (context, authService, child) {
+          final user = authService.currentUser;
+
+          return Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center, // Center align content
+                children: [
+                  const Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                    textAlign: TextAlign.center, // Center align text
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Profile Picture Section
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 32),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 60,
+                              backgroundColor:
+                                  const Color(0xFF2563EB).withOpacity(0.1),
+                              child: user?.profileImageUrl != null
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        user!.profileImageUrl!,
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Text(
+                                      user?.firstName[0].toUpperCase() ?? 'C',
+                                      style: const TextStyle(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                    ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2563EB),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  onPressed: _changeProfilePicture,
+                                  icon: const Icon(Icons.camera_alt,
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          user?.fullName ?? 'Client Name',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Form Fields
+                  CustomTextField(
+                    controller: _firstNameController,
+                    label: 'First Name *',
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your first name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    controller: _lastNameController,
+                    label: 'Last Name *',
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your last name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    controller: _emailController,
+                    label: 'Email *',
+                    keyboardType: TextInputType.emailAddress,
+                    enabled: false, // Email usually shouldn't be editable
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your email';
+                      }
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value!)) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    controller: _phoneController,
+                    label: 'Phone Number',
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!RegExp(r'^\+?[\d\s\-\(\)]{10,}$').hasMatch(value)) {
+                          return 'Please enter a valid phone number';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  CustomTextField(
+                    controller: _locationController,
+                    label: 'Location *',
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your location';
+                      }
+                      return null;
+                    },
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.map),
+                      onPressed: _openMapDialog,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'This location will be shared with the vendor after a service is requested. You can also set a different location for a specific service request without changing this default location.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.start,
+                  ),
+                  const SizedBox(height: 20), 
+
+                  // Save Button
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.5, 
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _saveProfile,
+                      child: const Text('Save Changes'), 
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10), 
+                        textStyle: const TextStyle(
+                          fontSize: 14, 
+                          fontWeight: FontWeight.w600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading:
+                              const Icon(Icons.lock, color: Color(0xFF2563EB)),
+                          title: const Text('Change Password'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _changePassword,
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.history,
+                              color: Color(0xFF2563EB)),
+                          title: const Text('Booking History'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _bookingHistory,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _changeProfilePicture() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Profile Picture'),
+        content: const Text(
+            'Profile picture functionality will be implemented here.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _saveProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // TODO: Implement profile update in AuthService
+      developer.log('💾 Saving profile changes', name: 'EditProfilePage');
+
+      // Simulate API call
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      developer.log('❌ Error updating profile: $e', name: 'EditProfilePage');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _changePassword() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Password'),
+        content: const Text(
+            'Password change functionality will be implemented here.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _bookingHistory() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Booking History'),
+        content: const Text('Booking history will be implemented here.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MapDialog extends StatefulWidget {
+  final LatLng? initialLocation;
+
+  const _MapDialog({Key? key, this.initialLocation}) : super(key: key);
+
+  @override
+  State<_MapDialog> createState() => _MapDialogState();
+}
+
+class _MapDialogState extends State<_MapDialog> {
+  LatLng? _currentLocation;
+  LatLng? _selectedLocation;
+  GoogleMapController? _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showLocationPrompt();
+    });
+  }
+
+  Future<void> _showLocationPrompt() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Location'),
+        content: const Text('Would you like to use your current location or set a different location on the map?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'current'),
+            child: const Text('Use Current Location'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'different'),
+            child: const Text('Set Different Location'),
+          ),
+        ],
+      ),
+    );
+
+    if (choice == 'current') {
+      await _getCurrentLocation();
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        return;
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _selectedLocation = _currentLocation;
+    });
+
+    // Pan the map to the current location
+    if (_mapController != null && _currentLocation != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLng(_currentLocation!),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Location'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: widget.initialLocation ?? const LatLng(7.8731, 80.7718),
+            zoom: 11.5,
+          ),
+          onMapCreated: (controller) {
+            _mapController = controller;
+            // Pan to current location if available
+            if (_currentLocation != null) {
+              _mapController!.animateCamera(
+                CameraUpdate.newLatLng(_currentLocation!),
+              );
+            }
+          },
+          markers: _selectedLocation != null
+              ? {
+                  Marker(
+                    markerId: const MarkerId('selected-location'),
+                    position: _selectedLocation!,
+                  ),
+                }
+              : {},
+          onTap: (LatLng position) {
+            setState(() {
+              _selectedLocation = position;
+            });
+          },
+          myLocationEnabled: true,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _selectedLocation),
+          child: const Text('Select'),
+        ),
+      ],
+    );
+  }
+}
