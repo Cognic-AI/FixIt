@@ -2,7 +2,7 @@ import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
-import '../services/user_service.dart' as userService;
+// import '../services/user_service.dart' as userService;
 
 class ServiceCard extends StatelessWidget {
   final Service service;
@@ -37,6 +37,25 @@ class ServiceCard extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(100, 36),
           backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
+
+    final requestServiceButton = Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Handle request service button press
+        },
+        icon: const Icon(Icons.handyman),
+        label: const Text('Request Service'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(100, 36),
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -136,7 +155,8 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
-                      messageButton, // Show message button here
+                      messageButton,
+                      requestServiceButton, // Add request service button here
                     ],
                   ),
                 ),
@@ -261,7 +281,8 @@ class ServiceCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
-                    messageButton, // Show message button here
+                    messageButton,
+                    requestServiceButton, // Add request service button here
                   ],
                 ),
               ),
