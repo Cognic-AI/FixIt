@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'dart:developer' as developer;
+
+const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
 
 class MapPopup extends StatefulWidget {
-  const MapPopup(
-      {super.key,
-      this.location,
-      this.name,
-      this.description,
-      this.onRequestService});
+  const MapPopup({super.key, this.location, this.name, this.description});
 
   final String? location;
   final String? name;
   final String? description;
-  final void Function()? onRequestService;
+
   @override
   _MapPopupState createState() => _MapPopupState();
 }
@@ -26,7 +25,9 @@ class _MapPopupState extends State<MapPopup> {
 
   GoogleMapController? _mapController;
   Position? _currentPosition;
-  final Set<Marker> _markers = {};
+  Set<Marker> _markers = {};
+  Map<PolylineId, Polyline> _polylines = {};
+  LatLng? _destinationLocation;
 
   @override
   void initState() {
@@ -74,21 +75,20 @@ class _MapPopupState extends State<MapPopup> {
         final lat = double.tryParse(parts[0].trim());
         final lng = double.tryParse(parts[1].trim());
         if (lat != null && lng != null) {
-          if (_currentPosition != null) {}
+          final destinationLatLng = LatLng(lat, lng);
           final marker = Marker(
             markerId: const MarkerId('custom_location'),
-            position: LatLng(lat, lng),
-            onTap: () => _onMarkerTap(LatLng(lat, lng)),
+            position: destinationLatLng,
+            onTap: () => _onMarkerTap(destinationLatLng),
             icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueAzure),
           );
           setState(() {
             _markers.add(marker);
+            _destinationLocation = destinationLatLng; // Store destination
           });
         }
       }
-    } else {
-      print("No location found");
     }
   }
 
@@ -100,7 +100,7 @@ class _MapPopupState extends State<MapPopup> {
     if (_currentPosition == null) {
       return 'Distance unknown';
     }
-
+    
     // Calculate distance using Geolocator's distanceBetween method
     double distanceInMeters = Geolocator.distanceBetween(
       _currentPosition!.latitude,
@@ -108,7 +108,7 @@ class _MapPopupState extends State<MapPopup> {
       serviceLocation.latitude,
       serviceLocation.longitude,
     );
-
+    
     // Convert to appropriate unit
     if (distanceInMeters < 1000) {
       return '${distanceInMeters.round()}m away';
@@ -118,9 +118,146 @@ class _MapPopupState extends State<MapPopup> {
     }
   }
 
+  Future<void> _showDirections() async {
+    if (_currentPosition == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Current location not available'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (_destinationLocation == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Destination location not available'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final coordinates = await _getPolyLinePoints(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        _destinationLocation!,
+      );
+      
+      if (coordinates.isNotEmpty) {
+        _generatePolylineFromPoints(coordinates);
+        _fitCameraToRoute(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          _destinationLocation!,
+        );
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Route to ${widget.name ?? "location"} displayed'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not find route'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      developer.log('Error getting directions: $e', name: 'MapPopup');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error getting directions'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<List<LatLng>> _getPolyLinePoints(LatLng origin, LatLng destination) async {
+    List<LatLng> polylineCoordinates = [];
+    PolylinePoints polylinePoints = PolylinePoints();
+
+    try {
+      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(origin.latitude, origin.longitude),
+          destination: PointLatLng(destination.latitude, destination.longitude),
+          mode: TravelMode.driving,
+        ),
+        googleApiKey: googleMapsApiKey,
+      );
+      
+      if (result.points.isNotEmpty) {
+        for (PointLatLng point in result.points) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        }
+      } else {
+        developer.log('No route points found: ${result.errorMessage}', name: 'MapPopup');
+      }
+    } catch (e) {
+      developer.log('Error getting polyline points: $e', name: 'MapPopup');
+    }
+    
+    return polylineCoordinates;
+  }
+
+  void _generatePolylineFromPoints(List<LatLng> polylineCoordinates) {
+    const PolylineId id = PolylineId("route");
+    Polyline polyline = Polyline(
+      polylineId: id,
+      color: const Color(0xFF2563EB),
+      points: polylineCoordinates,
+      width: 5,
+      patterns: [], // Solid line
+    );
+    
+    setState(() {
+      _polylines[id] = polyline;
+    });
+  }
+
+  void _fitCameraToRoute(LatLng origin, LatLng destination) {
+    if (_mapController == null) return;
+
+    // Calculate bounds that include both origin and destination
+    double minLat = origin.latitude < destination.latitude ? origin.latitude : destination.latitude;
+    double maxLat = origin.latitude > destination.latitude ? origin.latitude : destination.latitude;
+    double minLng = origin.longitude < destination.longitude ? origin.longitude : destination.longitude;
+    double maxLng = origin.longitude > destination.longitude ? origin.longitude : destination.longitude;
+
+    // Add padding
+    const padding = 0.01;
+    final bounds = LatLngBounds(
+      southwest: LatLng(minLat - padding, minLng - padding),
+      northeast: LatLng(maxLat + padding, maxLng + padding),
+    );
+
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100.0));
+  }
+
+  void _clearRoute() {
+    setState(() {
+      _polylines.clear();
+    });
+  }
+
   void _showServiceBottomSheet(LatLng markerPosition) {
     final distance = _calculateDistance(markerPosition);
-
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -153,7 +290,7 @@ class _MapPopupState extends State<MapPopup> {
               ],
             ),
             const SizedBox(height: 16),
-
+            
             // Service details
             if (widget.description != null) ...[
               Text(
@@ -164,7 +301,7 @@ class _MapPopupState extends State<MapPopup> {
               ),
               const SizedBox(height: 16),
             ],
-
+            
             // Location and distance
             Row(
               children: [
@@ -180,12 +317,11 @@ class _MapPopupState extends State<MapPopup> {
               ],
             ),
             const SizedBox(height: 8),
-
+            
             // Distance information
             Row(
               children: [
-                const Icon(Icons.directions,
-                    size: 16, color: Color(0xFF2563EB)),
+                const Icon(Icons.directions, size: 16, color: Color(0xFF2563EB)),
                 const SizedBox(width: 4),
                 Text(
                   distance,
@@ -197,9 +333,9 @@ class _MapPopupState extends State<MapPopup> {
                 ),
               ],
             ),
-
+            
             const Spacer(),
-
+            
             // Action buttons
             Column(
               children: [
@@ -210,7 +346,6 @@ class _MapPopupState extends State<MapPopup> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           // Handle request service action
-                          widget.onRequestService!();
                           Navigator.pop(context);
                         },
                         icon: const Icon(Icons.handyman),
@@ -227,6 +362,7 @@ class _MapPopupState extends State<MapPopup> {
                         onPressed: () {
                           // Handle directions action
                           Navigator.pop(context);
+                          _showDirections();
                         },
                         icon: const Icon(Icons.directions),
                         label: const Text('Directions'),
@@ -270,11 +406,22 @@ class _MapPopupState extends State<MapPopup> {
         myLocationButtonEnabled: true,
         initialCameraPosition: _initialCameraPosition,
         markers: _markers,
+        polylines: Set<Polyline>.of(_polylines.values), // Add the polylines to the map
         onMapCreated: (controller) {
           _mapController = controller;
           _moveCameraToCurrentLocation();
         },
       ),
+      // Clear route button (only shown when there's an active route)
+      floatingActionButton: _polylines.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _clearRoute,
+              icon: const Icon(Icons.clear),
+              label: Text('Clear Route to ${widget.name ?? "location"}'),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            )
+          : null,
     );
   }
 }
