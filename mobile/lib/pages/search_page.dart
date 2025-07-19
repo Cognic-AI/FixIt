@@ -5,8 +5,8 @@ import '../models/service.dart';
 import '../services/user_service.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key, required this.token});
-
+  const SearchPage({super.key, required this.token, required this.uid});
+  final String uid; // User ID for the current user
   final String token;
 
   @override
@@ -437,6 +437,8 @@ class _SearchPageState extends State<SearchPage> {
                               padding: const EdgeInsets.only(bottom: 16),
                               child: ServiceCard(
                                 service: searchResults[index],
+                                userId: widget.uid,
+                                token: widget.token,
                                 isHorizontal: true,
                                 onMessageTap: () => {},
                               ),

@@ -1,3 +1,4 @@
+import 'package:fixit/models/request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,6 @@ import '../../services/vendor_service.dart';
 import '../../widgets/vendor_service_card.dart';
 import '../../widgets/service_request_card.dart';
 import '../../models/service.dart';
-import '../../models/service_request.dart';
 import '../../models/message.dart';
 import 'add_service_page.dart';
 import 'chat_page.dart';
@@ -32,7 +32,7 @@ class _VendorHomePageState extends State<VendorHomePage>
   void initState() {
     super.initState();
     print('[VENDOR_HOME] initState called');
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     developer.log('VendorHomePage initialized', name: 'VendorHomePage');
 
     // Initialize vendor service
@@ -299,6 +299,9 @@ class _VendorHomePageState extends State<VendorHomePage>
                     final request = vendorService.pendingRequests[index];
                     return ServiceRequestCard(
                       request: request,
+                      location: widget.user.role == "client"
+                          ? request.location
+                          : request.clientLocation,
                       onAccept: () => _acceptRequest(request.id),
                       onReject: () => _rejectRequest(request.id),
                     );
@@ -463,7 +466,6 @@ class _VendorHomePageState extends State<VendorHomePage>
                     onPressed: () {
                       vendorService.loadServiceRequests(
                         widget.token,
-                        widget.user.id,
                       );
                     },
                     icon: const Icon(Icons.refresh, color: Colors.white),
@@ -484,6 +486,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                   Tab(text: 'Pending'),
                   Tab(text: 'Active'),
                   Tab(text: 'Completed'),
+                  Tab(text: 'Rejected'),
                 ],
               ),
             ),
@@ -497,6 +500,8 @@ class _VendorHomePageState extends State<VendorHomePage>
                   _buildRequestsList(vendorService.activeServices, 'active'),
                   _buildRequestsList(
                       vendorService.completedServices, 'completed'),
+                  _buildRequestsList(
+                      vendorService.rejectedServices, 'rejected'),
                 ],
               ),
             ),
@@ -759,7 +764,7 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  Widget _buildRequestsList(List<ServiceRequest> requests, String type) {
+  Widget _buildRequestsList(List<Request> requests, String type) {
     if (requests.isEmpty) {
       return Center(
         child: Column(
@@ -795,12 +800,14 @@ class _VendorHomePageState extends State<VendorHomePage>
         final request = requests[index];
         return ServiceRequestCard(
           request: request,
+          location: widget.user.role == "client"
+              ? request.location
+              : request.clientLocation,
           onAccept: request.isPending ? () => _acceptRequest(request.id) : null,
           onReject: request.isPending ? () => _rejectRequest(request.id) : null,
-          onUpdateStatus: (request.isAccepted || request.isInProgress)
-              ? () => _updateRequestStatus(request)
-              : null,
-          onViewDetails: () => _viewRequestDetails(request),
+          onComplete:
+              request.isAccepted ? () => _completeRequest(request.id) : null,
+          onMessage: () => {},
         );
       },
     );
@@ -965,34 +972,37 @@ class _VendorHomePageState extends State<VendorHomePage>
     // TODO: Navigate to service details page
   }
 
-  void _acceptRequest(String requestId) {
+  Future<void> _acceptRequest(String requestId) async {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.acceptServiceRequest(requestId, widget.token, widget.user.id);
+    await vendorService.acceptServiceRequest(
+        requestId, widget.token, widget.user.id);
   }
 
-  void _rejectRequest(String requestId) {
+  Future<void> _rejectRequest(String requestId) async {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.rejectServiceRequest(requestId, widget.token, widget.user.id);
+    await vendorService.rejectServiceRequest(
+        requestId, widget.token, widget.user.id);
   }
 
-  void _updateRequestStatus(ServiceRequest request) {
+  Future<void> _completeRequest(String requestId) async {
     final vendorService = Provider.of<VendorService>(context, listen: false);
-    if (request.isAccepted) {
-      vendorService.updateServiceStatus(
-        request.id,
-        ServiceRequestStatus.inProgress,
-        widget.token,
-        widget.user.id,
-      );
-    } else if (request.isInProgress) {
-      vendorService.updateServiceStatus(request.id,
-          ServiceRequestStatus.completed, widget.token, widget.user.id);
-    }
+    await vendorService.completeServiceRequest(
+        requestId, widget.token, widget.user.id);
   }
-
-  void _viewRequestDetails(ServiceRequest request) {
-    // TODO: Navigate to request details page
-  }
+  // void _updateRequestStatus(Request request) {
+  //   final vendorService = Provider.of<VendorService>(context, listen: false);
+  //   if (request.isAccepted) {
+  //     vendorService.updateServiceStatus(
+  //       request.id,
+  //       ServiceRequestStatus.inProgress,
+  //       widget.token,
+  //       widget.user.id,
+  //     );
+  //   } else if (request.isAccepted) {
+  //     vendorService.updateServiceStatus(request.id,
+  //         ServiceRequestStatus.completed, widget.token, widget.user.id);
+  //   }
+  // }
 
   void _openConversation(Conversation conversation) {
     Navigator.push(

@@ -32,3 +32,4 @@ next-env.d.ts
 pubspec.lock
 
 /android/settings.gradle
+/android/settings.gradle

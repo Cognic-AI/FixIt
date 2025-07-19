@@ -97,6 +97,7 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(
                         builder: (context) => SearchPage(
                               token: widget.token,
+                              uid: widget.user.id,
                             )),
                   );
                 },
@@ -181,6 +182,7 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(
                                   builder: (context) => SearchPage(
                                         token: widget.token,
+                                        uid: widget.user.id,
                                       )),
                             );
                           },
@@ -200,7 +202,8 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => MapPage(token: widget.token)),
+                                  builder: (context) =>
+                                      MapPage(token: widget.token)),
                             );
                           },
                           icon: const Icon(Icons.map),
@@ -240,6 +243,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(
                             builder: (context) => SearchPage(
                                   token: widget.token,
+                                  uid: widget.user.id,
                                 )),
                       );
                     },
@@ -261,7 +265,11 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ServiceCard(service: featuredServices[index]),
+                    child: ServiceCard(
+                      service: featuredServices[index],
+                      token: widget.token,
+                      userId: widget.user.id,
+                    ),
                   );
                 },
               ),
