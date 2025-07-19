@@ -201,3 +201,10 @@ backend/private.key
 mobile/app/google-services.json
 
 pubspec.lock
+mobile/.flutter-plugins
+backend/Dependencies.toml
+mobile/.flutter-plugins-dependencies
+mobile/pubspec.lock
+mobile/macos/Flutter/GeneratedPluginRegistrant.swift
+mobile/windows/flutter/generated_plugin_registrant.cc
+mobile/windows/flutter/generated_plugins.cmake

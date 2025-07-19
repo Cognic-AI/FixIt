@@ -24,12 +24,17 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.3
   flutter_dotenv: ^5.2.1
+  dio: ^5.8.0+1
+  flutter_polyline_points: ^2.1.0
+  google_maps_flutter_android: ^2.16.2
+  google_maps_flutter_ios: ^2.15.4
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_native_splash: ^2.4.6
+  flutter_native_splash: ^2.4.4
   flutter_launcher_icons: ^0.13.1
 
 

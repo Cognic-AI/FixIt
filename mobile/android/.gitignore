@@ -6,6 +6,9 @@ gradle-wrapper.jar
 /local.properties
 GeneratedPluginRegistrant.java
 /app/google-services.json
+/gradle/wrapper/gradle-wrapper.properties
+/.settings/org.eclipse.buildship.core.prefs
+# Android Studio captures
 
 # Remember to never publicly share your keystore.
 # See https://flutter.dev/to/reference-keystore

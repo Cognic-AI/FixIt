@@ -9,6 +9,9 @@ import '../models/service.dart';
 import '../models/event.dart';
 import 'search_page.dart';
 import 'map_page.dart';
+import 'client/edit_profile_page.dart';
+import 'client/settings_page.dart';
+import 'auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.user, required this.token});
@@ -43,10 +46,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🏠 HomePage initialized', name: 'HomePage');
-    developer.log('📊 Featured services count: ${featuredServices.length}',
+    developer.log('HomePage initialized', name: 'HomePage');
+    developer.log('Featured services count: ${featuredServices.length}',
         name: 'HomePage');
-    developer.log('🎉 Nearby events count: ${nearbyEvents.length}',
+    developer.log('Nearby events count: ${nearbyEvents.length}',
         name: 'HomePage');
   }
 
@@ -90,46 +93,97 @@ class _HomePageState extends State<HomePage> {
                 icon: const Icon(Icons.search),
                 onPressed: () {
                   developer.log(
-                      '🔍 Search button pressed - navigating to SearchPage',
+                      'Search button pressed - navigating to SearchPage',
                       name: 'HomePage');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => SearchPage(
                               token: widget.token,
+                              uid: widget.user.id,
                             )),
                   );
                 },
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {
-                  developer.log('📋 Menu item selected: $value',
+                  developer.log('Menu item selected: $value',
                       name: 'HomePage');
-                  if (value == 'logout') {
-                    developer.log('🚪 Logging out user', name: 'HomePage');
+                  if (value == 'profile') {
+                    developer.log('Navigating to profile page', name: 'HomePage');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
+                      ),
+                    );
+                  } else if (value == 'settings') {
+                    developer.log('Navigating to settings page', name: 'HomePage');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsPage(),
+                      ),
+                    );
+                  } else if (value == 'logout') {
+                    developer.log('Logging out user', name: 'HomePage');
                     try {
                       await Provider.of<AuthService>(context, listen: false)
                           .signOut();
-                      developer.log('✅ User logged out successfully',
+                      developer.log('User logged out successfully',
                           name: 'HomePage');
+                      // Navigate to login and clear all previous routes
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                        );
+                      }
                     } catch (e) {
-                      developer.log('❌ Error during logout: $e',
+                      developer.log('Error during logout: $e',
                           name: 'HomePage', error: e);
+                      // Show error message to user
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error logging out: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   }
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'profile',
-                    child: Text('Profile'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, size: 20),
+                        SizedBox(width: 12),
+                        Text('Profile'),
+                      ],
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'settings',
-                    child: Text('Settings'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings, size: 20),
+                        SizedBox(width: 12),
+                        Text('Settings'),
+                      ],
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'logout',
-                    child: Text('Logout'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, size: 20),
+                        SizedBox(width: 12),
+                        Text('Logout'),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -181,6 +235,7 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(
                                   builder: (context) => SearchPage(
                                         token: widget.token,
+                                        uid: widget.user.id,
                                       )),
                             );
                           },
@@ -200,7 +255,8 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const MapPage()),
+                                  builder: (context) =>
+                                      MapPage(token: widget.token, uid: widget.user.id)),
                             );
                           },
                           icon: const Icon(Icons.map),
@@ -240,6 +296,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(
                             builder: (context) => SearchPage(
                                   token: widget.token,
+                                  uid: widget.user.id,
                                 )),
                       );
                     },
@@ -261,7 +318,11 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ServiceCard(service: featuredServices[index]),
+                    child: ServiceCard(
+                      service: featuredServices[index],
+                      token: widget.token,
+                      userId: widget.user.id,
+                    ),
                   );
                 },
               ),

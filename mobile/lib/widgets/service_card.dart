@@ -1,18 +1,26 @@
+import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
+import '../pages/client/request_service_page.dart'; 
 
 class ServiceCard extends StatelessWidget {
   final Service service;
+  final String userId;
+  final String token;
   final bool isHorizontal;
   final void Function()? onTap;
   final void Function()? onMessageTap;
+  final void Function()? onMapTap;
   const ServiceCard({
     super.key,
     required this.service,
+    required this.userId,
+    required this.token,
     this.isHorizontal = false,
     this.onTap,
     this.onMessageTap,
+    this.onMapTap,
   });
 
   @override
@@ -29,6 +37,36 @@ class ServiceCard extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(100, 36),
           backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
+
+    final requestServiceButton = Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RequestServicePage(
+                token: token,
+                uid: userId,
+                category: service.category,
+                title: service.title,
+                price: service.price,
+              ),
+            ),
+          );
+        },
+        icon: const Icon(Icons.handyman),
+        label: const Text('Request Service'),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(100, 36),
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -94,6 +132,20 @@ class ServiceCard extends StatelessWidget {
                               color: Colors.grey,
                             ),
                           ),
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return MapPopup(
+                                      service: service,
+                                      token: token,
+                                      uid: userId,
+                                    );
+                                  });
+                            },
+                            child: const Text('Show in Map'),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -105,7 +157,8 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
-                      messageButton, // Show message button here
+                      messageButton,
+                      requestServiceButton, // Add request service button here
                     ],
                   ),
                 ),
@@ -201,6 +254,20 @@ class ServiceCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        TextButton(
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return MapPopup(
+                                    service: service,
+                                    token: token,
+                                    uid: userId,
+                                  );
+                                });
+                          },
+                          child: const Text('Show in Map'),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -224,7 +291,8 @@ class ServiceCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
-                    messageButton, // Show message button here
+                    messageButton,
+                    requestServiceButton, // Add request service button here
                   ],
                 ),
               ),

@@ -26,7 +26,7 @@ final http:CorsConfig corsConfig = {
 
 // Base health check service
 @http:ServiceConfig {
-        cors: corsConfig
+    cors: corsConfig
 }
 isolated service /api on new http:Listener(8083) {
     resource function get health() returns json {
@@ -135,7 +135,7 @@ isolated service /api/ai on new http:Listener(8082) {
 
 // Services
 @http:ServiceConfig {
-        cors: corsConfig
+    cors: corsConfig
 }
 isolated service /api/services on new http:Listener(8084) {
     resource function get .(http:Caller caller, http:Request req) returns error? {
@@ -158,6 +158,70 @@ isolated service /api/services on new http:Listener(8084) {
         check controllers:deleteService(caller, req, serviceId);
     }
 }
+
+// Requests
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/requests on new http:Listener(8086) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check controllers:getRequests(caller, req);
+    }
+
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check controllers:createRequest(caller, req);
+    }
+
+    resource function get my(http:Caller caller, http:Request req) returns error? {
+        check controllers:getMyRequests(caller, req);
+    }
+
+    resource function put [string requestId](http:Caller caller, http:Request req) returns error? {
+        check controllers:updateRequest(caller, req, requestId);
+    }
+
+    resource function delete [string requestId](http:Caller caller, http:Request req) returns error? {
+        check controllers:deleteRequest(caller, req, requestId);
+// Contracts service
+    }
+}
+
+
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/contracts on new http:Listener(8085) {
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check controllers:createContract(caller, req);
+    }
+
+    resource function get my(http:Caller caller, http:Request req) returns error? {
+        check controllers:getMyContracts(caller, req);
+    }
+
+    resource function get [string contractId](http:Caller caller, http:Request req) returns error? {
+        check controllers:getContract(caller, req, contractId);
+    }
+
+    resource function put [string contractId]/status(http:Caller caller, http:Request req) returns error? {
+        check controllers:updateContractStatus(caller, req, contractId);
+    }
+
+    resource function get status/[string status](http:Caller caller, http:Request req) returns error? {
+        check controllers:getContractsByStatus(caller, req, status);
+
+    }
+}
+
+// Location service
+// @http:ServiceConfig {
+//     cors: corsConfig
+// }
+// isolated service /api/location on new http:Listener(8085) {
+//     resource function get login(http:Caller caller, http:Request req) returns error? {
+//         check maps:_location(caller, req);
+//     }
+// }
 
 // Events service (commented out)
 // @http:ServiceConfig {

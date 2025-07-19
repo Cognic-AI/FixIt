@@ -8,6 +8,7 @@ public type User record {
     string firstName;
     string lastName;
     string? phoneNumber;
+    string location; // New field for location
     string role; // "customer", "provider", "admin"
     string password; // hashed
     boolean emailVerified;

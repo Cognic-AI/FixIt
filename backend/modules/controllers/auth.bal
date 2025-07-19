@@ -21,7 +21,8 @@ public type UserRegistration record {
     string firstName;
     string lastName;
     string? phoneNumber;
-    string role; // "customer" or "provider"
+    string role;
+    string? location; // "customer" or "provider"
 };
 
 public type UserLogin record {
@@ -176,6 +177,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         lastName: userReg.lastName,
         phoneNumber: userReg.phoneNumber,
         role: userReg.role == "vendor" ? "vendor" : "client",
+        location: userReg.location ?: "", // Provide default empty string if nil
         password: hashedPassword,
         emailVerified: false,
         profileImageUrl: (),
@@ -226,6 +228,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         lastName: newUser.lastName,
         phoneNumber: newUser.phoneNumber,
         role: newUser.role,
+        location: newUser.location,
         password: "",  // Don't send password back
         emailVerified: newUser.emailVerified,
         profileImageUrl: newUser.profileImageUrl,
@@ -336,6 +339,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
         role: user.role,
+        location: user.location,
         password: "",  // Don't send password back
         emailVerified: user.emailVerified,
         profileImageUrl: user.profileImageUrl,
@@ -452,6 +456,7 @@ public function getUserProfile(http:Caller caller, http:Request req) returns err
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
         role: user.role,
+        location: user.location,
         password: "",  // Don't send password back
         emailVerified: user.emailVerified,
         profileImageUrl: user.profileImageUrl,
