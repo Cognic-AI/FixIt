@@ -29,15 +29,6 @@ next-env.d.ts
 
 .dart_tool
 
-.flutter-plugins
-.flutter-plugins-dependencies
+pubspec.lock
 
-./pubspec.lock
-
-./android/.settings
-./android/.gradle
-./android/.kotlin
-
-./android/app/build
-
-./macos
+/android/settings.gradle
