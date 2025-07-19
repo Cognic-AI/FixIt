@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
-import '../widgets/service_card.dart';
 import '../models/service.dart';
 import '../services/user_service.dart';
 import './client/request_service_page.dart'; 
@@ -23,6 +22,7 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
 
   final List<String> categories = [
+    'All',
     'cleaning',
     'plumbing',
     'electrical',
@@ -37,14 +37,36 @@ class _SearchPageState extends State<SearchPage> {
     'other'
   ];
 
-  final List<String> filters = [
-    'Shoes',
-    'Jacket',
-    'Pants',
-    'Electronics',
-    'Books',
-    'Sports'
-  ];
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'all':
+        return Icons.grid_view;
+      case 'cleaning':
+        return Icons.cleaning_services;
+      case 'plumbing':
+        return Icons.plumbing;
+      case 'electrical':
+        return Icons.electrical_services;
+      case 'painting':
+        return Icons.format_paint;
+      case 'gardening':
+        return Icons.grass;
+      case 'handyman':
+        return Icons.build;
+      case 'moving':
+        return Icons.moving;
+      case 'tutoring':
+        return Icons.school;
+      case 'beauty':
+        return Icons.face;
+      case 'photography':
+        return Icons.camera_alt;
+      case 'catering':
+        return Icons.restaurant;
+      default:
+        return Icons.handyman;
+    }
+  }
 
   @override
   void initState() {
@@ -85,14 +107,22 @@ class _SearchPageState extends State<SearchPage> {
       final matchesSearch = _searchController.text.isEmpty ||
           service.title
               .toLowerCase()
+              .contains(_searchController.text.toLowerCase()) ||
+          service.description
+              .toLowerCase()
               .contains(_searchController.text.toLowerCase());
+      
       final matchesCategory =
-          _selectedCategory == 'All' || service.category == _selectedCategory;
+          _selectedCategory == 'All' || service.category.toLowerCase() == _selectedCategory.toLowerCase();
+      
       final matchesPrice = service.price >= _priceRange.start &&
           service.price <= _priceRange.end;
+      
       final matchesTags = _selectedFilters.isEmpty ||
-          _selectedFilters
-              .any((tag) => service.tags.contains(tag.toLowerCase()));
+          _selectedFilters.any((tag) => 
+              service.tags.toLowerCase().contains(tag.toLowerCase()) ||
+              service.title.toLowerCase().contains(tag.toLowerCase()) ||
+              service.description.toLowerCase().contains(tag.toLowerCase()));
 
       return matchesSearch && matchesCategory && matchesPrice && matchesTags;
     }).toList();
@@ -103,17 +133,25 @@ class _SearchPageState extends State<SearchPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey[400],
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.search_off,
+              size: 48,
+              color: Colors.grey[400],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           const Text(
             'No services found',
             style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
             ),
           ),
           const SizedBox(height: 8),
@@ -121,6 +159,32 @@ class _SearchPageState extends State<SearchPage> {
             'Try adjusting your search or filters',
             style: TextStyle(
               color: Colors.grey[600],
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _searchController.clear();
+                  _selectedCategory = 'All';
+                  _selectedFilters.clear();
+                  _priceRange = const RangeValues(0, 500);
+                });
+              },
+              icon: const Icon(Icons.refresh, color: Color(0xFF2563EB)),
+              label: const Text(
+                'Clear all filters',
+                style: TextStyle(
+                  color: Color(0xFF2563EB),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -128,347 +192,929 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Services'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        centerTitle: false,
+  Widget _buildEnhancedServiceCard(Service service) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      body: Column(
-        children: [
-          // Search Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey.shade50,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RequestServicePage(
+                  token: widget.token,
+                  uid: widget.uid,
+                  category: service.category,
+                  title: service.title,
+                  price: service.price,
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search services...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                // Header Row
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(service.category),
+                        color: const Color(0xFF2563EB),
+                        size: 24,
+                      ),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 16,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            service.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1F2937),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF10B981).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              service.category.toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF10B981),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  onChanged: (value) => setState(() {}),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '€${service.price.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              service.availability ? Icons.check_circle : Icons.schedule,
+                              size: 16,
+                              color: service.availability 
+                                  ? const Color(0xFF10B981) 
+                                  : Colors.orange,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              service.availability ? 'Available' : 'Busy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: service.availability 
+                                    ? const Color(0xFF10B981) 
+                                    : Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
-                // Category Chips
-                SizedBox(
-                  height: 40,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      final isSelected = _selectedCategory == category;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          label: Text(category),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedCategory = 'All';
-                              } else {
-                                _selectedCategory = category;
-                              }
-                            });
+                // Description
+                if (service.description.isNotEmpty) ...[
+                  Text(
+                    service.description,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                // Location and Action Row
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 16, color: Colors.grey[500]),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        service.location.isNotEmpty ? service.location : 'Location not specified',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RequestServicePage(
+                                  token: widget.token,
+                                  uid: widget.uid,
+                                  category: service.category,
+                                  title: service.title,
+                                  price: service.price,
+                                ),
+                              ),
+                            );
                           },
-                          backgroundColor: Colors.white,
-                          selectedColor:
-                              const Color(0xFF2563EB).withOpacity(0.2),
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? const Color(0xFF2563EB)
-                                : Colors.grey[700],
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.send,
+                                  size: 16,
+                                  color: Color(0xFF2563EB),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Request',
+                                  style: TextStyle(
+                                    color: Color(0xFF2563EB),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
 
-          // Filters Button
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
+  void _showFiltersBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final TextEditingController tagController = TextEditingController();
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      await showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(20)),
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Filters',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
                         ),
-                        builder: (context) => StatefulBuilder(
-                          builder: (context, setModalState) {
-                            final TextEditingController _tagController =
-                                TextEditingController();
-                            return Container(
-                              padding: const EdgeInsets.all(24),
-                              height: MediaQuery.of(context).size.height * 0.7,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Header
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        'Filters',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          setModalState(() {
-                                            _priceRange =
-                                                const RangeValues(0, 500);
-                                            _selectedFilters.clear();
-                                          });
-                                        },
-                                        child: const Text('Clear All'),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 24),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _priceRange = const RangeValues(0, 500);
+                            _selectedFilters.clear();
+                          });
+                        },
+                        child: const Text(
+                          'Clear All',
+                          style: TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                                  // Price Range
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Price Range Section
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.euro,
+                                      color: Color(0xFF2563EB),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
                                   const Text(
                                     'Price Range',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1F2937),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '€${_priceRange.start.round()} - €${_priceRange.end.round()}',
-                                    style: const TextStyle(color: Colors.grey),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2563EB).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '€${_priceRange.start.round()} - €${_priceRange.end.round()}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2563EB),
                                   ),
-                                  RangeSlider(
-                                    values: _priceRange,
-                                    min: 0,
-                                    max: 500,
-                                    divisions: 50,
-                                    activeColor: const Color(0xFF2563EB),
-                                    inactiveColor: const Color(0xFF2563EB)
-                                        .withOpacity(0.2),
-                                    onChanged: (values) {
-                                      setModalState(() {
-                                        _priceRange = values;
-                                      });
-                                    },
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 6,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 12,
                                   ),
-                                  const SizedBox(height: 24),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 20,
+                                  ),
+                                ),
+                                child: RangeSlider(
+                                  values: _priceRange,
+                                  min: 0,
+                                  max: 500,
+                                  divisions: 50,
+                                  activeColor: const Color(0xFF2563EB),
+                                  inactiveColor: Colors.grey.shade300,
+                                  onChanged: (values) {
+                                    setModalState(() {
+                                      _priceRange = values;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
 
-                                  // Custom Tags
+                        // Tags Section
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.local_offer,
+                                      color: Color(0xFF10B981),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
                                   const Text(
                                     'Tags',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1F2937),
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _tagController,
-                                          decoration: InputDecoration(
-                                            hintText: 'Add a tag...',
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 8),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.grey.shade300),
+                                      ),
+                                      child: TextField(
+                                        controller: tagController,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Add a tag...',
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          final tag =
-                                              _tagController.text.trim();
-                                          if (tag.isNotEmpty &&
-                                              !_selectedFilters.contains(tag)) {
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () {
+                                          final tag = tagController.text.trim();
+                                          if (tag.isNotEmpty && !_selectedFilters.contains(tag)) {
                                             setModalState(() {
                                               _selectedFilters.add(tag);
-                                              _tagController.clear();
+                                              tagController.clear();
                                             });
                                           }
                                         },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              const Color(0xFF2563EB),
-                                          textStyle: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 12,
                                           ),
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
+                                          child: Text(
+                                            'Add',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ),
-                                        child: const Text('Add'),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: _selectedFilters.map((filter) {
-                                      return Chip(
-                                        label: Text(filter),
-                                        onDeleted: () {
-                                          setModalState(() {
-                                            _selectedFilters.remove(filter);
-                                          });
-                                        },
-                                        backgroundColor: Colors.grey.shade100,
-                                        deleteIcon: const Icon(Icons.close),
-                                      );
-                                    }).toList(),
-                                  ),
-
-                                  const Spacer(),
-
-                                  // Apply Button
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {});
-                                        Navigator.pop(context);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            const Color(0xFF2563EB),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16),
-                                      ),
-                                      child: const Text(
-                                        'Apply Filters',
-                                        style: TextStyle(color: Colors.white),
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
+                              if (_selectedFilters.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: _selectedFilters.map((filter) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: const Color(0xFF2563EB).withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              filter,
+                                              style: const TextStyle(
+                                                color: Color(0xFF2563EB),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            GestureDetector(
+                                              onTap: () {
+                                                setModalState(() {
+                                                  _selectedFilters.remove(filter);
+                                                });
+                                              },
+                                              child: const Icon(
+                                                Icons.close,
+                                                size: 16,
+                                                color: Color(0xFF2563EB),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.tune),
-                    label: const Text('Filters'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[700],
-                      side: BorderSide(
-                        color: Colors.grey.shade300,
-                        width: 1,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                        const SizedBox(height: 32),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Text(
-                  '${searchResults.length} results',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+
+                // Apply Button
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withOpacity(0.3),
+                          spreadRadius: 0,
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {});
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Apply Filters',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
+          );
+        },
+      ),
+    );
+  }
 
-          // Results
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF2563EB),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Modern Header with Search
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Text
+                    const Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.white, size: 28),
+                        SizedBox(width: 12),
+                        Text(
+                          'Find Services',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                  )
-                : searchResults.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadServices,
-                        color: const Color(0xFF2563EB),
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: searchResults.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Navigate to RequestServicePage on tap
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => RequestServicePage(
-                                        token: widget.token,
-                                        uid: widget.uid,
-                                        category: searchResults[index]
-                                            .category, // Pass the category here
-                                        title: searchResults[index]
-                                            .title, // Pass the title
-                                        price: searchResults[index]
-                                            .price
+                    const SizedBox(height: 8),
+                    Text(
+                      'Discover local services near you',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Enhanced Search Bar
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 0,
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search for services...',
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? Container(
+                                  margin: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    icon: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {});
+                                    },
+                                  ),
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 18,
+                            horizontal: 20,
+                          ),
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Category Pills with horizontal scroll
+            Container(
+              color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
+                    child: Text(
+                      'Categories',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 50,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      scrollDirection: Axis.horizontal,
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final category = categories[index];
+                        final isSelected = _selectedCategory == category;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = category;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: isSelected
+                                    ? const LinearGradient(
+                                        colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                                      )
+                                    : null,
+                                color: isSelected ? null : Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(25),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : Colors.grey.shade300,
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFF2563EB).withOpacity(0.3),
+                                          spreadRadius: 0,
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _getCategoryIcon(category),
+                                    size: 18,
+                                    color: isSelected ? Colors.white : Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    category == 'All' ? 'All' : category.toUpperCase(),
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.white : Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+
+            // Filters and Results Count
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _showFiltersBottomSheet(context),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.tune, color: Colors.grey[600], size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Filters',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (_selectedFilters.isNotEmpty || 
+                                    _priceRange.start > 0 || 
+                                    _priceRange.end < 500) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2563EB),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${_selectedFilters.length + (_priceRange.start > 0 || _priceRange.end < 500 ? 1 : 0)}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
-                                  );
-                                },
-                                child: ServiceCard(
-                                  service: searchResults[index],
-                                  userId: widget.uid,
-                                  token: widget.token,
-                                  isHorizontal: true,
-                                  onMessageTap: () => {},
-                                ),
-                              ),
-                            );
-                          },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-          ),
-        ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF2563EB).withOpacity(0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.search_rounded,
+                          color: const Color(0xFF2563EB),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${searchResults.length} found',
+                          style: const TextStyle(
+                            color: Color(0xFF2563EB),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Results Section
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Color(0xFF2563EB),
+                            strokeWidth: 3,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Finding services for you...',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : searchResults.isEmpty
+                      ? _buildEmptyState()
+                      : RefreshIndicator(
+                          onRefresh: _loadServices,
+                          color: const Color(0xFF2563EB),
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: searchResults.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildEnhancedServiceCard(searchResults[index]),
+                              );
+                            },
+                          ),
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
