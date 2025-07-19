@@ -227,6 +227,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onPressed: _openMapDialog,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'This location will be shared with the vendor after a service is requested. You can also set a different location for a specific service request without changing this default location.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.start,
+                  ),
                   const SizedBox(height: 20), 
 
                   // Save Button
@@ -398,7 +407,33 @@ class _MapDialogState extends State<_MapDialog> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showLocationPrompt();
+    });
+  }
+
+  Future<void> _showLocationPrompt() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Location'),
+        content: const Text('Would you like to use your current location or set a different location on the map?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'current'),
+            child: const Text('Use Current Location'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'different'),
+            child: const Text('Set Different Location'),
+          ),
+        ],
+      ),
+    );
+
+    if (choice == 'current') {
+      await _getCurrentLocation();
+    }
   }
 
   Future<void> _getCurrentLocation() async {
