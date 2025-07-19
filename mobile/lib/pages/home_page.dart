@@ -11,6 +11,7 @@ import 'search_page.dart';
 import 'map_page.dart';
 import 'client/edit_profile_page.dart';
 import 'client/settings_page.dart';
+import 'auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.user, required this.token});
@@ -131,9 +132,25 @@ class _HomePageState extends State<HomePage> {
                           .signOut();
                       developer.log('✅ User logged out successfully',
                           name: 'HomePage');
+                      // Navigate to login and clear all previous routes
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                        );
+                      }
                     } catch (e) {
                       developer.log('❌ Error during logout: $e',
                           name: 'HomePage', error: e);
+                      // Show error message to user
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error logging out: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   }
                 },

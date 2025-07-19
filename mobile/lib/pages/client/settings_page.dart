@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../services/theme_service.dart';
 import 'edit_profile_page.dart';
 import '../feedback_page.dart';
+import '../auth/login_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -492,13 +493,29 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // Close the dialog first
               try {
                 await authService.signOut();
                 developer.log('✅ User signed out successfully', name: 'SettingsPage');
+                // Navigate back to login and clear all previous routes
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (Route<dynamic> route) => false,
+                  );
+                }
               } catch (e) {
                 developer.log('❌ Error during sign out: $e', 
                     name: 'SettingsPage', error: e);
+                // Show error message to user
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error signing out: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text(
