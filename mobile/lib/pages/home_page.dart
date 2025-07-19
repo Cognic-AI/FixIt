@@ -46,10 +46,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🏠 HomePage initialized', name: 'HomePage');
-    developer.log('📊 Featured services count: ${featuredServices.length}',
+    developer.log('HomePage initialized', name: 'HomePage');
+    developer.log('Featured services count: ${featuredServices.length}',
         name: 'HomePage');
-    developer.log('🎉 Nearby events count: ${nearbyEvents.length}',
+    developer.log('Nearby events count: ${nearbyEvents.length}',
         name: 'HomePage');
   }
 
@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                 icon: const Icon(Icons.search),
                 onPressed: () {
                   developer.log(
-                      '🔍 Search button pressed - navigating to SearchPage',
+                      'Search button pressed - navigating to SearchPage',
                       name: 'HomePage');
                   Navigator.push(
                     context,
@@ -107,10 +107,10 @@ class _HomePageState extends State<HomePage> {
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {
-                  developer.log('📋 Menu item selected: $value',
+                  developer.log('Menu item selected: $value',
                       name: 'HomePage');
                   if (value == 'profile') {
-                    developer.log('👤 Navigating to profile page', name: 'HomePage');
+                    developer.log('Navigating to profile page', name: 'HomePage');
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else if (value == 'settings') {
-                    developer.log('⚙️ Navigating to settings page', name: 'HomePage');
+                    developer.log('Navigating to settings page', name: 'HomePage');
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -126,11 +126,11 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else if (value == 'logout') {
-                    developer.log('🚪 Logging out user', name: 'HomePage');
+                    developer.log('Logging out user', name: 'HomePage');
                     try {
                       await Provider.of<AuthService>(context, listen: false)
                           .signOut();
-                      developer.log('✅ User logged out successfully',
+                      developer.log('User logged out successfully',
                           name: 'HomePage');
                       // Navigate to login and clear all previous routes
                       if (context.mounted) {
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
                         );
                       }
                     } catch (e) {
-                      developer.log('❌ Error during logout: $e',
+                      developer.log('Error during logout: $e',
                           name: 'HomePage', error: e);
                       // Show error message to user
                       if (context.mounted) {
@@ -157,15 +157,33 @@ class _HomePageState extends State<HomePage> {
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'profile',
-                    child: Text('Profile'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, size: 20),
+                        SizedBox(width: 12),
+                        Text('Profile'),
+                      ],
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'settings',
-                    child: Text('Settings'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.settings, size: 20),
+                        SizedBox(width: 12),
+                        Text('Settings'),
+                      ],
+                    ),
                   ),
                   const PopupMenuItem(
                     value: 'logout',
-                    child: Text('Logout'),
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, size: 20),
+                        SizedBox(width: 12),
+                        Text('Logout'),
+                      ],
+                    ),
                   ),
                 ],
               ),
