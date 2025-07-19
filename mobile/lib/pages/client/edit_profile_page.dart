@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_text_field.dart';
 
@@ -19,6 +21,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _locationController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+  LatLng? _selectedLocation;
 
   @override
   void initState() {
@@ -47,6 +50,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _locationController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _openMapDialog() async {
+    LatLng? result = await showDialog<LatLng>(
+      context: context,
+      builder: (context) => _MapDialog(initialLocation: _selectedLocation),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedLocation = result;
+        _locationController.text = "${result.latitude}, ${result.longitude}";
+      });
+    }
   }
 
   @override
@@ -205,6 +222,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       }
                       return null;
                     },
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.map),
+                      onPressed: _openMapDialog,
+                    ),
                   ),
                   const SizedBox(height: 20), 
 
@@ -356,6 +377,106 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MapDialog extends StatefulWidget {
+  final LatLng? initialLocation;
+
+  const _MapDialog({Key? key, this.initialLocation}) : super(key: key);
+
+  @override
+  State<_MapDialog> createState() => _MapDialogState();
+}
+
+class _MapDialogState extends State<_MapDialog> {
+  LatLng? _currentLocation;
+  LatLng? _selectedLocation;
+  GoogleMapController? _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        return;
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _selectedLocation = _currentLocation;
+    });
+
+    // Pan the map to the current location
+    if (_mapController != null && _currentLocation != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLng(_currentLocation!),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Location'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: widget.initialLocation ?? const LatLng(7.8731, 80.7718),
+            zoom: 11.5,
+          ),
+          onMapCreated: (controller) {
+            _mapController = controller;
+            // Pan to current location if available
+            if (_currentLocation != null) {
+              _mapController!.animateCamera(
+                CameraUpdate.newLatLng(_currentLocation!),
+              );
+            }
+          },
+          markers: _selectedLocation != null
+              ? {
+                  Marker(
+                    markerId: const MarkerId('selected-location'),
+                    position: _selectedLocation!,
+                  ),
+                }
+              : {},
+          onTap: (LatLng position) {
+            setState(() {
+              _selectedLocation = position;
+            });
+          },
+          myLocationEnabled: true,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _selectedLocation),
+          child: const Text('Select'),
+        ),
+      ],
     );
   }
 }
