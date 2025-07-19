@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
 import '../services/auth_service.dart';
+import '../services/messaging_service.dart';
+import '../services/service_request_service.dart';
+import '../models/service_request.dart';
 import '../widgets/service_card.dart';
 import '../widgets/event_card.dart';
 import '../models/service.dart';
 import '../models/event.dart';
 import 'search_page.dart';
 import 'map_page.dart';
+import 'client/messages_page.dart';
+import 'client/requested_services_page.dart';
 import 'client/edit_profile_page.dart';
 import 'client/settings_page.dart';
 import 'auth/login_page.dart';
@@ -24,6 +29,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Service> featuredServices = [];
+  final MessagingService _messagingService = MessagingService();
+  final ServiceRequestService _requestService = ServiceRequestService();
 
   final List<Event> nearbyEvents = [
     Event(
@@ -51,6 +58,73 @@ class _HomePageState extends State<HomePage> {
         name: 'HomePage');
     developer.log('Nearby events count: ${nearbyEvents.length}',
         name: 'HomePage');
+  }
+
+  Widget _buildQuickAccessItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    int badge = 0,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              children: [
+                Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                if (badge > 0)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        badge > 99 ? '99+' : '$badge',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -89,6 +163,61 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             actions: [
+              // Messages Button with Badge
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    onPressed: () {
+                      developer.log(
+                          'Messages button pressed - navigating to MessagesPage',
+                          name: 'HomePage');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MessagesPage(
+                            userId: widget.user.id,
+                            token: widget.token,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Unread messages badge
+                  FutureBuilder<int>(
+                    future: Future.value(_messagingService.getTotalUnreadCount(widget.user.id)),
+                    builder: (context, snapshot) {
+                      final unreadCount = snapshot.data ?? 0;
+                      if (unreadCount == 0) return const SizedBox.shrink();
+                      
+                      return Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            unreadCount > 99 ? '99+' : '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
               IconButton(
                 icon: const Icon(Icons.search),
                 onPressed: () {
@@ -270,6 +399,72 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  // Quick Access Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildQuickAccessItem(
+                        icon: Icons.chat_bubble_outline,
+                        label: 'Messages',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MessagesPage(
+                                userId: widget.user.id,
+                                token: widget.token,
+                              ),
+                            ),
+                          );
+                        },
+                        badge: _messagingService.getTotalUnreadCount(widget.user.id),
+                      ),
+                      FutureBuilder<int>(
+                        future: _requestService.getRequestCounts(widget.user.id).then((counts) => counts[RequestStatus.pending] ?? 0),
+                        builder: (context, snapshot) {
+                          final pendingCount = snapshot.data ?? 0;
+                          return _buildQuickAccessItem(
+                            icon: Icons.assignment_outlined,
+                            label: 'Requests',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RequestedServicesPage(
+                                    clientId: widget.user.id,
+                                    token: widget.token,
+                                  ),
+                                ),
+                              );
+                            },
+                            badge: pendingCount,
+                          );
+                        },
+                      ),
+                      _buildQuickAccessItem(
+                        icon: Icons.bookmark_outline,
+                        label: 'Saved',
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Saved services feature coming soon!')),
+                          );
+                        },
+                      ),
+                      _buildQuickAccessItem(
+                        icon: Icons.person_outline,
+                        label: 'Profile',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfilePage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -372,6 +567,53 @@ class _HomePageState extends State<HomePage> {
           const SliverToBoxAdapter(
             child: SizedBox(height: 24),
           ),
+        ],
+      ),
+      floatingActionButton: Stack(
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MessagesPage(
+                    userId: widget.user.id,
+                    token: widget.token,
+                  ),
+                ),
+              );
+            },
+            backgroundColor: const Color(0xFF2563EB),
+            child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+          ),
+          // Unread messages badge for FAB
+          if (_messagingService.getTotalUnreadCount(widget.user.id) > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Text(
+                  _messagingService.getTotalUnreadCount(widget.user.id) > 99 
+                      ? '99+' 
+                      : '${_messagingService.getTotalUnreadCount(widget.user.id)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );
