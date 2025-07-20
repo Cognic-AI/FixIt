@@ -32,6 +32,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
   final TextEditingController _locationController = TextEditingController();
   String _selectedCategory = 'cleaning';
   LatLng? _selectedLocation;
+  String _serviceType = 'on-site'; // 'on-site' or 'visit-provider'
 
   final List<String> categories = [
     'cleaning',
@@ -84,6 +85,9 @@ class _RequestServicePageState extends State<RequestServicePage> {
   }
 
   void _loadUserLocation() {
+    // Only load user location for on-site services
+    if (_serviceType != 'on-site') return;
+    
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
     
@@ -352,7 +356,10 @@ class _RequestServicePageState extends State<RequestServicePage> {
             ? _budgetController.text 
             : 'Budget not specified',
         'userId': widget.uid,
-        'location': _locationController.text.isNotEmpty ? _locationController.text : 'No location specified',
+        'serviceType': _serviceType,
+        'location': _serviceType == 'on-site' 
+            ? (_locationController.text.isNotEmpty ? _locationController.text : 'No location specified')
+            : 'Not applicable - Visit provider service',
         'serviceProvider': widget.title,
         'servicePrice': widget.price,
       };
@@ -391,10 +398,12 @@ class _RequestServicePageState extends State<RequestServicePage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Your service request has been submitted successfully. The service provider will contact you soon.',
+                Text(
+                  _serviceType == 'on-site' 
+                      ? 'Your service request has been submitted successfully. The service provider will contact you to arrange a visit to your location.'
+                      : 'Your service request has been submitted successfully. The service provider will contact you with their location details and availability.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.grey),
                 ),
               ],
             ),
@@ -610,7 +619,16 @@ class _RequestServicePageState extends State<RequestServicePage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Location Field with improved design
+                    // Service Type Selection
+                    const Text(
+                      'Service Type',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -625,44 +643,149 @@ class _RequestServicePageState extends State<RequestServicePage> {
                         ],
                         color: Colors.white,
                       ),
-                      child: TextFormField(
-                        controller: _locationController,
-                        decoration: InputDecoration(
-                          labelText: 'Service Location',
-                          hintText: 'Where do you need the service?',
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.all(16),
-                          prefixIcon: const Icon(Icons.location_on, color: Color(0xFF2563EB)),
-                          suffixIcon: Container(
-                            margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB),
-                              borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: const Row(
+                              children: [
+                                Icon(Icons.home_repair_service, color: Color(0xFF2563EB), size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'On-Site Service',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
                             ),
-                            child: IconButton(
-                              icon: const Icon(Icons.map, color: Colors.white, size: 20),
-                              onPressed: _showLocationOptions,
+                            subtitle: const Text(
+                              'Service provider comes to your location',
+                              style: TextStyle(color: Colors.grey, fontSize: 12),
                             ),
+                            value: 'on-site',
+                            groupValue: _serviceType,
+                            activeColor: const Color(0xFF2563EB),
+                            onChanged: (value) {
+                              setState(() {
+                                _serviceType = value!;
+                                if (_serviceType == 'on-site') {
+                                  _loadUserLocation();
+                                } else {
+                                  // Clear location data for visit-provider services
+                                  _locationController.clear();
+                                  _selectedLocation = null;
+                                }
+                              });
+                            },
                           ),
-                          labelStyle: const TextStyle(
-                            color: Color(0xFF2563EB),
-                            fontWeight: FontWeight.w500,
+                          Divider(height: 1, color: Colors.grey.shade300),
+                          RadioListTile<String>(
+                            title: const Row(
+                              children: [
+                                Icon(Icons.store, color: Color(0xFF10B981), size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Visit Provider',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            subtitle: const Text(
+                              'You visit the service provider\'s location',
+                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                            value: 'visit-provider',
+                            groupValue: _serviceType,
+                            activeColor: const Color(0xFF10B981),
+                            onChanged: (value) {
+                              setState(() {
+                                _serviceType = value!;
+                                if (_serviceType == 'on-site') {
+                                  _loadUserLocation();
+                                } else {
+                                  // Clear location data for visit-provider services
+                                  _locationController.clear();
+                                  _selectedLocation = null;
+                                }
+                              });
+                            },
                           ),
-                        ),
-                        readOnly: true,
-                        validator: (value) {
-                          if (value?.isEmpty ?? true) {
-                            return 'Please select a location for the service';
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.black),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
 
+                    // Location Field with improved design (only show if on-site service)
+                    if (_serviceType == 'on-site') ...[
+                      const Text(
+                        'Service Location',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                          color: Colors.white,
+                        ),
+                        child: TextFormField(
+                          controller: _locationController,
+                          decoration: InputDecoration(
+                            labelText: 'Where do you need the service?',
+                            hintText: 'Select your location',
+                            floatingLabelBehavior: FloatingLabelBehavior.always,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.all(16),
+                            prefixIcon: const Icon(Icons.location_on, color: Color(0xFF2563EB)),
+                            suffixIcon: Container(
+                              margin: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2563EB),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.map, color: Colors.white, size: 20),
+                                onPressed: _showLocationOptions,
+                              ),
+                            ),
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF2563EB),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          readOnly: true,
+                          validator: (value) {
+                            if (_serviceType == 'on-site' && (value?.isEmpty ?? true)) {
+                              return 'Please select a location for the service';
+                            }
+                            return null;
+                          },
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
                     // Description Field
+                    const Text(
+                      'Description',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -680,7 +803,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
                       child: TextFormField(
                         controller: _descriptionController,
                         decoration: const InputDecoration(
-                          labelText: 'Description',
+                          labelText: 'Additional Details',
                           hintText: 'Tell us more about what you need...',
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: InputBorder.none,
@@ -698,6 +821,15 @@ class _RequestServicePageState extends State<RequestServicePage> {
                     const SizedBox(height: 20),
 
                     // Budget Field
+                    const Text(
+                      'Budget (Optional)',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -715,7 +847,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
                       child: TextFormField(
                         controller: _budgetController,
                         decoration: const InputDecoration(
-                          labelText: 'Your Budget (Optional)',
+                          labelText: 'Enter your budget',
                           hintText: 'Enter your budget in €',
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: InputBorder.none,
