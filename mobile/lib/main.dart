@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'pages/auth/login_page.dart';
 import 'pages/home_page.dart';
 import 'pages/onboarding/interests_page.dart';
+import 'pages/splash_screen.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
 import 'services/vendor_service.dart';
@@ -21,7 +22,7 @@ void main() async {
     await dotenv.load(fileName: ".env");
     developer.log('✅ Environment variables loaded', name: 'Main');
 
-    print('🎯 [MAIN] Running FixIt App');
+    developer.log('🎯 [MAIN] Running FixIt App', name: 'Main');
 
     developer.log('🎯 Running FixIt App', name: 'Main');
     runApp(MultiProvider(providers: [
@@ -42,23 +43,7 @@ class FixItApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     developer.log('🔧 Building FixItApp widget', name: 'FixItApp');
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) {
-          developer.log('🏗️ Creating AuthService provider', name: 'FixItApp');
-          return AuthService();
-        }),
-        ChangeNotifierProvider(create: (_) {
-          developer.log('🏗️ Creating ThemeService provider', name: 'FixItApp');
-          return ThemeService();
-        }),
-        ChangeNotifierProvider(create: (_) {
-          developer.log('🏗️ Creating VendorService provider',
-              name: 'FixItApp');
-          return VendorService();
-        }),
-      ],
-      child: Consumer<ThemeService>(
+    return Consumer<ThemeService>(
         builder: (context, themeService, child) {
           developer.log('🎨 Building MaterialApp with theme', name: 'FixItApp');
           return MaterialApp(
@@ -78,8 +63,9 @@ class FixItApp extends StatelessWidget {
                 elevation: 0,
               ),
             ),
-            home: const AuthWrapper(),
+            home: const SplashScreen(),
             routes: {
+              '/splash': (context) => const SplashScreen(),
               '/login': (context) => const LoginPage(),
               '/interests': (context) => const InterestsPage(),
             },
@@ -122,7 +108,6 @@ class FixItApp extends StatelessWidget {
             },
           );
         },
-      ),
     );
   }
 }

@@ -4,21 +4,26 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:developer' as developer;
 import '../models/user.dart' as app_user;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthService extends ChangeNotifier {
+  static const _storage = FlutterSecureStorage();
   static final String _baseUrl =
       dotenv.env['AUTH_SERVICE_URL'] ?? 'http://localhost:8080/api/auth';
   String? _jwtToken;
   app_user.User? _currentUser;
   bool _isLoading = false;
+  bool _isInitialized = false;
 
   app_user.User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get jwtToken => _jwtToken;
+  bool get isInitialized => _isInitialized;
 
   AuthService() {
     print('🔐 [AUTH_SERVICE] AuthService initialized');
     developer.log('🔐 AuthService initialized', name: 'AuthService');
+    // Note: loadUserProfile will be called explicitly from SplashScreen
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
@@ -38,6 +43,7 @@ class AuthService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _jwtToken = data['token'];
+        await _storage.write(key: 'token', value: _jwtToken);
         if (data['user'] != null) {
           _currentUser = app_user.User.fromJson(data['user']);
         } else {
@@ -90,6 +96,8 @@ class AuthService extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _jwtToken = data['token'];
         _currentUser = app_user.User.fromJson(data['user']);
+        await _storage.write(key: 'token', value: _jwtToken);
+
         developer.log('✅ Registration successful', name: 'AuthService');
       } else {
         developer.log('❌ Registration failed: ${response.body}',
@@ -107,7 +115,20 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> loadUserProfile() async {
-    if (_jwtToken == null) return;
+    if (_isInitialized) {
+      developer.log('🔐 [AUTH] Already initialized, skipping', name: 'AuthService');
+      return;
+    }
+    
+    if (_jwtToken == null){
+      _jwtToken = await _storage.read(key: 'token');
+      if (_jwtToken == null) {
+        developer.log('🔐 [AUTH] No token found, marking as initialized without user', name: 'AuthService');
+        _isInitialized = true;
+        return;
+      }
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -127,14 +148,19 @@ class AuthService extends ChangeNotifier {
       } else {
         developer.log('❌ Failed to load profile: ${response.body}',
             name: 'AuthService');
-        throw Exception('Failed to load profile: ${response.body}');
+        // Clear invalid token
+        _jwtToken = null;
+        await _storage.delete(key: 'token');
       }
     } catch (e) {
       developer.log('❌ Error loading profile: $e',
           name: 'AuthService', error: e);
-      rethrow;
+      // Clear potentially invalid token on error
+      _jwtToken = null;
+      await _storage.delete(key: 'token');
     } finally {
       _isLoading = false;
+      _isInitialized = true;
       notifyListeners();
     }
   }
@@ -142,6 +168,8 @@ class AuthService extends ChangeNotifier {
   Future<void> signOut() async {
     _jwtToken = null;
     _currentUser = null;
+    _isInitialized = false;
+    await _storage.delete(key: 'token');
     notifyListeners();
   }
 
