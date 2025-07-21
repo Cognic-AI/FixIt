@@ -44,12 +44,12 @@ class CustomButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: textColor ?? const Color(0xFF2563EB),
+              color: textColor ?? const Color(0xFF006FFD),
             ),
           ),
           style: OutlinedButton.styleFrom(
             side: BorderSide(
-              color: backgroundColor ?? const Color(0xFF2563EB),
+              color: backgroundColor ?? const Color(0xFF006FFD),
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -83,7 +83,7 @@ class CustomButton extends StatelessWidget {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? const Color(0xFF2563EB),
+          backgroundColor: backgroundColor ?? const Color(0xFF006FFD),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
