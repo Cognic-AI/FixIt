@@ -256,12 +256,8 @@ isolated service /api/chats on new http:Listener(8087) {
         check controllers:getUnreadMessageCount(caller, req);
     }
 
-    resource function get conversation/[string conversationId](http:Caller caller, http:Request req) returns error? {
-        // check controllers:getConversation(caller, req, conversationId);
-        check caller->respond({
-            "success": true,
-            "message": "This endpoint is not implemented yet."
-        });
+    resource function post conversation/last(http:Caller caller, http:Request req) returns error? {
+        check controllers:getConversationLast(caller, req);
     }
 }
 

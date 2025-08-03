@@ -1,4 +1,5 @@
 import 'package:fixit/models/service_request.dart';
+import 'package:fixit/services/messaging_service.dart';
 import 'package:fixit/services/service_request_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
@@ -21,6 +22,7 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPageState extends State<MessagesPage> {
   final ServiceRequestService _requestService = ServiceRequestService();
+  final MessagingService _messagingService = MessagingService();
   final List<Conversation> _conversations = [];
   final List<ServiceRequest> _serviceRequests = [];
   bool _isLoading = true;
@@ -41,7 +43,13 @@ class _MessagesPageState extends State<MessagesPage> {
 
     try {
       final requests = await _requestService.getServiceRequests(widget.token);
+      final unreadCount = await _messagingService.getTotalUnreadCount(
+        widget.userId,
+      );
       for (var request in requests) {
+        final lastMessage = await _messagingService.getLastMessage(
+          request.conversationId,
+        );
         final conversation = Conversation(
           id: request.conversationId,
           serviceId: request.serviceId,
@@ -52,6 +60,8 @@ class _MessagesPageState extends State<MessagesPage> {
           vendorName: request.vendorName,
           createdAt: request.createdAt,
           updatedAt: request.updatedAt,
+          lastMessage: lastMessage,
+          unreadCount: unreadCount,
         );
         _conversations.add(conversation);
         _serviceRequests.add(request);
@@ -232,7 +242,9 @@ class _MessagesPageState extends State<MessagesPage> {
                             ),
                           ),
                           Text(
-                            _formatTimestamp(conversation.updatedAt),
+                            _formatTimestamp(
+                                conversation.lastMessage?.timestamp ??
+                                    DateTime.now()),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[500],

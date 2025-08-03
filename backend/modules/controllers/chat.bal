@@ -1,6 +1,7 @@
 import backend.models;
 
 import ballerina/http;
+import ballerina/io;
 import ballerina/log;
 import ballerina/time;
 import ballerina/uuid;
@@ -34,6 +35,50 @@ public function getChatMessages(http:Caller caller, http:Request req) returns er
         });
         return;
     }
+
+    check caller->respond({
+        "success": true,
+        "messages": result
+    });
+}
+
+public function getConversationLast(http:Caller caller, http:Request req) returns error? {
+    json|error payload = req.getJsonPayload();
+
+    if payload is error {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid request payload"
+        });
+        return;
+    }
+
+    json messageData = payload;
+
+    // Extract conversationId safely from JSON
+    json conversationId = check messageData.conversationId;
+
+    map<json> filter = {
+        "conversationId": conversationId
+    };
+
+    map<json> findOptions = {
+        "sort": {"timestamp": -1},
+        "limit": 1
+    };
+
+    var result = models:queryMessagesWithOptions(filter, findOptions);
+
+    if result is error {
+        log:printError("Error fetching messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch messages"
+        });
+        return;
+    }
+
+    io:println("Last message for conversation ", conversationId, ": ", result);
 
     check caller->respond({
         "success": true,

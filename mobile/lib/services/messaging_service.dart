@@ -158,6 +158,43 @@ class MessagingService {
     }
   }
 
+  Future<Message> getLastMessage(String conversationId) async {
+    developer.log('💬 Getting last message for conversation: $conversationId',
+        name: 'MessagingService');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/conversation/last'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'conversationId': conversationId}),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print('💬 Error getting messages: ${response.statusCode}');
+        throw Exception('Failed to load messages: ${response.statusCode}');
+      }
+
+      final data = jsonDecode(response.body);
+      if (!data['success']) {
+        print('💬 Error getting messages: ${data['message']}');
+        throw Exception('API error: ${data['message']}');
+      }
+
+      final List<dynamic> messagesJson = data['messages'];
+      final messages =
+          messagesJson.map((json) => Message.fromJson(json)).toList();
+
+      developer.log('💬 Found ${messages.length} messages',
+          name: 'MessagingService');
+      return messages[0];
+    } catch (e) {
+      developer.log('💬 Error getting messages: $e',
+          name: 'MessagingService', error: e);
+      print('💬 Error getting messages: $e');
+      rethrow;
+    }
+  }
+
   Future<Message> sendMessage({
     required String conversationId,
     required String senderId,
