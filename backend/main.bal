@@ -8,7 +8,6 @@ import backend.models;
 // import backend.feedback;
 // import backend.firestore;
 // import backend.maps;
-// import backend.messaging;
 
 // import backend.reviews;
 
@@ -182,10 +181,9 @@ isolated service /api/requests on new http:Listener(8086) {
 
     resource function delete [string requestId](http:Caller caller, http:Request req) returns error? {
         check controllers:deleteRequest(caller, req, requestId);
-// Contracts service
+        // Contracts service
     }
 }
-
 
 @http:ServiceConfig {
     cors: corsConfig
@@ -241,27 +239,27 @@ isolated service /api/contracts on new http:Listener(8085) {
 //     }
 // }
 
-// Messaging service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/chats on new http:Listener(8080) {
-//     resource function get [string userId](http:Caller caller, http:Request req) returns error? {
-//         check messaging:getUserChats(caller, req, userId);
-//     }
+// Messaging service
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/chats on new http:Listener(8087) {
+    resource function post conversations(http:Caller caller, http:Request req) returns error? {
+        check controllers:getChatMessages(caller, req);
+    }
 
-//     resource function get [string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-//         check messaging:getChatMessages(caller, req, chatId);
-//     }
+    resource function post messages(http:Caller caller, http:Request req) returns error? {
+        check controllers:sendMessage(caller, req);
+    }
 
-//     resource function post [string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-//         check messaging:sendMessage(caller, req, chatId);
-//     }
+    resource function get unreadCount(http:Caller caller, http:Request req) returns error? {
+        check controllers:getUnreadMessageCount(caller, req);
+    }
 
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check messaging:createChat(caller, req);
-//     }
-// }
+    resource function post conversation/last(http:Caller caller, http:Request req) returns error? {
+        check controllers:getConversationLast(caller, req);
+    }
+}
 
 // Bookings service (commented out)
 // @http:ServiceConfig {
