@@ -68,6 +68,7 @@ class ServiceRequestService {
       updatedAt: request.updatedAt,
       scheduledDate: null, // Request doesn't have scheduled date
       notes: request.tags.isNotEmpty ? 'Tags: ${request.tags}' : null,
+      conversationId: request.chatId,
     );
   }
 

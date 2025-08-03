@@ -1,3 +1,4 @@
+import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
@@ -37,12 +38,14 @@ class _MessagesPageState extends State<MessagesPage> {
     });
 
     try {
-      final conversations = await _messagingService.getConversations(widget.userId);
+      final conversations =
+          await _messagingService.getConversations(widget.userId);
       setState(() {
         _conversations = conversations;
         _isLoading = false;
       });
-      developer.log('📱 Loaded ${conversations.length} conversations', name: 'MessagesPage');
+      developer.log('📱 Loaded ${conversations.length} conversations',
+          name: 'MessagesPage');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -63,12 +66,13 @@ class _MessagesPageState extends State<MessagesPage> {
     if (_searchQuery.isEmpty) {
       return _conversations;
     }
-    
+
     return _conversations.where((conversation) {
       final query = _searchQuery.toLowerCase();
       return conversation.serviceTitle.toLowerCase().contains(query) ||
-             conversation.vendorName.toLowerCase().contains(query) ||
-             (conversation.lastMessage?.content.toLowerCase().contains(query) ?? false);
+          conversation.vendorName.toLowerCase().contains(query) ||
+          (conversation.lastMessage?.content.toLowerCase().contains(query) ??
+              false);
     }).toList();
   }
 
@@ -97,8 +101,9 @@ class _MessagesPageState extends State<MessagesPage> {
 
   Widget _buildConversationTile(Conversation conversation) {
     final isFromUser = conversation.lastMessage?.senderId == widget.userId;
-    final lastMessagePreview = conversation.lastMessage?.content ?? 'No messages yet';
-    
+    final lastMessagePreview =
+        conversation.lastMessage?.content ?? 'No messages yet';
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -125,6 +130,26 @@ class _MessagesPageState extends State<MessagesPage> {
                   conversation: conversation,
                   currentUserId: widget.userId,
                   token: widget.token,
+                  request: ServiceRequest(
+                    id: conversation.serviceId,
+                    clientId: conversation.clientId,
+                    clientName: conversation.clientName,
+                    vendorId: conversation.vendorId,
+                    vendorName: conversation.vendorName,
+                    serviceId: conversation.serviceId,
+                    serviceTitle: conversation.serviceTitle,
+                    serviceCategory: '',
+                    description: '',
+                    location: '',
+                    budget: 0.0,
+                    servicePrice: 0.0,
+                    status: RequestStatus.active, // Default status
+                    createdAt: conversation.createdAt,
+                    updatedAt: conversation.updatedAt,
+                    scheduledDate: null, // No scheduled date
+                    notes: null,
+                    conversationId: conversation.id,
+                  ),
                 ),
               ),
             ).then((_) {
@@ -153,7 +178,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Conversation Details
                 Expanded(
                   child: Column(
@@ -184,7 +209,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      
+
                       // Vendor Name
                       Text(
                         conversation.vendorName,
@@ -197,7 +222,7 @@ class _MessagesPageState extends State<MessagesPage> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
-                      
+
                       // Last Message
                       Row(
                         children: [
@@ -205,8 +230,8 @@ class _MessagesPageState extends State<MessagesPage> {
                             Icon(
                               Icons.done_all,
                               size: 16,
-                              color: conversation.lastMessage?.isRead == true 
-                                  ? const Color(0xFF2563EB) 
+                              color: conversation.lastMessage?.isRead == true
+                                  ? const Color(0xFF2563EB)
                                   : Colors.grey[400],
                             ),
                             const SizedBox(width: 4),
@@ -216,12 +241,14 @@ class _MessagesPageState extends State<MessagesPage> {
                               lastMessagePreview,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: conversation.unreadCount > 0 && !isFromUser
-                                    ? const Color(0xFF1F2937)
-                                    : Colors.grey[600],
-                                fontWeight: conversation.unreadCount > 0 && !isFromUser
-                                    ? FontWeight.w500
-                                    : FontWeight.normal,
+                                color:
+                                    conversation.unreadCount > 0 && !isFromUser
+                                        ? const Color(0xFF1F2937)
+                                        : Colors.grey[600],
+                                fontWeight:
+                                    conversation.unreadCount > 0 && !isFromUser
+                                        ? FontWeight.w500
+                                        : FontWeight.normal,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -232,7 +259,7 @@ class _MessagesPageState extends State<MessagesPage> {
                     ],
                   ),
                 ),
-                
+
                 // Unread Badge
                 if (conversation.unreadCount > 0) ...[
                   const SizedBox(width: 8),
@@ -246,7 +273,9 @@ class _MessagesPageState extends State<MessagesPage> {
                     ),
                     child: Center(
                       child: Text(
-                        conversation.unreadCount > 99 ? '99+' : conversation.unreadCount.toString(),
+                        conversation.unreadCount > 99
+                            ? '99+'
+                            : conversation.unreadCount.toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -324,7 +353,8 @@ class _MessagesPageState extends State<MessagesPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -450,7 +480,8 @@ class _MessagesPageState extends State<MessagesPage> {
                           padding: const EdgeInsets.only(top: 8, bottom: 24),
                           itemCount: filteredConversations.length,
                           itemBuilder: (context, index) {
-                            return _buildConversationTile(filteredConversations[index]);
+                            return _buildConversationTile(
+                                filteredConversations[index]);
                           },
                         ),
                       ),

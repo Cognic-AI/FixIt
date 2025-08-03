@@ -1,6 +1,8 @@
+import 'package:fixit/pages/client/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/service_request.dart';
+import '../../models/message.dart';
 import '../../services/service_request_service.dart';
 
 class RequestedServicesPage extends StatefulWidget {
@@ -25,7 +27,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
   List<ServiceRequest> _allRequests = [];
   Map<RequestStatus, int> _statusCounts = {};
   bool _isLoading = true;
-
+  Conversation? _currentConversation;
   @override
   void initState() {
     super.initState();
@@ -60,6 +62,43 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load requests: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _loadChatData(
+      String conversationId, ServiceRequest serviceRequest) async {
+    try {
+      final conversation = Conversation(
+        id: conversationId,
+        serviceId: serviceRequest.serviceId,
+        serviceTitle: serviceRequest.serviceTitle,
+        clientId: serviceRequest.clientId,
+        clientName: serviceRequest.clientName,
+        vendorId: serviceRequest.vendorId,
+        vendorName: serviceRequest.vendorName,
+        createdAt: serviceRequest.createdAt,
+        updatedAt: serviceRequest.updatedAt,
+        lastMessage: null,
+        unreadCount: 0,
+      );
+      setState(() {
+        _currentConversation = conversation;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error loading chat data: $e',
+          name: 'RequestedServicesPage');
+      print('Error loading chat data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load chat data: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -141,6 +180,34 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     }
   }
 
+  void _openChatPage(ServiceRequest request) {
+    try {
+      // loads chats for the request
+      _loadChatData(request.conversationId, request);
+
+      // Find the conversation for this request if it exists
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatPage(
+            token: widget.token,
+            conversation: _currentConversation!,
+            currentUserId: widget.clientId,
+            request: request, // Pass the service request for details
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to open chat: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Widget _buildRequestCard(ServiceRequest request) {
     final statusColor = _getStatusColor(request.status);
 
@@ -162,7 +229,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _showRequestDetails(request),
+          onTap: () => _openChatPage(request),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -435,225 +502,6 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showRequestDetails(ServiceRequest request) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(request.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getCategoryIcon(request.serviceCategory),
-                      color: _getStatusColor(request.status),
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          request.serviceTitle,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1F2937),
-                          ),
-                        ),
-                        Text(
-                          request.vendorName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Status
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(request.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _getStatusIcon(request.status),
-                            color: _getStatusColor(request.status),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                request.statusDisplayName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(request.status),
-                                ),
-                              ),
-                              Text(
-                                request.statusDescription,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Description
-                    const Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      request.description,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Details
-                    const Text(
-                      'Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1F2937),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    _buildDetailRow(
-                        Icons.location_on, 'Location', request.location),
-                    _buildDetailRow(Icons.euro, 'Price',
-                        '€${request.servicePrice.toStringAsFixed(2)}'),
-                    _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
-                        '€${request.budget.toStringAsFixed(2)}'),
-                    _buildDetailRow(Icons.access_time, 'Requested',
-                        _formatDate(request.createdAt)),
-
-                    if (request.scheduledDate != null)
-                      _buildDetailRow(Icons.event, 'Scheduled',
-                          _formatDate(request.scheduledDate!)),
-
-                    if (request.notes != null && request.notes!.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Notes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        request.notes!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
-          Text(
-            '$label:',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF1F2937),
-              ),
-            ),
           ),
         ],
       ),

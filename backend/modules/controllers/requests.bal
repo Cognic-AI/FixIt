@@ -107,7 +107,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         providerId: requestData.providerId,
         state: "pending",
         location: requestData.location,
-        chatId: "",
+        chatId: uuid:createType1AsString(), // Generate a new chat ID
         createdAt: currentTime,
         updatedAt: currentTime
     };

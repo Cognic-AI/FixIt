@@ -1,19 +1,21 @@
+import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({
-    super.key,
-    required this.conversation,
-    required this.currentUserId,
-    required this.token,
-  });
+  const ChatPage(
+      {super.key,
+      required this.conversation,
+      required this.currentUserId,
+      required this.token,
+      required this.request});
 
   final Conversation conversation;
   final String currentUserId;
   final String token;
+  final ServiceRequest request; // Optional request for service details
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -40,7 +42,9 @@ class _ChatPageState extends State<ChatPage> {
     });
 
     try {
-      final messages = await _messagingService.getMessages(widget.conversation.id);
+      final result = await _messagingService.getConversation(
+          widget.request.conversationId, widget.request, widget.currentUserId);
+      final messages = result['messages'] as List<Message>;
       setState(() {
         _messages = messages;
         _isLoading = false;
@@ -64,11 +68,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _markMessagesAsRead() async {
-    try {
-      await _messagingService.markMessagesAsRead(widget.conversation.id, widget.currentUserId);
-    } catch (e) {
-      developer.log('Error marking messages as read: $e', name: 'ChatPage');
-    }
+    // try {
+    //   await _messagingService.markMessagesAsRead(
+    //       widget.conversation.id, widget.currentUserId);
+    // } catch (e) {
+    //   developer.log('Error marking messages as read: $e', name: 'ChatPage');
+    // }
   }
 
   Future<void> _sendMessage() async {
@@ -86,7 +91,8 @@ class _ChatPageState extends State<ChatPage> {
       final message = await _messagingService.sendMessage(
         conversationId: widget.conversation.id,
         senderId: widget.currentUserId,
-        senderName: widget.conversation.clientName, // Assuming current user is client
+        senderName:
+            widget.conversation.clientName, // Assuming current user is client
         senderType: 'client',
         receiverId: widget.conversation.vendorId,
         receiverName: widget.conversation.vendorName,
@@ -149,6 +155,295 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      // Today - show time
+      final hour = date.hour;
+      final minute = date.minute.toString().padLeft(2, '0');
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      return 'Today $displayHour:$minute $period';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      // This week - show day name
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return days[date.weekday - 1];
+    } else {
+      // Older - show date
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  Color _getStatusColor(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.pending:
+        return Colors.orange;
+      case RequestStatus.active:
+        return const Color(0xFF2563EB);
+      case RequestStatus.completed:
+        return const Color(0xFF10B981);
+      case RequestStatus.rejected:
+        return Colors.red;
+    }
+  }
+
+  IconData _getStatusIcon(RequestStatus status) {
+    switch (status) {
+      case RequestStatus.pending:
+        return Icons.schedule;
+      case RequestStatus.active:
+        return Icons.work;
+      case RequestStatus.completed:
+        return Icons.check_circle;
+      case RequestStatus.rejected:
+        return Icons.cancel;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'cleaning':
+        return Icons.cleaning_services;
+      case 'plumbing':
+        return Icons.plumbing;
+      case 'electrical':
+        return Icons.electrical_services;
+      case 'painting':
+        return Icons.format_paint;
+      case 'gardening':
+        return Icons.grass;
+      case 'handyman':
+        return Icons.build;
+      case 'moving':
+        return Icons.moving;
+      default:
+        return Icons.handyman;
+    }
+  }
+
+  void _showRequestDetails(ServiceRequest request) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(request.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getCategoryIcon(request.serviceCategory),
+                      color: _getStatusColor(request.status),
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          request.serviceTitle,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        Text(
+                          request.vendorName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Status
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(request.status).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getStatusIcon(request.status),
+                            color: _getStatusColor(request.status),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                request.statusDisplayName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getStatusColor(request.status),
+                                ),
+                              ),
+                              Text(
+                                request.statusDescription,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Description
+                    const Text(
+                      'Description',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      request.description,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Details
+                    const Text(
+                      'Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    _buildDetailRow(
+                        Icons.location_on, 'Location', request.location),
+                    _buildDetailRow(Icons.euro, 'Price',
+                        '€${request.servicePrice.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
+                        '€${request.budget.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.access_time, 'Requested',
+                        _formatDate(request.createdAt)),
+
+                    if (request.scheduledDate != null)
+                      _buildDetailRow(Icons.event, 'Scheduled',
+                          _formatDate(request.scheduledDate!)),
+
+                    if (request.notes != null && request.notes!.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Notes',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        request.notes!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 12),
+          Text(
+            '$label:',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDateSeparator(DateTime date) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -183,7 +478,8 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -248,7 +544,9 @@ class _ChatPageState extends State<ChatPage> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isMe ? Colors.white.withOpacity(0.8) : Colors.grey[500],
+                          color: isMe
+                              ? Colors.white.withOpacity(0.8)
+                              : Colors.grey[500],
                         ),
                       ),
                       if (isMe) ...[
@@ -256,7 +554,7 @@ class _ChatPageState extends State<ChatPage> {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
-                          color: message.isRead 
+                          color: message.isRead
                               ? Colors.white
                               : Colors.white.withOpacity(0.7),
                         ),
@@ -405,6 +703,24 @@ class _ChatPageState extends State<ChatPage> {
             icon: const Icon(Icons.more_vert),
             onPressed: () {
               // Handle more options
+              // add "info" option
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: const Text('Request Details'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showRequestDetails(widget.request);
+                      },
+                    ),
+                    // Add more options as needed
+                  ],
+                ),
+              );
             },
           ),
         ],
