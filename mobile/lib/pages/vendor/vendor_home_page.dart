@@ -1,5 +1,6 @@
 import 'package:fixit/models/request.dart';
 import 'package:fixit/models/user.dart';
+import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -8,9 +9,9 @@ import '../../services/vendor_service.dart';
 import '../../widgets/vendor_service_card.dart';
 import '../../widgets/service_request_card.dart';
 import '../../models/service.dart';
-import '../../models/message.dart';
+// import '../../models/message.dart';
 import 'add_service_page.dart';
-import 'chat_page.dart';
+// import 'chat_page.dart';
 import 'edit_profile_page.dart';
 
 class VendorHomePage extends StatefulWidget {
@@ -70,7 +71,10 @@ class _VendorHomePageState extends State<VendorHomePage>
               : _selectedIndex == 2
                   ? _buildRequests()
                   : _selectedIndex == 3
-                      ? _buildMessages()
+                      ? MessagesPage(
+                          userId: widget.user.id,
+                          token: widget.token,
+                        )
                       : _buildProfile(),
       bottomNavigationBar: _buildBottomNavigation(),
       floatingActionButton: _selectedIndex == 1
@@ -511,59 +515,59 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  Widget _buildMessages() {
-    return Consumer<VendorService>(
-      builder: (context, vendorService, child) {
-        return CustomScrollView(
-          slivers: [
-            _buildAppBar('Messages'),
-            if (vendorService.conversations.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.message_outlined,
-                        size: 80,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No conversations yet',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Start providing services to chat with clients',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final conversation = vendorService.conversations[index];
-                    return _buildConversationTile(conversation);
-                  },
-                  childCount: vendorService.conversations.length,
-                ),
-              ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
-        );
-      },
-    );
-  }
+  // Widget _buildMessages() {
+  //   return Consumer<VendorService>(
+  //     builder: (context, vendorService, child) {
+  //       return CustomScrollView(
+  //         slivers: [
+  //           _buildAppBar('Messages'),
+  //           if (vendorService.conversations.isEmpty)
+  //             SliverFillRemaining(
+  //               child: Center(
+  //                 child: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Icon(
+  //                       Icons.message_outlined,
+  //                       size: 80,
+  //                       color: Colors.grey[400],
+  //                     ),
+  //                     const SizedBox(height: 16),
+  //                     Text(
+  //                       'No conversations yet',
+  //                       style: TextStyle(
+  //                         fontSize: 18,
+  //                         color: Colors.grey[600],
+  //                         fontWeight: FontWeight.w500,
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 8),
+  //                     Text(
+  //                       'Start providing services to chat with clients',
+  //                       style: TextStyle(
+  //                         color: Colors.grey[500],
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             )
+  //           else
+  //             SliverList(
+  //               delegate: SliverChildBuilderDelegate(
+  //                 (context, index) {
+  //                   final conversation = vendorService.conversations[index];
+  //                   return _buildConversationTile(conversation);
+  //                 },
+  //                 childCount: vendorService.conversations.length,
+  //               ),
+  //             ),
+  //           const SliverToBoxAdapter(child: SizedBox(height: 100)),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildProfile() {
     return Consumer<AuthService>(
@@ -813,78 +817,78 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  Widget _buildConversationTile(Conversation conversation) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
-        child: Text(
-          conversation.clientName.isNotEmpty
-              ? conversation.clientName[0].toUpperCase()
-              : 'C',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF006FD6),
-          ),
-        ),
-      ),
-      title: Text(
-        conversation.clientName,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            conversation.serviceTitle,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
-          ),
-          if (conversation.lastMessage != null)
-            Text(
-              conversation.lastMessage!.content,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.grey[700],
-              ),
-            ),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (conversation.lastMessage != null)
-            Text(
-              _formatTime(conversation.lastMessage!.timestamp),
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 12,
-              ),
-            ),
-          if (conversation.unreadCount > 0)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: const BoxDecoration(
-                color: Color(0xFF006FD6),
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                conversation.unreadCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-        ],
-      ),
-      onTap: () => _openConversation(conversation),
-    );
-  }
+  // Widget _buildConversationTile(Conversation conversation) {
+  //   return ListTile(
+  //     leading: CircleAvatar(
+  //       backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
+  //       child: Text(
+  //         conversation.clientName.isNotEmpty
+  //             ? conversation.clientName[0].toUpperCase()
+  //             : 'C',
+  //         style: const TextStyle(
+  //           fontWeight: FontWeight.bold,
+  //           color: Color(0xFF006FD6),
+  //         ),
+  //       ),
+  //     ),
+  //     title: Text(
+  //       conversation.clientName,
+  //       style: const TextStyle(fontWeight: FontWeight.w600),
+  //     ),
+  //     subtitle: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           conversation.serviceTitle,
+  //           style: TextStyle(
+  //             color: Colors.grey[600],
+  //             fontSize: 12,
+  //           ),
+  //         ),
+  //         if (conversation.lastMessage != null)
+  //           Text(
+  //             conversation.lastMessage!.content,
+  //             maxLines: 1,
+  //             overflow: TextOverflow.ellipsis,
+  //             style: TextStyle(
+  //               color: Colors.grey[700],
+  //             ),
+  //           ),
+  //       ],
+  //     ),
+  //     trailing: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         if (conversation.lastMessage != null)
+  //           Text(
+  //             _formatTime(conversation.lastMessage!.timestamp),
+  //             style: TextStyle(
+  //               color: Colors.grey[500],
+  //               fontSize: 12,
+  //             ),
+  //           ),
+  //         if (conversation.unreadCount > 0)
+  //           Container(
+  //             margin: const EdgeInsets.only(top: 4),
+  //             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+  //             decoration: const BoxDecoration(
+  //               color: Color(0xFF006FD6),
+  //               shape: BoxShape.circle,
+  //             ),
+  //             child: Text(
+  //               conversation.unreadCount.toString(),
+  //               style: const TextStyle(
+  //                 color: Colors.white,
+  //                 fontSize: 12,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //             ),
+  //           ),
+  //       ],
+  //     ),
+  //     onTap: () => _openConversation(conversation),
+  //   );
+  // }
 
   Widget _buildProfileOption({
     required IconData icon,
@@ -1004,17 +1008,17 @@ class _VendorHomePageState extends State<VendorHomePage>
   //   }
   // }
 
-  void _openConversation(Conversation conversation) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatPage(
-          conversation: conversation,
-          token: widget.token,
-        ),
-      ),
-    );
-  }
+  // void _openConversation(Conversation conversation) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => MessagesPage(
+  //         userId: widget.user.id,
+  //         token: widget.token,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _showAIAssistant() {
     showDialog(
@@ -1124,18 +1128,18 @@ class _VendorHomePageState extends State<VendorHomePage>
     }
   }
 
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+  // String _formatTime(DateTime dateTime) {
+  //   final now = DateTime.now();
+  //   final difference = now.difference(dateTime);
 
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return 'now';
-    }
-  }
+  //   if (difference.inDays > 0) {
+  //     return '${difference.inDays}d';
+  //   } else if (difference.inHours > 0) {
+  //     return '${difference.inHours}h';
+  //   } else if (difference.inMinutes > 0) {
+  //     return '${difference.inMinutes}m';
+  //   } else {
+  //     return 'now';
+  //   }
+  // }
 }
