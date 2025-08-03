@@ -1,8 +1,8 @@
 import 'package:fixit/models/service_request.dart';
+import 'package:fixit/services/service_request_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
-import '../../services/messaging_service.dart';
 import 'chat_page.dart';
 
 class MessagesPage extends StatefulWidget {
@@ -20,8 +20,8 @@ class MessagesPage extends StatefulWidget {
 }
 
 class _MessagesPageState extends State<MessagesPage> {
-  final MessagingService _messagingService = MessagingService();
-  List<Conversation> _conversations = [];
+  final ServiceRequestService _requestService = ServiceRequestService();
+  final List<Conversation> _conversations = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -32,20 +32,62 @@ class _MessagesPageState extends State<MessagesPage> {
     _loadConversations();
   }
 
+  Future<void> _buildConversationsList() async {
+    setState(() {
+      _isLoading = true;
+      _conversations.clear();
+    });
+
+    try {
+      final requests = await _requestService.getServiceRequests(widget.token);
+      for (var request in requests) {
+        final conversation = Conversation(
+          id: request.conversationId,
+          serviceId: request.serviceId,
+          serviceTitle: request.serviceTitle,
+          clientId: request.clientId,
+          clientName: request.clientName,
+          vendorId: request.vendorId,
+          vendorName: request.vendorName,
+          createdAt: request.createdAt,
+          updatedAt: request.updatedAt,
+        );
+        _conversations.add(conversation);
+      }
+      setState(() {
+        _isLoading = false;
+      });
+
+      developer.log('📋 Loaded ${requests.length} requests',
+          name: 'RequestedServicesPage');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error loading requests: $e',
+          name: 'RequestedServicesPage');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load requests: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _loadConversations() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final conversations =
-          await _messagingService.getConversations(widget.userId);
-      setState(() {
-        _conversations = conversations;
-        _isLoading = false;
-      });
-      developer.log('📱 Loaded ${conversations.length} conversations',
+      await _buildConversationsList();
+      developer.log('📱 Loaded ${_conversations.length} conversations',
           name: 'MessagesPage');
+      print(
+          '📱 Loaded ${_conversations.length} conversations for ${widget.userId}');
     } catch (e) {
       setState(() {
         _isLoading = false;

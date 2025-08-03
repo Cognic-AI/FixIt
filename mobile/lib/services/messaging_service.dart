@@ -89,7 +89,7 @@ class MessagingService {
 
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/conversations/user/$userId'),
+        Uri.parse('$_baseUrl/conversations'),
         headers: {'Content-Type': 'application/json'},
       );
 
