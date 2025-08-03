@@ -34,6 +34,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _loadMessages();
     _markMessagesAsRead();
+    print(widget.request.toJson());
   }
 
   Future<void> _loadMessages() async {
@@ -226,6 +227,18 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _showRequestDetails(ServiceRequest request) {
+    developer.log('📋 Showing request details modal', name: 'ChatPage');
+    print(
+        '📋 Request details - Title: ${request.serviceTitle}, Vendor: ${request.vendorName}');
+
+    // Add a snackbar to confirm the method is being called
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Request details modal should appear now'),
+        duration: Duration(milliseconds: 500),
+      ),
+    );
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -313,25 +326,27 @@ class _ChatPageState extends State<ChatPage> {
                             color: _getStatusColor(request.status),
                           ),
                           const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                request.statusDisplayName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(request.status),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  request.statusDisplayName,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getStatusColor(request.status),
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                request.statusDescription,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
+                                Text(
+                                  request.statusDescription,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -371,10 +386,13 @@ class _ChatPageState extends State<ChatPage> {
 
                     _buildDetailRow(
                         Icons.location_on, 'Location', request.location),
+
                     _buildDetailRow(Icons.euro, 'Price',
                         '€${request.servicePrice.toStringAsFixed(2)}'),
+
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
                         '€${request.budget.toStringAsFixed(2)}'),
+
                     _buildDetailRow(Icons.access_time, 'Requested',
                         _formatDate(request.createdAt)),
 
@@ -704,23 +722,8 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () {
               // Handle more options
               // add "info" option
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: const Text('Request Details'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showRequestDetails(widget.request);
-                      },
-                    ),
-                    // Add more options as needed
-                  ],
-                ),
-              );
+
+              _showRequestDetails(widget.request);
             },
           ),
         ],

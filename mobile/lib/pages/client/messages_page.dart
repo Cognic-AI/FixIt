@@ -22,6 +22,7 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPageState extends State<MessagesPage> {
   final ServiceRequestService _requestService = ServiceRequestService();
   final List<Conversation> _conversations = [];
+  final List<ServiceRequest> _serviceRequests = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -53,6 +54,7 @@ class _MessagesPageState extends State<MessagesPage> {
           updatedAt: request.updatedAt,
         );
         _conversations.add(conversation);
+        _serviceRequests.add(request);
       }
       setState(() {
         _isLoading = false;
@@ -165,6 +167,13 @@ class _MessagesPageState extends State<MessagesPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
+            // Find the matching service request for this conversation
+            final matchingRequest = _serviceRequests.firstWhere(
+              (request) => request.conversationId == conversation.id,
+              orElse: () =>
+                  throw Exception('No matching service request found'),
+            );
+
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -172,26 +181,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   conversation: conversation,
                   currentUserId: widget.userId,
                   token: widget.token,
-                  request: ServiceRequest(
-                    id: conversation.serviceId,
-                    clientId: conversation.clientId,
-                    clientName: conversation.clientName,
-                    vendorId: conversation.vendorId,
-                    vendorName: conversation.vendorName,
-                    serviceId: conversation.serviceId,
-                    serviceTitle: conversation.serviceTitle,
-                    serviceCategory: '',
-                    description: '',
-                    location: '',
-                    budget: 0.0,
-                    servicePrice: 0.0,
-                    status: RequestStatus.active, // Default status
-                    createdAt: conversation.createdAt,
-                    updatedAt: conversation.updatedAt,
-                    scheduledDate: null, // No scheduled date
-                    notes: null,
-                    conversationId: conversation.id,
-                  ),
+                  request: matchingRequest,
                 ),
               ),
             ).then((_) {

@@ -280,7 +280,7 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                         ),
                         Text(
-                          request.vendorName,
+                          request.clientName,
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey[600],
@@ -681,7 +681,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
             Text(
-              widget.conversation.vendorName,
+              widget.conversation.clientName,
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.white.withOpacity(0.9),
@@ -704,23 +704,8 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () {
               // Handle more options
               // add "info" option
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: const Text('Request Details'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showRequestDetails(widget.request);
-                      },
-                    ),
-                    // Add more options as needed
-                  ],
-                ),
-              );
+
+              _showRequestDetails(widget.request);
             },
           ),
         ],

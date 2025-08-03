@@ -255,7 +255,7 @@ class _MessagesPageState extends State<MessagesPage> {
 
                       // Vendor Name
                       Text(
-                        conversation.vendorName,
+                        conversation.clientName,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
