@@ -208,3 +208,4 @@ mobile/pubspec.lock
 mobile/macos/Flutter/GeneratedPluginRegistrant.swift
 mobile/windows/flutter/generated_plugin_registrant.cc
 mobile/windows/flutter/generated_plugins.cmake
+mobile/android/build.gradle

@@ -21,7 +21,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     with SingleTickerProviderStateMixin {
   final ServiceRequestService _requestService = ServiceRequestService();
   late TabController _tabController;
-  
+
   List<ServiceRequest> _allRequests = [];
   Map<RequestStatus, int> _statusCounts = {};
   bool _isLoading = true;
@@ -39,21 +39,23 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     });
 
     try {
-      final requests = await _requestService.getServiceRequests(widget.clientId);
-      final counts = await _requestService.getRequestCounts(widget.clientId);
-      
+      final requests = await _requestService.getServiceRequests(widget.token);
+      final counts = await _requestService.getRequestCounts(widget.token);
+
       setState(() {
         _allRequests = requests;
         _statusCounts = counts;
         _isLoading = false;
       });
-      
-      developer.log('📋 Loaded ${requests.length} requests', name: 'RequestedServicesPage');
+
+      developer.log('📋 Loaded ${requests.length} requests',
+          name: 'RequestedServicesPage');
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      developer.log('Error loading requests: $e', name: 'RequestedServicesPage');
+      developer.log('Error loading requests: $e',
+          name: 'RequestedServicesPage');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -303,7 +305,8 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                 ),
 
                 // Scheduled Date for Active requests
-                if (request.status == RequestStatus.active && request.scheduledDate != null) ...[
+                if (request.status == RequestStatus.active &&
+                    request.scheduledDate != null) ...[
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -333,7 +336,8 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                 ],
 
                 // Rejection Reason for Rejected requests
-                if (request.status == RequestStatus.rejected && request.rejectionReason != null) ...[
+                if (request.status == RequestStatus.rejected &&
+                    request.rejectionReason != null) ...[
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -373,7 +377,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
   Widget _buildEmptyState(RequestStatus status) {
     String title, message;
     IconData icon;
-    
+
     switch (status) {
       case RequestStatus.pending:
         title = 'No Pending Requests';
@@ -460,7 +464,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
+
             // Header
             Padding(
               padding: const EdgeInsets.all(24),
@@ -504,7 +508,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                 ],
               ),
             ),
-            
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -549,7 +553,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Description
                     const Text(
                       'Description',
@@ -569,7 +573,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Details
                     const Text(
                       'Details',
@@ -580,15 +584,20 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
-                    _buildDetailRow(Icons.location_on, 'Location', request.location),
-                    _buildDetailRow(Icons.euro, 'Price', '€${request.servicePrice.toStringAsFixed(2)}'),
-                    _buildDetailRow(Icons.account_balance_wallet, 'Your Budget', '€${request.budget.toStringAsFixed(2)}'),
-                    _buildDetailRow(Icons.access_time, 'Requested', _formatDate(request.createdAt)),
-                    
+
+                    _buildDetailRow(
+                        Icons.location_on, 'Location', request.location),
+                    _buildDetailRow(Icons.euro, 'Price',
+                        '€${request.servicePrice.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
+                        '€${request.budget.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.access_time, 'Requested',
+                        _formatDate(request.createdAt)),
+
                     if (request.scheduledDate != null)
-                      _buildDetailRow(Icons.event, 'Scheduled', _formatDate(request.scheduledDate!)),
-                    
+                      _buildDetailRow(Icons.event, 'Scheduled',
+                          _formatDate(request.scheduledDate!)),
+
                     if (request.notes != null && request.notes!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Text(
@@ -609,7 +618,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                         ),
                       ),
                     ],
-                    
+
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -693,7 +702,8 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
             Tab(
               text: 'Completed',
               icon: Badge(
-                isLabelVisible: (_statusCounts[RequestStatus.completed] ?? 0) > 0,
+                isLabelVisible:
+                    (_statusCounts[RequestStatus.completed] ?? 0) > 0,
                 label: Text('${_statusCounts[RequestStatus.completed] ?? 0}'),
                 child: const Icon(Icons.check_circle),
               ),
@@ -701,7 +711,8 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
             Tab(
               text: 'Rejected',
               icon: Badge(
-                isLabelVisible: (_statusCounts[RequestStatus.rejected] ?? 0) > 0,
+                isLabelVisible:
+                    (_statusCounts[RequestStatus.rejected] ?? 0) > 0,
                 label: Text('${_statusCounts[RequestStatus.rejected] ?? 0}'),
                 child: const Icon(Icons.cancel),
               ),

@@ -7,13 +7,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserService {
   static final String _baseServiceUrl =
-      dotenv.env['USER_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
+      dotenv.env['VENDOR_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
   static final String _baseRequestUrl =
       dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
 
   Future<List<Service>> loadServices(String token) async {
     developer.log('[UserService] Loading services from $_baseServiceUrl',
         name: 'UserService');
+    print("[UserService] Loading services from $_baseServiceUrl");
 
     try {
       final response = await http.get(
@@ -142,7 +143,7 @@ class UserService {
           'clientId': clientId,
           'providerId': providerId,
           'location': location,
-          }),
+        }),
       );
 
       if (response.statusCode == 201) {
