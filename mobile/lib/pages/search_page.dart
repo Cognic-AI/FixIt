@@ -4,11 +4,11 @@ import '../models/service.dart';
 import '../services/user_service.dart';
 import '../widgets/map_popup.dart';
 import './client/request_service_page.dart';
-import './client/messages_page.dart'; 
+import './client/messages_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key, required this.token, required this.uid});
-  final String uid; 
+  final String uid;
   final String token;
 
   @override
@@ -113,15 +113,15 @@ class _SearchPageState extends State<SearchPage> {
           service.description
               .toLowerCase()
               .contains(_searchController.text.toLowerCase());
-      
-      final matchesCategory =
-          _selectedCategory == 'All' || service.category.toLowerCase() == _selectedCategory.toLowerCase();
-      
+
+      final matchesCategory = _selectedCategory == 'All' ||
+          service.category.toLowerCase() == _selectedCategory.toLowerCase();
+
       final matchesPrice = service.price >= _priceRange.start &&
           service.price <= _priceRange.end;
-      
+
       final matchesTags = _selectedFilters.isEmpty ||
-          _selectedFilters.any((tag) => 
+          _selectedFilters.any((tag) =>
               service.tags.toLowerCase().contains(tag.toLowerCase()) ||
               service.title.toLowerCase().contains(tag.toLowerCase()) ||
               service.description.toLowerCase().contains(tag.toLowerCase()));
@@ -300,10 +300,12 @@ class _SearchPageState extends State<SearchPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              service.availability ? Icons.check_circle : Icons.schedule,
+                              service.availability
+                                  ? Icons.check_circle
+                                  : Icons.schedule,
                               size: 16,
-                              color: service.availability 
-                                  ? const Color(0xFF10B981) 
+                              color: service.availability
+                                  ? const Color(0xFF10B981)
                                   : Colors.orange,
                             ),
                             const SizedBox(width: 4),
@@ -311,8 +313,8 @@ class _SearchPageState extends State<SearchPage> {
                               service.availability ? 'Available' : 'Busy',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: service.availability 
-                                    ? const Color(0xFF10B981) 
+                                color: service.availability
+                                    ? const Color(0xFF10B981)
                                     : Colors.orange,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -387,7 +389,9 @@ class _SearchPageState extends State<SearchPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        service.location.isNotEmpty ? service.location : 'Location not specified',
+                        service.location.isNotEmpty
+                            ? service.location
+                            : 'Location not specified',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 13,
@@ -595,7 +599,7 @@ class _SearchPageState extends State<SearchPage> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
+
             // Header
             Padding(
               padding: const EdgeInsets.all(24),
@@ -655,7 +659,7 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
             ),
-            
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -701,8 +705,8 @@ class _SearchPageState extends State<SearchPage> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: service.availability 
-                                  ? const Color(0xFF10B981) 
+                              color: service.availability
+                                  ? const Color(0xFF10B981)
                                   : Colors.orange,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -710,7 +714,9 @@ class _SearchPageState extends State<SearchPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  service.availability ? Icons.check_circle : Icons.schedule,
+                                  service.availability
+                                      ? Icons.check_circle
+                                      : Icons.schedule,
                                   size: 16,
                                   color: Colors.white,
                                 ),
@@ -730,7 +736,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Service Image
                     if (service.images.isNotEmpty) ...[
                       const Text(
@@ -758,7 +764,8 @@ class _SearchPageState extends State<SearchPage> {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
                                       ? loadingProgress.cumulativeBytesLoaded /
                                           loadingProgress.expectedTotalBytes!
                                       : null,
@@ -794,7 +801,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       const SizedBox(height: 24),
                     ],
-                    
+
                     // Description
                     if (service.description.isNotEmpty) ...[
                       const Text(
@@ -816,7 +823,7 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       const SizedBox(height: 24),
                     ],
-                    
+
                     // Location
                     const Text(
                       'Location',
@@ -840,7 +847,9 @@ class _SearchPageState extends State<SearchPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              service.location.isNotEmpty ? service.location : 'Location not specified',
+                              service.location.isNotEmpty
+                                  ? service.location
+                                  : 'Location not specified',
                               style: TextStyle(
                                 color: Colors.grey[700],
                                 fontSize: 16,
@@ -875,7 +884,7 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
             ),
-            
+
             // Action Buttons
             Padding(
               padding: const EdgeInsets.all(24),
@@ -918,7 +927,7 @@ class _SearchPageState extends State<SearchPage> {
                                   ),
                                   SizedBox(width: 8),
                                   Text(
-                                    'Message',
+                                    'Save Service',
                                     style: TextStyle(
                                       color: Color(0xFF10B981),
                                       fontWeight: FontWeight.w600,
@@ -1021,7 +1030,7 @@ class _SearchPageState extends State<SearchPage> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                
+
                 // Header
                 Padding(
                   padding: const EdgeInsets.all(24),
@@ -1077,7 +1086,8 @@ class _SearchPageState extends State<SearchPage> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                                      color: const Color(0xFF2563EB)
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(
@@ -1104,7 +1114,8 @@ class _SearchPageState extends State<SearchPage> {
                                   vertical: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF2563EB).withOpacity(0.1),
+                                  color:
+                                      const Color(0xFF2563EB).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -1162,7 +1173,8 @@ class _SearchPageState extends State<SearchPage> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.1),
+                                      color: const Color(0xFF10B981)
+                                          .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(
@@ -1190,7 +1202,8 @@ class _SearchPageState extends State<SearchPage> {
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
                                       ),
                                       child: TextField(
                                         controller: tagController,
@@ -1209,7 +1222,10 @@ class _SearchPageState extends State<SearchPage> {
                                   Container(
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                        colors: [
+                                          Color(0xFF10B981),
+                                          Color(0xFF059669)
+                                        ],
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1219,7 +1235,8 @@ class _SearchPageState extends State<SearchPage> {
                                         borderRadius: BorderRadius.circular(12),
                                         onTap: () {
                                           final tag = tagController.text.trim();
-                                          if (tag.isNotEmpty && !_selectedFilters.contains(tag)) {
+                                          if (tag.isNotEmpty &&
+                                              !_selectedFilters.contains(tag)) {
                                             setModalState(() {
                                               _selectedFilters.add(tag);
                                               tagController.clear();
@@ -1252,10 +1269,12 @@ class _SearchPageState extends State<SearchPage> {
                                   children: _selectedFilters.map((filter) {
                                     return Container(
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                                        color: const Color(0xFF2563EB)
+                                            .withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
-                                          color: const Color(0xFF2563EB).withOpacity(0.3),
+                                          color: const Color(0xFF2563EB)
+                                              .withOpacity(0.3),
                                         ),
                                       ),
                                       child: Padding(
@@ -1277,7 +1296,8 @@ class _SearchPageState extends State<SearchPage> {
                                             GestureDetector(
                                               onTap: () {
                                                 setModalState(() {
-                                                  _selectedFilters.remove(filter);
+                                                  _selectedFilters
+                                                      .remove(filter);
                                                 });
                                               },
                                               child: const Icon(
@@ -1418,7 +1438,8 @@ class _SearchPageState extends State<SearchPage> {
                         decoration: InputDecoration(
                           hintText: 'Search for services...',
                           hintStyle: TextStyle(color: Colors.grey[400]),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                          prefixIcon:
+                              Icon(Icons.search, color: Colors.grey[400]),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? Container(
                                   margin: const EdgeInsets.all(8),
@@ -1427,7 +1448,8 @@ class _SearchPageState extends State<SearchPage> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: IconButton(
-                                    icon: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+                                    icon: Icon(Icons.clear,
+                                        color: Colors.grey[600], size: 20),
                                     onPressed: () {
                                       _searchController.clear();
                                       setState(() {});
@@ -1491,7 +1513,10 @@ class _SearchPageState extends State<SearchPage> {
                               decoration: BoxDecoration(
                                 gradient: isSelected
                                     ? const LinearGradient(
-                                        colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                                        colors: [
+                                          Color(0xFF2563EB),
+                                          Color(0xFF1E40AF)
+                                        ],
                                       )
                                     : null,
                                 color: isSelected ? null : Colors.grey.shade100,
@@ -1504,7 +1529,8 @@ class _SearchPageState extends State<SearchPage> {
                                 boxShadow: isSelected
                                     ? [
                                         BoxShadow(
-                                          color: const Color(0xFF2563EB).withOpacity(0.3),
+                                          color: const Color(0xFF2563EB)
+                                              .withOpacity(0.3),
                                           spreadRadius: 0,
                                           blurRadius: 8,
                                           offset: const Offset(0, 2),
@@ -1518,13 +1544,19 @@ class _SearchPageState extends State<SearchPage> {
                                   Icon(
                                     _getCategoryIcon(category),
                                     size: 18,
-                                    color: isSelected ? Colors.white : Colors.grey[600],
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.grey[600],
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    category == 'All' ? 'All' : category.toUpperCase(),
+                                    category == 'All'
+                                        ? 'All'
+                                        : category.toUpperCase(),
                                     style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.grey[700],
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.grey[700],
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14,
                                     ),
@@ -1567,7 +1599,8 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.tune, color: Colors.grey[600], size: 20),
+                                Icon(Icons.tune,
+                                    color: Colors.grey[600], size: 20),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Filters',
@@ -1576,8 +1609,8 @@ class _SearchPageState extends State<SearchPage> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (_selectedFilters.isNotEmpty || 
-                                    _priceRange.start > 0 || 
+                                if (_selectedFilters.isNotEmpty ||
+                                    _priceRange.start > 0 ||
                                     _priceRange.end < 500) ...[
                                   const SizedBox(width: 8),
                                   Container(
@@ -1676,7 +1709,8 @@ class _SearchPageState extends State<SearchPage> {
                             itemBuilder: (context, index) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 16),
-                                child: _buildEnhancedServiceCard(searchResults[index]),
+                                child: _buildEnhancedServiceCard(
+                                    searchResults[index]),
                               );
                             },
                           ),

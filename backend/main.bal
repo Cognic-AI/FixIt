@@ -261,23 +261,23 @@ isolated service /api/chats on new http:Listener(8087) {
     }
 }
 
-// Bookings service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/bookings on new http:Listener(8080) {
-//     resource function get [string userId](http:Caller caller, http:Request req) returns error? {
-//         check bookings:getUserBookings(caller, req, userId);
-//     }
+// Subscription service (commented out)
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/subscriptions on new http:Listener(8088) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check controllers:getMySubscriptions(caller, req);
+    }
 
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check bookings:createBooking(caller, req);
-//     }
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check controllers:saveServiceSubscription(caller, req);
+    }
 
-//     resource function put [string bookingId](http:Caller caller, http:Request req) returns error? {
-//         check bookings:updateBooking(caller, req, bookingId);
-//     }
-// }
+    resource function delete .(http:Caller caller, http:Request req) returns error? {
+        check controllers:deleteServiceSubscription(caller, req);
+    }
+}
 
 // Reviews service (commented out)
 // @http:ServiceConfig {
