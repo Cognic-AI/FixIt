@@ -181,6 +181,29 @@ class _MessagesPageState extends State<MessagesPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
+            ServiceRequest request = _serviceRequests.firstWhere(
+              (element) => element.conversationId == conversation.id,
+              orElse: () => ServiceRequest(
+                id: '',
+                clientId: '',
+                clientName: '',
+                vendorId: '',
+                vendorName: '',
+                serviceId: '',
+                serviceTitle: '',
+                serviceCategory: '',
+                description: '',
+                location: '',
+                budget: 0.0,
+                servicePrice: 0.0,
+                status: RequestStatus.active,
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+                scheduledDate: null,
+                notes: null,
+                conversationId: conversation.id,
+              ),
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -188,26 +211,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   conversation: conversation,
                   currentUserId: widget.userId,
                   token: widget.token,
-                  request: ServiceRequest(
-                    id: conversation.serviceId,
-                    clientId: conversation.clientId,
-                    clientName: conversation.clientName,
-                    vendorId: conversation.vendorId,
-                    vendorName: conversation.vendorName,
-                    serviceId: conversation.serviceId,
-                    serviceTitle: conversation.serviceTitle,
-                    serviceCategory: '',
-                    description: '',
-                    location: '',
-                    budget: 0.0,
-                    servicePrice: 0.0,
-                    status: RequestStatus.active, // Default status
-                    createdAt: conversation.createdAt,
-                    updatedAt: conversation.updatedAt,
-                    scheduledDate: null, // No scheduled date
-                    notes: null,
-                    conversationId: conversation.id,
-                  ),
+                  request: request,
                 ),
               ),
             ).then((_) {
