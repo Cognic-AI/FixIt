@@ -1,7 +1,10 @@
+import 'package:fixit/models/message.dart';
 import 'package:fixit/models/request.dart';
+import 'package:fixit/models/service_request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:fixit/pages/auth/login_page.dart';
 import 'package:fixit/pages/vendor/ai_chat_page.dart';
+import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
 import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +33,8 @@ class _VendorHomePageState extends State<VendorHomePage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 0;
+  late Conversation _currentConversation;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -517,60 +522,6 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  // Widget _buildMessages() {
-  //   return Consumer<VendorService>(
-  //     builder: (context, vendorService, child) {
-  //       return CustomScrollView(
-  //         slivers: [
-  //           _buildAppBar('Messages'),
-  //           if (vendorService.conversations.isEmpty)
-  //             SliverFillRemaining(
-  //               child: Center(
-  //                 child: Column(
-  //                   mainAxisAlignment: MainAxisAlignment.center,
-  //                   children: [
-  //                     Icon(
-  //                       Icons.message_outlined,
-  //                       size: 80,
-  //                       color: Colors.grey[400],
-  //                     ),
-  //                     const SizedBox(height: 16),
-  //                     Text(
-  //                       'No conversations yet',
-  //                       style: TextStyle(
-  //                         fontSize: 18,
-  //                         color: Colors.grey[600],
-  //                         fontWeight: FontWeight.w500,
-  //                       ),
-  //                     ),
-  //                     const SizedBox(height: 8),
-  //                     Text(
-  //                       'Start providing services to chat with clients',
-  //                       style: TextStyle(
-  //                         color: Colors.grey[500],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             )
-  //           else
-  //             SliverList(
-  //               delegate: SliverChildBuilderDelegate(
-  //                 (context, index) {
-  //                   final conversation = vendorService.conversations[index];
-  //                   return _buildConversationTile(conversation);
-  //                 },
-  //                 childCount: vendorService.conversations.length,
-  //               ),
-  //             ),
-  //           const SliverToBoxAdapter(child: SizedBox(height: 100)),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
   Widget _buildProfile() {
     return Consumer<AuthService>(
       builder: (context, authService, child) {
@@ -770,7 +721,45 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
+  void _loadChatData(
+      String conversationId, ServiceRequest serviceRequest) async {
+    try {
+      final conversation = Conversation(
+        id: conversationId,
+        serviceId: serviceRequest.serviceId,
+        serviceTitle: serviceRequest.serviceTitle,
+        clientId: serviceRequest.clientId,
+        clientName: serviceRequest.clientName,
+        vendorId: serviceRequest.vendorId,
+        vendorName: serviceRequest.vendorName,
+        createdAt: serviceRequest.createdAt,
+        updatedAt: serviceRequest.updatedAt,
+        lastMessage: null,
+        unreadCount: 0,
+      );
+      setState(() {
+        _currentConversation = conversation;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('Error loading chat data: $e',
+          name: 'RequestedServicesPage');
+      print('Error loading chat data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load chat data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildRequestsList(List<Request> requests, String type) {
+    List<ServiceRequest> serviceRequests = [];
     if (requests.isEmpty) {
       return Center(
         child: Column(
@@ -797,11 +786,14 @@ class _VendorHomePageState extends State<VendorHomePage>
           ],
         ),
       );
+    } else {
+      serviceRequests =
+          requests.map((r) => r.convertToServiceRequest()).toList();
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: requests.length,
+      itemCount: serviceRequests.length,
       itemBuilder: (context, index) {
         final request = requests[index];
         return ServiceRequestCard(
@@ -813,84 +805,24 @@ class _VendorHomePageState extends State<VendorHomePage>
           onReject: request.isPending ? () => _rejectRequest(request.id) : null,
           onComplete:
               request.isAccepted ? () => _completeRequest(request.id) : null,
-          onMessage: () => {},
+          onMessage: () => {
+            _loadChatData(request.chatId, serviceRequests[index]),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatPage(
+                  token: widget.token,
+                  conversation: _currentConversation,
+                  currentUserId: widget.user.id,
+                  request: serviceRequests[index],
+                ),
+              ),
+            )
+          },
         );
       },
     );
   }
-
-  // Widget _buildConversationTile(Conversation conversation) {
-  //   return ListTile(
-  //     leading: CircleAvatar(
-  //       backgroundColor: const Color(0xFF006FD6).withOpacity(0.1),
-  //       child: Text(
-  //         conversation.clientName.isNotEmpty
-  //             ? conversation.clientName[0].toUpperCase()
-  //             : 'C',
-  //         style: const TextStyle(
-  //           fontWeight: FontWeight.bold,
-  //           color: Color(0xFF006FD6),
-  //         ),
-  //       ),
-  //     ),
-  //     title: Text(
-  //       conversation.clientName,
-  //       style: const TextStyle(fontWeight: FontWeight.w600),
-  //     ),
-  //     subtitle: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Text(
-  //           conversation.serviceTitle,
-  //           style: TextStyle(
-  //             color: Colors.grey[600],
-  //             fontSize: 12,
-  //           ),
-  //         ),
-  //         if (conversation.lastMessage != null)
-  //           Text(
-  //             conversation.lastMessage!.content,
-  //             maxLines: 1,
-  //             overflow: TextOverflow.ellipsis,
-  //             style: TextStyle(
-  //               color: Colors.grey[700],
-  //             ),
-  //           ),
-  //       ],
-  //     ),
-  //     trailing: Column(
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: [
-  //         if (conversation.lastMessage != null)
-  //           Text(
-  //             _formatTime(conversation.lastMessage!.timestamp),
-  //             style: TextStyle(
-  //               color: Colors.grey[500],
-  //               fontSize: 12,
-  //             ),
-  //           ),
-  //         if (conversation.unreadCount > 0)
-  //           Container(
-  //             margin: const EdgeInsets.only(top: 4),
-  //             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-  //             decoration: const BoxDecoration(
-  //               color: Color(0xFF006FD6),
-  //               shape: BoxShape.circle,
-  //             ),
-  //             child: Text(
-  //               conversation.unreadCount.toString(),
-  //               style: const TextStyle(
-  //                 color: Colors.white,
-  //                 fontSize: 12,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //             ),
-  //           ),
-  //       ],
-  //     ),
-  //     onTap: () => _openConversation(conversation),
-  //   );
-  // }
 
   Widget _buildProfileOption({
     required IconData icon,
@@ -1007,117 +939,6 @@ class _VendorHomePageState extends State<VendorHomePage>
       ),
     );
   }
-  // void _updateRequestStatus(Request request) {
-  //   final vendorService = Provider.of<VendorService>(context, listen: false);
-  //   if (request.isAccepted) {
-  //     vendorService.updateServiceStatus(
-  //       request.id,
-  //       ServiceRequestStatus.inProgress,
-  //       widget.token,
-  //       widget.user.id,
-  //     );
-  //   } else if (request.isAccepted) {
-  //     vendorService.updateServiceStatus(request.id,
-  //         ServiceRequestStatus.completed, widget.token, widget.user.id);
-  //   }
-  // }
-
-  // void _openConversation(Conversation conversation) {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => MessagesPage(
-  //         userId: widget.user.id,
-  //         token: widget.token,
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _showAIAssistant() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => Dialog(
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(16),
-  //       ),
-  //       child: Container(
-  //         padding: const EdgeInsets.all(24),
-  //         height: 400,
-  //         child: Column(
-  //           children: [
-  //             Row(
-  //               children: [
-  //                 Container(
-  //                   padding: const EdgeInsets.all(8),
-  //                   decoration: BoxDecoration(
-  //                     color: const Color(0xFF006FD6).withOpacity(0.1),
-  //                     borderRadius: BorderRadius.circular(8),
-  //                   ),
-  //                   child: const Icon(
-  //                     Icons.smart_toy,
-  //                     color: Color(0xFF006FD6),
-  //                   ),
-  //                 ),
-  //                 const SizedBox(width: 12),
-  //                 const Text(
-  //                   'AI Assistant',
-  //                   style: TextStyle(
-  //                     fontSize: 20,
-  //                     fontWeight: FontWeight.bold,
-  //                   ),
-  //                 ),
-  //                 const Spacer(),
-  //                 IconButton(
-  //                   onPressed: () => Navigator.pop(context),
-  //                   icon: const Icon(Icons.close),
-  //                 ),
-  //               ],
-  //             ),
-  //             const SizedBox(height: 16),
-  //             Expanded(
-  //               child: Container(
-  //                 width: double.infinity,
-  //                 padding: const EdgeInsets.all(16),
-  //                 decoration: BoxDecoration(
-  //                   color: Colors.grey[100],
-  //                   borderRadius: BorderRadius.circular(12),
-  //                 ),
-  //                 child: const Column(
-  //                   mainAxisAlignment: MainAxisAlignment.center,
-  //                   children: [
-  //                     Icon(
-  //                       Icons.smart_toy,
-  //                       size: 48,
-  //                       color: Colors.grey,
-  //                     ),
-  //                     SizedBox(height: 16),
-  //                     Text(
-  //                       'AI Assistant Chat',
-  //                       style: TextStyle(
-  //                         fontSize: 18,
-  //                         fontWeight: FontWeight.bold,
-  //                         color: Colors.grey,
-  //                       ),
-  //                     ),
-  //                     SizedBox(height: 8),
-  //                     Text(
-  //                       'AI chatbot functionality will be implemented here.',
-  //                       textAlign: TextAlign.center,
-  //                       style: TextStyle(
-  //                         color: Colors.grey,
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   void _editProfile() {
     Navigator.push(

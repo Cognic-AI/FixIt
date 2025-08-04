@@ -190,7 +190,7 @@ class _ChatPageState extends State<ChatPage> {
     switch (status) {
       case RequestStatus.pending:
         return Colors.orange;
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return const Color(0xFF2563EB);
       case RequestStatus.completed:
         return const Color(0xFF10B981);
@@ -203,7 +203,7 @@ class _ChatPageState extends State<ChatPage> {
     switch (status) {
       case RequestStatus.pending:
         return Icons.schedule;
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return Icons.work;
       case RequestStatus.completed:
         return Icons.check_circle;

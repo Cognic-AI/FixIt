@@ -78,8 +78,7 @@ class ServiceRequestService {
       case 'pending':
         return RequestStatus.pending;
       case 'accepted':
-      case 'active':
-        return RequestStatus.active;
+        return RequestStatus.accepted;
       case 'completed':
         return RequestStatus.completed;
       case 'rejected':
@@ -182,8 +181,8 @@ class ServiceRequestService {
     switch (status) {
       case RequestStatus.pending:
         return 'pending';
-      case RequestStatus.active:
-        return 'active';
+      case RequestStatus.accepted:
+        return 'accepted';
       case RequestStatus.completed:
         return 'completed';
       case RequestStatus.rejected:

@@ -114,7 +114,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     switch (status) {
       case RequestStatus.pending:
         return Colors.orange;
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return const Color(0xFF2563EB);
       case RequestStatus.completed:
         return const Color(0xFF10B981);
@@ -127,7 +127,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     switch (status) {
       case RequestStatus.pending:
         return Icons.schedule;
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return Icons.work;
       case RequestStatus.completed:
         return Icons.check_circle;
@@ -371,8 +371,8 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                   ],
                 ),
 
-                // Scheduled Date for Active requests
-                if (request.status == RequestStatus.active &&
+                // Scheduled Date for Accepted requests
+                if (request.status == RequestStatus.accepted &&
                     request.scheduledDate != null) ...[
                   const SizedBox(height: 12),
                   Container(
@@ -451,9 +451,9 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
         message = 'You don\'t have any pending service requests.';
         icon = Icons.schedule;
         break;
-      case RequestStatus.active:
-        title = 'No Active Services';
-        message = 'You don\'t have any active services at the moment.';
+      case RequestStatus.accepted:
+        title = 'No Accepted Services';
+        message = 'You don\'t have any accepted services at the moment.';
         icon = Icons.work;
         break;
       case RequestStatus.completed:
@@ -540,10 +540,11 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
               ),
             ),
             Tab(
-              text: 'Active',
+              text: 'Accepted',
               icon: Badge(
-                isLabelVisible: (_statusCounts[RequestStatus.active] ?? 0) > 0,
-                label: Text('${_statusCounts[RequestStatus.active] ?? 0}'),
+                isLabelVisible:
+                    (_statusCounts[RequestStatus.accepted] ?? 0) > 0,
+                label: Text('${_statusCounts[RequestStatus.accepted] ?? 0}'),
                 child: const Icon(Icons.work),
               ),
             ),
