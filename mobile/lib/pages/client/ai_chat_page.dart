@@ -1,5 +1,6 @@
 // import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
@@ -80,8 +81,21 @@ class _AiChatPageState extends State<AiChatPage> {
         content: tempMessage,
         conversationId: widget.userId,
       );
-
+      final te = Message(
+        id: "${DateTime.now().millisecondsSinceEpoch}-${widget.userId}",
+        senderId: widget.userId,
+        senderName: 'Me',
+        content: tempMessage,
+        timestamp: DateTime.now(),
+        isRead: true,
+        conversationId: widget.userId,
+        receiverId: 'ai',
+        receiverName: 'AI Assistant',
+        senderType: 'client',
+        type: MessageType.text,
+      );
       setState(() {
+        _messages.add(te);
         _messages.add(message);
         _isSending = false;
       });
@@ -135,6 +149,23 @@ class _AiChatPageState extends State<AiChatPage> {
     } else {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
     }
+  }
+
+  // Helper function to detect if message contains markdown
+  bool _containsMarkdown(String text) {
+    // Simple markdown detection patterns
+    final markdownPatterns = [
+      RegExp(r'\*\*.*?\*\*'), // Bold
+      RegExp(r'\*.*?\*'), // Italic
+      RegExp(r'`.*?`'), // Inline code
+      RegExp(r'```[\s\S]*?```'), // Code blocks
+      RegExp(r'^#{1,6}\s'), // Headers
+      RegExp(r'^\s*[-\*\+]\s'), // Unordered lists
+      RegExp(r'^\s*\d+\.\s'), // Ordered lists
+      RegExp(r'\[.*?\]\(.*?\)'), // Links
+    ];
+
+    return markdownPatterns.any((pattern) => pattern.hasMatch(text));
   }
 
   // String _formatDate(DateTime date) {
@@ -486,7 +517,7 @@ class _AiChatPageState extends State<AiChatPage> {
               radius: 16,
               backgroundColor: Colors.grey.shade300,
               child: Text(
-                message.senderName[0].toUpperCase(),
+                message.senderType == 'ai' ? 'AI' : "Me",
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -527,14 +558,79 @@ class _AiChatPageState extends State<AiChatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isMe ? Colors.white : const Color(0xFF1F2937),
-                      height: 1.3,
-                    ),
-                  ),
+                  // Render markdown if detected, otherwise use regular text
+                  _containsMarkdown(message.content)
+                      ? MarkdownBody(
+                          data: message.content,
+                          styleSheet: MarkdownStyleSheet(
+                            p: TextStyle(
+                              fontSize: 16,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                              height: 1.3,
+                            ),
+                            h1: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            h2: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            h3: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            strong: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            em: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            code: TextStyle(
+                              backgroundColor: isMe
+                                  ? Colors.white.withOpacity(0.2)
+                                  : Colors.grey.withOpacity(0.2),
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                              fontFamily: 'monospace',
+                            ),
+                            codeblockDecoration: BoxDecoration(
+                              color: isMe
+                                  ? Colors.white.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            listBullet: TextStyle(
+                              color:
+                                  isMe ? Colors.white : const Color(0xFF1F2937),
+                            ),
+                            a: TextStyle(
+                              color: isMe ? Colors.white : Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                          selectable: true,
+                        )
+                      : Text(
+                          message.content,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color:
+                                isMe ? Colors.white : const Color(0xFF1F2937),
+                            height: 1.3,
+                          ),
+                        ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -551,7 +647,7 @@ class _AiChatPageState extends State<AiChatPage> {
                       if (isMe) ...[
                         const SizedBox(width: 4),
                         Icon(
-                          message.isRead ? Icons.done_all : Icons.done,
+                          Icons.done_all,
                           size: 16,
                           color: message.isRead
                               ? Colors.white
@@ -570,7 +666,7 @@ class _AiChatPageState extends State<AiChatPage> {
               radius: 16,
               backgroundColor: const Color(0xFF2563EB),
               child: Text(
-                message.senderName[0].toUpperCase(),
+                message.senderType == 'ai' ? 'AI' : "Me",
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

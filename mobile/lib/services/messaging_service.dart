@@ -327,7 +327,7 @@ class MessagingService {
         conversationId: conversationId,
         senderId: "ai",
         senderName: "AI Assistant",
-        senderType: "system",
+        senderType: "ai",
         receiverId: conversationId,
         receiverName: "Me",
         content: messageData,

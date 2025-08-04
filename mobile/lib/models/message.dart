@@ -5,7 +5,7 @@ class Message {
   final String conversationId;
   final String senderId;
   final String senderName;
-  final String senderType; // 'client' or 'vendor'
+  late final String senderType; // 'client' or 'vendor'
   final String receiverId;
   final String receiverName;
   final String content;
@@ -37,7 +37,12 @@ class Message {
 
     // Debug print the actual JSON structure
     developer.log('💬 JSON structure: ${json.toString()}', name: 'Message');
-
+    if (json['senderId'] == 'ai') {
+      json['senderType'] = 'ai';
+    }
+    if (json['senderId'] == 'ai') {
+      json['read'] = true;
+    }
     return Message(
       id: json['id'] ?? '',
       conversationId: json['conversationId'] ?? '',
