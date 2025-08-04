@@ -7,6 +7,14 @@ import ballerina/time;
 import ballerina/uuid;
 
 public function getChatMessages(http:Caller caller, http:Request req) returns error? {
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
     json|error payload = req.getJsonPayload();
 
     if payload is error {
@@ -20,7 +28,7 @@ public function getChatMessages(http:Caller caller, http:Request req) returns er
     json messageData = payload;
 
     // Extract conversationId safely from JSON
-    json conversationId = check messageData.conversationId;
+    string conversationId = check messageData.conversationId;
 
     map<json> filter = {
         "conversationId": conversationId
@@ -35,6 +43,8 @@ public function getChatMessages(http:Caller caller, http:Request req) returns er
         });
         return;
     }
+
+    _ = check models:markAsRead(conversationId, user.id);
 
     check caller->respond({
         "success": true,
@@ -110,7 +120,7 @@ public function sendMessage(http:Caller caller, http:Request req) returns error?
         "id": messageId,
         "senderId": senderId,
         "content": content,
-        "timestamp": time:utcToString(time:utcNow()),
+        "timestamp": time:utcToString(time:utcAddSeconds(time:utcNow(), 19800)),
         "read": false,
         "messageType": messageType,
         "conversationId": conversationId // Assuming conversationId is same as chatId

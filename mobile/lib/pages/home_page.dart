@@ -1,4 +1,6 @@
 import 'package:fixit/models/user.dart';
+import 'package:fixit/pages/client/ai_chat_page.dart';
+import 'package:fixit/pages/client/subscribed_services_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -225,8 +227,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                   // Unread messages badge
                   FutureBuilder<int>(
-                    future: Future.value(
-                        _messagingService.getTotalUnreadCount(widget.user.id)),
+                    future: Future.value(_messagingService.getTotalUnreadCount(
+                        widget.user.id, widget.token)),
                     builder: (context, snapshot) {
                       final unreadCount = snapshot.data ?? 0;
                       if (unreadCount == 0) return const SizedBox.shrink();
@@ -462,8 +464,8 @@ class _HomePageState extends State<HomePage> {
                             ),
                           );
                         },
-                        badge: _messagingService
-                            .getTotalUnreadCount(widget.user.id),
+                        badge: _messagingService.getTotalUnreadCount(
+                            widget.user.id, widget.token),
                       ),
                       FutureBuilder<int>(
                         future: _requestService
@@ -494,10 +496,14 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.bookmark_outline,
                         label: 'Saved',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Saved services feature coming soon!')),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SubscribedServicesPage(
+                                token: widget.token,
+                                uid: widget.user.id,
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -626,9 +632,9 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MessagesPage(
+                  builder: (context) => AiChatPage(
                     userId: widget.user.id,
-                    token: widget.token,
+                    token: widget.token, // Pass the token for authentication
                   ),
                 ),
               );
@@ -638,7 +644,8 @@ class _HomePageState extends State<HomePage> {
           ),
           // Unread messages badge for FAB
           FutureBuilder<int>(
-            future: _messagingService.getTotalUnreadCount(widget.user.id),
+            future: _messagingService.getTotalUnreadCount(
+                widget.user.id, widget.token),
             builder: (context, snapshot) {
               final unreadCount = snapshot.data ?? 0;
               if (unreadCount == 0) return const SizedBox.shrink();

@@ -34,6 +34,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _loadMessages();
     _markMessagesAsRead();
+    print(widget.request.toJson());
   }
 
   Future<void> _loadMessages() async {
@@ -43,7 +44,10 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final result = await _messagingService.getConversation(
-          widget.request.conversationId, widget.request, widget.currentUserId);
+          widget.request.conversationId,
+          widget.request,
+          widget.currentUserId,
+          widget.token);
       final messages = result['messages'] as List<Message>;
       setState(() {
         _messages = messages;
@@ -97,6 +101,7 @@ class _ChatPageState extends State<ChatPage> {
         receiverId: widget.conversation.vendorId,
         receiverName: widget.conversation.vendorName,
         content: tempMessage,
+        token: widget.token,
       );
 
       setState(() {
@@ -144,11 +149,14 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatMessageDate(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate =
+        DateTime(timestamp.year, timestamp.month, timestamp.day);
+    final difference = today.difference(messageDate).inDays;
 
-    if (difference.inDays == 0) {
+    if (difference == 0) {
       return 'Today';
-    } else if (difference.inDays == 1) {
+    } else if (difference == 1) {
       return 'Yesterday';
     } else {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
@@ -487,7 +495,9 @@ class _ChatPageState extends State<ChatPage> {
               radius: 16,
               backgroundColor: Colors.grey.shade300,
               child: Text(
-                message.senderName[0].toUpperCase(),
+                widget.request.clientId == message.senderId
+                    ? widget.conversation.clientName[0].toUpperCase()
+                    : widget.conversation.vendorName[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -571,7 +581,9 @@ class _ChatPageState extends State<ChatPage> {
               radius: 16,
               backgroundColor: const Color(0xFF2563EB),
               child: Text(
-                message.senderName[0].toUpperCase(),
+                widget.request.clientId == message.senderId
+                    ? widget.conversation.clientName[0].toUpperCase()
+                    : widget.conversation.vendorName[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
