@@ -148,11 +148,14 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatMessageDate(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate =
+        DateTime(timestamp.year, timestamp.month, timestamp.day);
+    final difference = today.difference(messageDate).inDays;
 
-    if (difference.inDays == 0) {
+    if (difference == 0) {
       return 'Today';
-    } else if (difference.inDays == 1) {
+    } else if (difference == 1) {
       return 'Yesterday';
     } else {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
