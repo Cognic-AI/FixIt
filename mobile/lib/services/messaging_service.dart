@@ -14,6 +14,7 @@ class MessagingService {
     String conversationId,
     ServiceRequest serviceRequest,
     String currentUserId,
+    String token,
   ) async {
     developer.log('📱 Getting conversation and messages for: $conversationId',
         name: 'MessagingService');
@@ -22,7 +23,10 @@ class MessagingService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/conversations'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'conversationId': conversationId}),
       );
 
@@ -84,7 +88,8 @@ class MessagingService {
     }
   }
 
-  Future<List<Message>> getAiConversation(String conversationId) async {
+  Future<List<Message>> getAiConversation(
+      String conversationId, String token) async {
     developer.log('📱 Getting conversation and messages for: $conversationId',
         name: 'MessagingService');
     print('Getting conversation and messages for: $conversationId');
@@ -92,7 +97,10 @@ class MessagingService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/conversations'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'conversationId': conversationId}),
       );
 
@@ -129,14 +137,18 @@ class MessagingService {
     }
   }
 
-  Future<List<Conversation>> getConversations(String userId) async {
+  Future<List<Conversation>> getConversations(
+      String userId, String token) async {
     developer.log('📱 Getting conversations for user: $userId',
         name: 'MessagingService');
 
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/conversations'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode != 200) {
@@ -164,14 +176,17 @@ class MessagingService {
     }
   }
 
-  Future<List<Message>> getMessages(String conversationId) async {
+  Future<List<Message>> getMessages(String conversationId, String token) async {
     developer.log('💬 Getting messages for conversation: $conversationId',
         name: 'MessagingService');
 
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/conversations'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'conversationId': conversationId}),
       );
 
@@ -204,14 +219,17 @@ class MessagingService {
     }
   }
 
-  Future<Message> getLastMessage(String conversationId) async {
+  Future<Message> getLastMessage(String conversationId, String token) async {
     developer.log('💬 Getting last message for conversation: $conversationId',
         name: 'MessagingService');
 
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/conversation/last'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({'conversationId': conversationId}),
       );
 
@@ -250,6 +268,7 @@ class MessagingService {
     required String receiverName,
     required String content,
     MessageType type = MessageType.text,
+    required String token,
   }) async {
     developer.log('📤 Sending message from $senderId to $receiverId',
         name: 'MessagingService');
@@ -266,7 +285,10 @@ class MessagingService {
 
       final response = await http.post(
         Uri.parse('$_baseUrl/messages'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(payload),
       );
 
@@ -296,6 +318,7 @@ class MessagingService {
     required String conversationId,
     required String content,
     MessageType type = MessageType.text,
+    required String token,
   }) async {
     developer.log('📤 Sending AI message', name: 'MessagingService');
 
@@ -308,7 +331,10 @@ class MessagingService {
 
       final response = await http.post(
         Uri.parse('$_aiUrl/chat'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode(payload),
       );
 
@@ -345,41 +371,44 @@ class MessagingService {
     }
   }
 
-  Future<void> markMessagesAsRead(String conversationId, String userId) async {
-    developer.log(
-        '✅ Marking messages as read for conversation: $conversationId',
-        name: 'MessagingService');
+  // Future<void> markMessagesAsRead(String conversationId, String userId) async {
+  //   developer.log(
+  //       '✅ Marking messages as read for conversation: $conversationId',
+  //       name: 'MessagingService');
 
-    try {
-      final response = await http.put(
-        Uri.parse('$_baseUrl/conversations/$conversationId/read'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userId': userId}),
-      );
+  //   try {
+  //     final response = await http.put(
+  //       Uri.parse('$_baseUrl/conversations/$conversationId/read'),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: jsonEncode({'userId': userId}),
+  //     );
 
-      if (response.statusCode != 200) {
-        throw Exception(
-            'Failed to mark messages as read: ${response.statusCode}');
-      }
+  //     if (response.statusCode != 200) {
+  //       throw Exception(
+  //           'Failed to mark messages as read: ${response.statusCode}');
+  //     }
 
-      final data = jsonDecode(response.body);
-      if (!data['success']) {
-        throw Exception('API error: ${data['message']}');
-      }
+  //     final data = jsonDecode(response.body);
+  //     if (!data['success']) {
+  //       throw Exception('API error: ${data['message']}');
+  //     }
 
-      developer.log('✅ Messages marked as read', name: 'MessagingService');
-    } catch (e) {
-      developer.log('✅ Error marking messages as read: $e',
-          name: 'MessagingService', error: e);
-      rethrow;
-    }
-  }
+  //     developer.log('✅ Messages marked as read', name: 'MessagingService');
+  //   } catch (e) {
+  //     developer.log('✅ Error marking messages as read: $e',
+  //         name: 'MessagingService', error: e);
+  //     rethrow;
+  //   }
+  // }
 
-  Future<int> getTotalUnreadCount(String userId) async {
+  Future<int> getTotalUnreadCount(String userId, String token) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/unread-count?userId=$userId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode != 200) {

@@ -43,7 +43,10 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final result = await _messagingService.getConversation(
-          widget.request.conversationId, widget.request, widget.currentUserId);
+          widget.request.conversationId,
+          widget.request,
+          widget.currentUserId,
+          widget.token);
       final messages = result['messages'] as List<Message>;
       setState(() {
         _messages = messages;
@@ -97,6 +100,7 @@ class _ChatPageState extends State<ChatPage> {
         receiverId: widget.conversation.vendorId,
         receiverName: widget.conversation.vendorName,
         content: tempMessage,
+        token: widget.token,
       );
 
       setState(() {

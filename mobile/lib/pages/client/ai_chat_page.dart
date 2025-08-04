@@ -6,8 +6,9 @@ import '../../models/message.dart';
 import '../../services/messaging_service.dart';
 
 class AiChatPage extends StatefulWidget {
-  const AiChatPage({super.key, required this.userId});
+  const AiChatPage({super.key, required this.userId, required this.token});
   final String userId;
+  final String token; // Added token for authentication
   @override
   State<AiChatPage> createState() => _AiChatPageState();
 }
@@ -33,7 +34,8 @@ class _AiChatPageState extends State<AiChatPage> {
     });
 
     try {
-      final result = await _messagingService.getAiConversation(widget.userId);
+      final result = await _messagingService.getAiConversation(
+          widget.userId, widget.token);
       setState(() {
         _messages = result;
         _isLoading = false;
@@ -80,6 +82,7 @@ class _AiChatPageState extends State<AiChatPage> {
       final message = await _messagingService.sendAiMessage(
         content: tempMessage,
         conversationId: widget.userId,
+        token: widget.token,
       );
       final te = Message(
         id: "${DateTime.now().millisecondsSinceEpoch}-${widget.userId}",

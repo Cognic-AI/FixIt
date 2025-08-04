@@ -1,6 +1,7 @@
 import backend.utils;
 
 import ballerina/io;
+import ballerina/time;
 import ballerinax/mongodb;
 
 public type MessageType "text"|"image"|"file"|"location"|"system";
@@ -146,4 +147,49 @@ public function queryMessagesWithOptions(
 
     io:println("✅ Retrieved ", messages.length().toString(), " messages successfully");
     return messages;
+}
+
+public function markAsRead(
+        string conversationId,
+        string receiverId
+) returns boolean|error {
+    string collection = "messages";
+    io:println("🔍 Getting document from collection: ", collection);
+
+    mongodb:Database db = check utils:mongoDb->getDatabase("main");
+    mongodb:Collection mongoCollection = check db->getCollection(collection);
+
+    io:println("🚀 Executing query...");
+
+    map<json> filter = {
+        "conversationId": conversationId,
+        "senderId": {
+            "$ne": receiverId
+        },
+        "read": false
+    };
+
+    mongodb:Update updateData = {
+        "set": {
+            "read": true,
+            "updatedAt": time:utcToString(time:utcNow())
+        }
+    };
+
+    // Query without type projection to get raw documents
+    mongodb:UpdateResult|mongodb:Error results = check mongoCollection->updateMany(
+        filter,
+        updateData
+    );
+    if results is mongodb:Error {
+        io:println("Error marking messages as read", results);
+        return error("Failed to mark messages as read");
+    }
+    if results.modifiedCount == 0 {
+        io:println("❌ No messages found to mark as read");
+        return false;
+    }
+    io:println("✅ Marked ", results.modifiedCount.toString(), " messages as read successfully");
+    return true;
+
 }

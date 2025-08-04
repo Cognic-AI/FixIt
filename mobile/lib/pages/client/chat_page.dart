@@ -44,7 +44,10 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final result = await _messagingService.getConversation(
-          widget.request.conversationId, widget.request, widget.currentUserId);
+          widget.request.conversationId,
+          widget.request,
+          widget.currentUserId,
+          widget.token);
       final messages = result['messages'] as List<Message>;
       setState(() {
         _messages = messages;
@@ -98,6 +101,7 @@ class _ChatPageState extends State<ChatPage> {
         receiverId: widget.conversation.vendorId,
         receiverName: widget.conversation.vendorName,
         content: tempMessage,
+        token: widget.token, // Pass the token for authentication
       );
 
       setState(() {
@@ -145,11 +149,14 @@ class _ChatPageState extends State<ChatPage> {
 
   String _formatMessageDate(DateTime timestamp) {
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate =
+        DateTime(timestamp.year, timestamp.month, timestamp.day);
+    final difference = today.difference(messageDate).inDays;
 
-    if (difference.inDays == 0) {
+    if (difference == 0) {
       return 'Today';
-    } else if (difference.inDays == 1) {
+    } else if (difference == 1) {
       return 'Yesterday';
     } else {
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';

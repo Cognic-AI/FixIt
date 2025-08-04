@@ -47,10 +47,12 @@ class _MessagesPageState extends State<MessagesPage> {
       final requests = await _requestService.getServiceRequests(widget.token);
       final unreadCount = await _messagingService.getTotalUnreadCount(
         widget.userId,
+        widget.token,
       );
       for (var request in requests) {
         final lastMessage = await _messagingService.getLastMessage(
           request.conversationId,
+          widget.token,
         );
         final conversation = Conversation(
           id: request.conversationId,
