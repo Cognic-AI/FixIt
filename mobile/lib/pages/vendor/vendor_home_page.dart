@@ -1,5 +1,6 @@
 import 'package:fixit/models/request.dart';
 import 'package:fixit/models/user.dart';
+import 'package:fixit/pages/auth/login_page.dart';
 import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1123,6 +1124,11 @@ class _VendorHomePageState extends State<VendorHomePage>
   void _logout() async {
     try {
       await Provider.of<AuthService>(context, listen: false).signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
     } catch (e) {
       developer.log('❌ Error during logout: $e', name: 'VendorHomePage');
     }
