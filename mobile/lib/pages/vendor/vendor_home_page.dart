@@ -1,6 +1,7 @@
 import 'package:fixit/models/request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:fixit/pages/auth/login_page.dart';
+import 'package:fixit/pages/vendor/ai_chat_page.dart';
 import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -994,6 +995,18 @@ class _VendorHomePageState extends State<VendorHomePage>
     await vendorService.completeServiceRequest(
         requestId, widget.token, widget.user.id);
   }
+
+  void _showAIAssistant() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AiChatPage(
+          token: widget.token,
+          userId: widget.user.id,
+        ),
+      ),
+    );
+  }
   // void _updateRequestStatus(Request request) {
   //   final vendorService = Provider.of<VendorService>(context, listen: false);
   //   if (request.isAccepted) {
@@ -1021,90 +1034,90 @@ class _VendorHomePageState extends State<VendorHomePage>
   //   );
   // }
 
-  void _showAIAssistant() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          height: 400,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF006FD6).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.smart_toy,
-                      color: Color(0xFF006FD6),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'AI Assistant',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.smart_toy,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'AI Assistant Chat',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'AI chatbot functionality will be implemented here.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // void _showAIAssistant() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(16),
+  //       ),
+  //       child: Container(
+  //         padding: const EdgeInsets.all(24),
+  //         height: 400,
+  //         child: Column(
+  //           children: [
+  //             Row(
+  //               children: [
+  //                 Container(
+  //                   padding: const EdgeInsets.all(8),
+  //                   decoration: BoxDecoration(
+  //                     color: const Color(0xFF006FD6).withOpacity(0.1),
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                   child: const Icon(
+  //                     Icons.smart_toy,
+  //                     color: Color(0xFF006FD6),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 12),
+  //                 const Text(
+  //                   'AI Assistant',
+  //                   style: TextStyle(
+  //                     fontSize: 20,
+  //                     fontWeight: FontWeight.bold,
+  //                   ),
+  //                 ),
+  //                 const Spacer(),
+  //                 IconButton(
+  //                   onPressed: () => Navigator.pop(context),
+  //                   icon: const Icon(Icons.close),
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 16),
+  //             Expanded(
+  //               child: Container(
+  //                 width: double.infinity,
+  //                 padding: const EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: Colors.grey[100],
+  //                   borderRadius: BorderRadius.circular(12),
+  //                 ),
+  //                 child: const Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Icon(
+  //                       Icons.smart_toy,
+  //                       size: 48,
+  //                       color: Colors.grey,
+  //                     ),
+  //                     SizedBox(height: 16),
+  //                     Text(
+  //                       'AI Assistant Chat',
+  //                       style: TextStyle(
+  //                         fontSize: 18,
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.grey,
+  //                       ),
+  //                     ),
+  //                     SizedBox(height: 8),
+  //                     Text(
+  //                       'AI chatbot functionality will be implemented here.',
+  //                       textAlign: TextAlign.center,
+  //                       style: TextStyle(
+  //                         color: Colors.grey,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _editProfile() {
     Navigator.push(
