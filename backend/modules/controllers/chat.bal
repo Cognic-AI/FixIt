@@ -120,7 +120,7 @@ public function sendMessage(http:Caller caller, http:Request req) returns error?
         "id": messageId,
         "senderId": senderId,
         "content": content,
-        "timestamp": time:utcToString(time:utcAddSeconds(time:utcNow(), 19080)),
+        "timestamp": time:utcToString(time:utcAddSeconds(time:utcNow(), 19800)),
         "read": false,
         "messageType": messageType,
         "conversationId": conversationId // Assuming conversationId is same as chatId
