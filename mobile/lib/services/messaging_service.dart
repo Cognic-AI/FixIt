@@ -8,6 +8,7 @@ import '../models/service_request.dart';
 class MessagingService {
   final String _baseUrl = dotenv.env['MESSAGING_SERVICE_URL'] ??
       'http://192.168.1.2:8087/api/chats';
+  final String _aiUrl = dotenv.env['AI_URL'] ?? 'http://localhost:8082/api/ai';
 
   Future<Map<String, dynamic>> getConversation(
     String conversationId,
@@ -75,6 +76,51 @@ class MessagingService {
         'conversation': conversation,
         'messages': messages,
       };
+    } catch (e) {
+      developer.log('📱 Error getting conversation and messages: $e',
+          name: 'MessagingService', error: e);
+      print('📱 Error getting conversation and messages: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Message>> getAiConversation(String conversationId) async {
+    developer.log('📱 Getting conversation and messages for: $conversationId',
+        name: 'MessagingService');
+    print('Getting conversation and messages for: $conversationId');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/conversations'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'conversationId': conversationId}),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print('📱 Error getting conversation: ${response.statusCode}');
+        print('📱 Response body: ${response.body}');
+        throw Exception('Failed to load conversations: ${response.statusCode}');
+      }
+
+      final data = jsonDecode(response.body);
+      print('📱 Response data: ${data.toString()}');
+
+      if (!data['success']) {
+        print('📱 Error getting conversation: ${data['message']}');
+        throw Exception('API error: ${data['message']}');
+      }
+
+      // Extract messages list from API
+      final List<dynamic> messagesJson = data['messages'] ?? [];
+      print('📱 Messages JSON: $messagesJson');
+
+      final messages =
+          messagesJson.map((json) => Message.fromJson(json)).toList();
+
+      // Sort messages by timestamp (oldest first for chat display)
+      messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      return messages;
     } catch (e) {
       developer.log('📱 Error getting conversation and messages: $e',
           name: 'MessagingService', error: e);
@@ -235,6 +281,59 @@ class MessagingService {
 
       final messageJson = data['message'];
       final message = Message.fromJson(messageJson);
+
+      developer.log('📤 Message sent successfully: ${message.id}',
+          name: 'MessagingService');
+      return message;
+    } catch (e) {
+      developer.log('📤 Error sending message: $e',
+          name: 'MessagingService', error: e);
+      rethrow;
+    }
+  }
+
+  Future<Message> sendAiMessage({
+    required String conversationId,
+    required String content,
+    MessageType type = MessageType.text,
+  }) async {
+    developer.log('📤 Sending AI message', name: 'MessagingService');
+
+    try {
+      final payload = {
+        'message': content,
+        'messageType': 'text',
+        'conversationId': conversationId,
+      };
+
+      final response = await http.post(
+        Uri.parse('$_aiUrl/chat'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to send message: ${response.statusCode}');
+      }
+
+      final data = jsonDecode(response.body);
+      if (!data['success']) {
+        throw Exception('API error: ${data['message']}');
+      }
+
+      final messageData = data['response'];
+      final message = Message(
+        id: DateTime.now().toIso8601String(),
+        conversationId: conversationId,
+        senderId: "ai",
+        senderName: "AI Assistant",
+        senderType: "system",
+        receiverId: conversationId,
+        receiverName: "Me",
+        content: messageData,
+        type: MessageType.text,
+        timestamp: DateTime.now(),
+      );
 
       developer.log('📤 Message sent successfully: ${message.id}',
           name: 'MessagingService');

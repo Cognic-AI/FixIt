@@ -1,4 +1,5 @@
 import 'package:fixit/models/user.dart';
+import 'package:fixit/pages/client/ai_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -626,9 +627,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MessagesPage(
+                  builder: (context) => AiChatPage(
                     userId: widget.user.id,
-                    token: widget.token,
                   ),
                 ),
               );
