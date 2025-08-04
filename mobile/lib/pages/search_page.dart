@@ -1,3 +1,4 @@
+import 'package:fixit/models/subscription.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
@@ -21,6 +22,7 @@ class _SearchPageState extends State<SearchPage> {
   RangeValues _priceRange = const RangeValues(0, 500);
   final List<String> _selectedFilters = [];
   List<Service> _services = [];
+  List<Subscription> _subscriptions = [];
   bool _isLoading = false;
 
   final List<String> categories = [
@@ -84,12 +86,17 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _loadServices() async {
     setState(() {
       _isLoading = true;
+      _services = [];
+      _subscriptions = [];
     });
 
     try {
       final services = await UserService().loadServices(widget.token);
+      final subscriptions =
+          await UserService().getMySubscriptions(widget.token);
       setState(() {
         _services = services;
+        _subscriptions = subscriptions;
         _isLoading = false;
       });
       developer.log('📊 Services loaded: ${_services.length}',
@@ -100,6 +107,27 @@ class _SearchPageState extends State<SearchPage> {
       });
       developer.log('Error loading services: $e', name: 'SearchPage');
       // Optionally show an error message to the user
+    }
+  }
+
+  Future<void> _saveSubscription(serviceId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await UserService()
+          .makeSubscription(token: widget.token, serviceId: serviceId);
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('📊 Subscription created successfully', name: 'SearchPage');
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      developer.log('📊 Services loaded: ${_services.length}',
+          name: 'SearchPage');
     }
   }
 
@@ -892,7 +920,7 @@ class _SearchPageState extends State<SearchPage> {
                 children: [
                   Row(
                     children: [
-                      // Message Button
+                      // save Button
                       Expanded(
                         child: Container(
                           height: 48,
@@ -905,30 +933,61 @@ class _SearchPageState extends State<SearchPage> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap: () {
+                              onTap: () async {
+                                if (_subscriptions.any(
+                                    (sub) => sub.serviceId == service.id)) {
+                                  // If already subscribed, remove the subscription
+                                  try {
+                                    await UserService().removeSubscription(
+                                        token: widget.token,
+                                        serviceId: service.id,
+                                        subscriptionId: _subscriptions
+                                            .firstWhere((sub) =>
+                                                sub.serviceId == service.id)
+                                            .id);
+                                    // Update subscriptions list after removal
+                                    setState(() {
+                                      _subscriptions.removeWhere(
+                                          (sub) => sub.serviceId == service.id);
+                                    });
+                                  } catch (e) {
+                                    developer.log(
+                                        'Error removing subscription: $e',
+                                        name: 'SearchPage');
+                                  }
+                                } else {
+                                  // If not subscribed, add subscription
+                                  await _saveSubscription(service.id);
+                                  // Update subscriptions list after adding
+                                  setState(() {
+                                    _subscriptions.add(Subscription(
+                                      id: DateTime.now()
+                                          .toString(), // Temporary ID until refresh
+                                      serviceId: service.id,
+                                      clientId: widget.uid,
+                                    ));
+                                  });
+                                }
                                 Navigator.pop(context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MessagesPage(
-                                      userId: widget.uid,
-                                      token: widget.token,
-                                    ),
-                                  ),
-                                );
                               },
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.chat_bubble_outline,
-                                    color: Color(0xFF10B981),
+                                    _subscriptions.any((sub) =>
+                                            sub.serviceId == service.id)
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: const Color(0xFF10B981),
                                     size: 18,
                                   ),
-                                  SizedBox(width: 8),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'Save Service',
-                                    style: TextStyle(
+                                    _subscriptions.any((sub) =>
+                                            sub.serviceId == service.id)
+                                        ? 'Saved'
+                                        : 'Save Service',
+                                    style: const TextStyle(
                                       color: Color(0xFF10B981),
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,

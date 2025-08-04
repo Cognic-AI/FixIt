@@ -9,6 +9,11 @@ public type serviceSubscription record {
     string serviceId;
 };
 
+public type serviceSubscriptionDelete record {
+    string id;
+    string serviceId;
+};
+
 public type serviceSubscriptionResponse record {
     string id;
     string serviceId;
@@ -166,7 +171,7 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
+    io:println("User authenticated successfully in deleteServiceSubscription"); // IO log
     json|error payload = req.getJsonPayload();
     if payload is error {
         io:println("Failed to parse JSON payload in deleteServiceSubscription"); // IO log
@@ -180,8 +185,8 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
-    serviceSubscription|error requestData = payload.cloneWithType(serviceSubscription);
+    io:println("JSON payload parsed successfully in deleteServiceSubscription"); // IO log
+    serviceSubscriptionDelete|error requestData = payload.cloneWithType(serviceSubscriptionDelete);
     if requestData is error {
         io:println("Invalid request data format in deleteServiceSubscription"); // IO log
         json errorResponse = {
@@ -194,7 +199,7 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
+    io:println("Request data validated successfully in deleteServiceSubscription"); // IO log
     map<json> filter = {
         "serviceId": requestData.serviceId,
         "clientId": user.id
@@ -214,7 +219,7 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
+    io:println("Existing subscription found in deleteServiceSubscription"); // IO log
     // Check if user owns the subscription
     string clientId = existingSubscription[0].clientId;
     if clientId != user.id {
@@ -229,9 +234,9 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
+    io:println("User owns the subscription, proceeding to delete"); // IO log
     // Delete subscription from Firestore
-    error? deleteResult = models:deleteDocument("subscriptions", requestData.serviceId);
+    error? deleteResult = models:deleteDocument("subscriptions", requestData.id);
     if deleteResult is error {
         io:println("Failed to delete subscription from Firestore: " + deleteResult.toString()); // IO log
         log:printError("Failed to delete subscription from Firestore", deleteResult);
@@ -245,7 +250,7 @@ public function deleteServiceSubscription(http:Caller caller, http:Request req) 
         check caller->respond(response);
         return;
     }
-
+    io:println("Subscription deleted successfully from Firestore"); // IO log
     json successResponse = {
         "message": "Subscription deleted successfully"
     };

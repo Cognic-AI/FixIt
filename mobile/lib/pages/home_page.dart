@@ -1,5 +1,6 @@
 import 'package:fixit/models/user.dart';
 import 'package:fixit/pages/client/ai_chat_page.dart';
+import 'package:fixit/pages/client/subscribed_services_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -495,10 +496,14 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.bookmark_outline,
                         label: 'Saved',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Saved services feature coming soon!')),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SubscribedServicesPage(
+                                token: widget.token,
+                                uid: widget.user.id,
+                              ),
+                            ),
                           );
                         },
                       ),
