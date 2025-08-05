@@ -15,6 +15,7 @@ import '../../widgets/vendor_service_card.dart';
 import '../../widgets/service_request_card.dart';
 import '../../models/service.dart';
 import 'add_service_page.dart';
+import 'edit_service_page.dart';
 import 'edit_profile_page.dart';
 
 class VendorHomePage extends StatefulWidget {
@@ -957,21 +958,19 @@ class _VendorHomePageState extends State<VendorHomePage>
   }
 
   void _editService(Service service) {
-    // TODO: Navigate to edit service page
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Service'),
-        content: Text(
-            'Edit ${service.title} functionality will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditServicePage(
+          token: widget.token,
+          service: service,
+        ),
       ),
-    );
+    ).then((_) {
+      // Refresh services when returning from edit page
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      vendorService.loadMyServices(widget.token);
+    });
   }
 
   void _deleteService(String serviceId) {
