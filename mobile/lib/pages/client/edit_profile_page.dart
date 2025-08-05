@@ -1,3 +1,4 @@
+import 'package:fixit/pages/client/service_history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -935,30 +936,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _serviceHistory() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.history, color: Color(0xFF2563EB)),
-            const SizedBox(width: 8),
-            const Text('Booking History'),
-          ],
-        ),
-        content: const Text(
-          'Booking history will be available in the next update. You\'ll be able to view all your past service requests and their status.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ServiceHistoryPage(
+                token: widget.token,
+                clientId: AuthService().currentUser?.id ?? '')));
   }
 }
 

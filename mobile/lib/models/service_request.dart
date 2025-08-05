@@ -2,6 +2,8 @@ import 'dart:developer' as developer;
 
 enum RequestStatus { pending, accepted, completed, rejected }
 
+enum RequestHistoryStatus { completed, rejected }
+
 class ServiceRequest {
   final String id;
   final String clientId;
