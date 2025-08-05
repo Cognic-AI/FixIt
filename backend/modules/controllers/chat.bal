@@ -169,11 +169,48 @@ public function getUnreadMessageCount(http:Caller caller, http:Request req) retu
         });
         return;
     }
+    map<json> filterConversation = {};
+    if user.role == "client" {
+        filterConversation["clientId"] = user.id;
+    } else if user.role == "provider" {
+        filterConversation["providerId"] = user.id;
+    } else {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid user role"
+        });
+        return;
+    }
+
+    var resultConversations = models:queryRequests(filterConversation);
+    if resultConversations is error {
+        log:printError("Error fetching conversations", resultConversations);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch conversations"
+        });
+        return;
+    }
+
+    io:println("Found conversation IDs: ", resultConversations.length());
+
+    // Extract conversation IDs from the request objects
+    string[] conversationIds = [];
+    foreach var conversation in resultConversations {
+        if conversation is map<json> {
+            string chatId = conversation["chatId"];
+            conversationIds.push(chatId);
+        } else {
+            conversationIds.push(conversation.chatId);
+        }
+    }
+
+    io:println("Found conversation IDs: ", conversationIds);
 
     map<json> filter = {
-
         "senderId": {"$ne": user.id},
-        "read": false
+        "read": false,
+        "conversationId": {"$in": conversationIds}
     };
 
     var result = models:queryMessages(filter);
