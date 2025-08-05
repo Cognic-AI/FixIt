@@ -943,7 +943,8 @@ class _VendorHomePageState extends State<VendorHomePage>
   void _editProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const EditProfilePage()),
+      MaterialPageRoute(
+          builder: (context) => EditProfilePage(token: widget.token)),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:fixit/pages/vendor/service_history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -7,7 +8,9 @@ import '../../services/auth_service.dart';
 import '../../widgets/custom_text_field.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  const EditProfilePage({super.key, required this.token});
+
+  final String token;
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -66,11 +69,208 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  void _changePassword() {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  const Icon(Icons.lock_outline, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 8),
+                  const Text('Change Password'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline,
+                                color: Colors.red.shade700, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                errorMessage!,
+                                style: TextStyle(color: Colors.red.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    TextField(
+                      controller: oldPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Current Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_open_outlined),
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: newPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'New Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        helperText:
+                            'At least 8 characters with letters and numbers',
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm New Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.verified_user_outlined),
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          // Validate input
+                          if (oldPasswordController.text.isEmpty ||
+                              newPasswordController.text.isEmpty ||
+                              confirmPasswordController.text.isEmpty) {
+                            setState(() {
+                              errorMessage = 'All fields are required.';
+                            });
+                            return;
+                          }
+
+                          if (newPasswordController.text.length < 8) {
+                            setState(() {
+                              errorMessage =
+                                  'New password must be at least 8 characters long.';
+                            });
+                            return;
+                          }
+
+                          if (newPasswordController.text !=
+                              confirmPasswordController.text) {
+                            setState(() {
+                              errorMessage = 'New passwords do not match.';
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          try {
+                            await AuthService().resetPassword(
+                              oldPasswordController.text,
+                              newPasswordController.text,
+                              widget.token,
+                            );
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              errorMessage =
+                                  'Failed to change password. Please check your current password and try again.';
+                            });
+                            return;
+                          }
+
+                          // If successful:
+                          Navigator.pop(context);
+                          _showSuccessSnackBar(
+                              'Password changed successfully.');
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Change Password'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _serviceHistory() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ServiceHistoryPage(
+                token: widget.token,
+                clientId: AuthService().currentUser?.id ?? '')));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'), 
+        title: const Text('Profile'),
         backgroundColor: const Color(0xFF2563EB),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -84,7 +284,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center, 
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     'Edit Profile',
@@ -93,7 +293,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.black54,
                     ),
-                    textAlign: TextAlign.center, 
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
 
@@ -204,7 +404,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     keyboardType: TextInputType.phone,
                     validator: (value) {
                       if (value != null && value.isNotEmpty) {
-                        if (!RegExp(r'^\+?[\d\s\-\(\)]{10,}$').hasMatch(value)) {
+                        if (!RegExp(r'^\+?[\d\s\-\(\)]{10,}$')
+                            .hasMatch(value)) {
                           return 'Please enter a valid phone number';
                         }
                       }
@@ -227,20 +428,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onPressed: _openMapDialog,
                     ),
                   ),
-                  const SizedBox(height: 20), 
+                  const SizedBox(height: 20),
 
                   // Save Button
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.5, 
+                    width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _saveProfile,
-                      child: const Text('Save Changes'), 
+                      child: const Text('Save Changes'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2563EB),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10), 
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         textStyle: const TextStyle(
-                          fontSize: 14, 
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                         shape: RoundedRectangleBorder(
@@ -270,9 +471,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ListTile(
                           leading: const Icon(Icons.history,
                               color: Color(0xFF2563EB)),
-                          title: const Text('Booking History'),
+                          title: const Text('Service History'),
                           trailing: const Icon(Icons.chevron_right),
-                          onTap: _bookingHistory,
+                          onTap: _serviceHistory,
                         ),
                       ],
                     ),
@@ -346,39 +547,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
     }
   }
-
-  void _changePassword() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Change Password'),
-        content: const Text(
-            'Password change functionality will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _bookingHistory() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Booking History'),
-        content: const Text('Booking history will be implemented here.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _MapDialog extends StatefulWidget {
@@ -411,7 +579,8 @@ class _MapDialogState extends State<_MapDialog> {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
         return;
       }
     }

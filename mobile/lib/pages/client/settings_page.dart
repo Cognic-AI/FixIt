@@ -4,6 +4,8 @@ import 'dart:developer' as developer;
 import '../../services/auth_service.dart';
 import '../../services/theme_service.dart';
 import 'edit_profile_page.dart';
+import 'privacy_security_page.dart';
+import 'notification_settings_page.dart';
 import '../feedback_page.dart';
 import '../auth/login_page.dart';
 
@@ -156,7 +158,13 @@ class _SettingsPageState extends State<SettingsPage> {
             onTap: () {
               developer.log('🔒 Privacy & Security tapped',
                   name: 'SettingsPage');
-              _showPrivacyDialog(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PrivacySecurityPage(token: widget.token),
+                ),
+              );
             },
           ),
 
@@ -196,8 +204,23 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionHeader('Notifications'),
           _buildSettingsTile(
             icon: Icons.notifications_outlined,
+            title: 'Notification Settings',
+            subtitle: 'Manage all your notification preferences',
+            onTap: () {
+              developer.log('🔔 Notification Settings tapped',
+                  name: 'SettingsPage');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsPage(),
+                ),
+              );
+            },
+          ),
+          _buildSettingsTile(
+            icon: Icons.notifications_active,
             title: 'Push Notifications',
-            subtitle: 'Receive notifications on your device',
+            subtitle: 'Quick toggle for push notifications',
             trailing: Switch(
               value: _pushNotifications,
               onChanged: (value) {
@@ -206,6 +229,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 });
                 developer.log('🔔 Push notifications: $value',
                     name: 'SettingsPage');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Push notifications ${value ? 'enabled' : 'disabled'}'),
+                    backgroundColor: value ? Colors.green : Colors.orange,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
               },
               activeColor: const Color(0xFF2563EB),
             ),
@@ -429,42 +460,319 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showPrivacyDialog(BuildContext context) {
+  void _showHelpDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Privacy & Security'),
-        content: const Text(
-          'Privacy and security settings will be available in a future update. '
-          'Your data is protected according to our privacy policy.',
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.help_outline, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            const Text('Help Center'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Need help? We\'re here for you!',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildHelpOption(
+                icon: Icons.email_outlined,
+                title: 'Email Support',
+                subtitle: 'support@fixit.com',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSnackBar(
+                      'Email support feature coming soon!', Colors.blue);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildHelpOption(
+                icon: Icons.phone_outlined,
+                title: 'Phone Support',
+                subtitle: '+55 (81) 9999-9999',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSnackBar(
+                      'Phone support feature coming soon!', Colors.blue);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildHelpOption(
+                icon: Icons.chat_outlined,
+                title: 'Live Chat',
+                subtitle: 'Available 24/7',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSnackBar('Live chat feature coming soon!', Colors.blue);
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildHelpOption(
+                icon: Icons.book_outlined,
+                title: 'User Guide',
+                subtitle: 'Learn how to use FixIt',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showUserGuide();
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildHelpOption(
+                icon: Icons.bug_report_outlined,
+                title: 'Report a Bug',
+                subtitle: 'Help us improve the app',
+                onTap: () {
+                  Navigator.pop(context);
+                  _showBugReportDialog();
+                },
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
   }
 
-  void _showHelpDialog(BuildContext context) {
+  Widget _buildHelpOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade200),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF2563EB),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: Colors.grey,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showUserGuide() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Help Center'),
-        content: const Text(
-          'Need help? Contact our support team:\n\n'
-          '📧 Email: support@fixit.com\n'
-          '📱 Phone: +55 (81) 9999-9999\n'
-          '💬 Chat: Available 24/7 in the app',
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.book_outlined, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            const Text('User Guide'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGuideSection(
+                '1. Getting Started',
+                'Create your profile and set your location to start finding services.',
+              ),
+              _buildGuideSection(
+                '2. Finding Services',
+                'Browse categories or search for specific services you need.',
+              ),
+              _buildGuideSection(
+                '3. Booking Services',
+                'Contact service providers directly through the app to book services.',
+              ),
+              _buildGuideSection(
+                '4. Managing Requests',
+                'Track your service requests and communicate with providers.',
+              ),
+              _buildGuideSection(
+                '5. Reviews & Ratings',
+                'Rate and review services to help other users make informed decisions.',
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('Got It'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGuideSection(String title, String description) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBugReportDialog() {
+    final bugController = TextEditingController();
+    final stepsController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.bug_report_outlined, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            const Text('Report a Bug'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: bugController,
+                decoration: InputDecoration(
+                  labelText: 'Describe the bug',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintText: 'What went wrong?',
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: stepsController,
+                decoration: InputDecoration(
+                  labelText: 'Steps to reproduce',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintText: 'How can we reproduce this issue?',
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (bugController.text.trim().isNotEmpty) {
+                Navigator.pop(context);
+                _showSnackBar(
+                    'Bug report submitted! Thank you for helping us improve.',
+                    Colors.green);
+              } else {
+                _showSnackBar('Please describe the bug before submitting.',
+                    Colors.orange);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Submit Report'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
