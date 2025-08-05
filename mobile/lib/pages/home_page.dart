@@ -301,7 +301,7 @@ class _HomePageState extends State<HomePage> {
                     //       builder: (context) => SettingsPage(token: widget.token),
                     //     ),
                     //   );
-                    // } else if (value == 'logout') {
+                  } else if (value == 'logout') {
                     developer.log('Logging out user', name: 'HomePage');
                     try {
                       await Provider.of<AuthService>(context, listen: false)
