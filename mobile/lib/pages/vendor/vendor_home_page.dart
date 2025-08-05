@@ -14,9 +14,7 @@ import '../../services/vendor_service.dart';
 import '../../widgets/vendor_service_card.dart';
 import '../../widgets/service_request_card.dart';
 import '../../models/service.dart';
-// import '../../models/message.dart';
 import 'add_service_page.dart';
-// import 'chat_page.dart';
 import 'edit_profile_page.dart';
 
 class VendorHomePage extends StatefulWidget {
@@ -33,8 +31,6 @@ class _VendorHomePageState extends State<VendorHomePage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 0;
-  late Conversation _currentConversation;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -303,7 +299,25 @@ class _VendorHomePageState extends State<VendorHomePage>
             ),
 
             // Recent Requests
-            if (vendorService.pendingRequests.isNotEmpty)
+            if (vendorService.isLoading)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        CircularProgressIndicator(
+                          color: Color(0xFF006FD6),
+                          strokeWidth: 3,
+                        ),
+                        SizedBox(height: 16),
+                        Text('Loading recent requests...'),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else if (vendorService.pendingRequests.isNotEmpty)
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -318,6 +332,46 @@ class _VendorHomePageState extends State<VendorHomePage>
                     );
                   },
                   childCount: vendorService.pendingRequests.take(3).length,
+                ),
+              )
+            else
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.assignment_outlined,
+                          size: 48,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Recent Requests',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'New service requests will appear here',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
 
@@ -587,11 +641,11 @@ class _VendorHomePageState extends State<VendorHomePage>
                   title: 'Edit Profile',
                   onTap: _editProfile,
                 ),
-                _buildProfileOption(
-                  icon: Icons.settings,
-                  title: 'Settings',
-                  onTap: _openSettings,
-                ),
+                // _buildProfileOption(
+                //   icon: Icons.settings,
+                //   title: 'Settings',
+                //   onTap: _openSettings,
+                // ),
                 _buildProfileOption(
                   icon: Icons.help,
                   title: 'Help & Support',
@@ -721,9 +775,52 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  void _loadChatData(
+  Future<void> _openChatWithLoading(
       String conversationId, ServiceRequest serviceRequest) async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(
+                  color: Color(0xFF006FD6),
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Loading Chat...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please wait while we prepare your conversation',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
     try {
+      // Load chat data
       final conversation = Conversation(
         id: conversationId,
         serviceId: serviceRequest.serviceId,
@@ -737,21 +834,38 @@ class _VendorHomePageState extends State<VendorHomePage>
         lastMessage: null,
         unreadCount: 0,
       );
-      setState(() {
-        _currentConversation = conversation;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      developer.log('Error loading chat data: $e',
-          name: 'RequestedServicesPage');
-      print('Error loading chat data: $e');
+
+      // Simulate minimum loading time for better UX
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      // Close loading dialog
       if (mounted) {
+        Navigator.of(context).pop();
+
+        // Navigate to chat page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatPage(
+              token: widget.token,
+              conversation: conversation,
+              currentUserId: widget.user.id,
+              request: serviceRequest,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+
+        developer.log('Error loading chat data: $e', name: 'VendorHomePage');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to load chat data: $e'),
+            content: Text('Failed to load chat: $e'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -805,20 +919,8 @@ class _VendorHomePageState extends State<VendorHomePage>
           onReject: request.isPending ? () => _rejectRequest(request.id) : null,
           onComplete:
               request.isAccepted ? () => _completeRequest(request.id) : null,
-          onMessage: () => {
-            _loadChatData(request.chatId, serviceRequests[index]),
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatPage(
-                  token: widget.token,
-                  conversation: _currentConversation,
-                  currentUserId: widget.user.id,
-                  request: serviceRequests[index],
-                ),
-              ),
-            )
-          },
+          onMessage: () =>
+              _openChatWithLoading(request.chatId, serviceRequests[index]),
         );
       },
     );
@@ -876,34 +978,100 @@ class _VendorHomePageState extends State<VendorHomePage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         title: const Text('Delete Service'),
-        content: const Text('Are you sure you want to delete this service?'),
+        content: const Text(
+            'Are you sure you want to delete this service? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
-            onPressed: () {
+          ElevatedButton(
+            onPressed: () async {
               Navigator.pop(context);
-              final vendorService =
-                  Provider.of<VendorService>(context, listen: false);
-              vendorService.deleteService(
-                serviceId,
-                widget.token,
-              );
+
+              // Show loading dialog
+              _showActionLoadingDialog('Deleting Service...');
+
+              try {
+                final vendorService =
+                    Provider.of<VendorService>(context, listen: false);
+                await vendorService.deleteService(serviceId, widget.token);
+
+                // Close loading dialog
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Service deleted successfully'),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (e) {
+                // Close loading dialog
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete service: $e'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
           ),
         ],
       ),
     );
   }
 
-  void _toggleServiceStatus(Service service) {
-    final vendorService = Provider.of<VendorService>(context, listen: false);
-    vendorService.updateService(
-        service.id, {'availability': !service.availability}, widget.token);
+  void _toggleServiceStatus(Service service) async {
+    // Show loading dialog
+    _showActionLoadingDialog(
+        service.availability ? 'Disabling Service...' : 'Enabling Service...');
+
+    try {
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      await vendorService.updateService(
+          service.id, {'availability': !service.availability}, widget.token);
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Service ${service.availability ? 'disabled' : 'enabled'} successfully'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update service: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _viewServiceDetails(Service service) {
@@ -911,21 +1079,151 @@ class _VendorHomePageState extends State<VendorHomePage>
   }
 
   Future<void> _acceptRequest(String requestId) async {
-    final vendorService = Provider.of<VendorService>(context, listen: false);
-    await vendorService.acceptServiceRequest(
-        requestId, widget.token, widget.user.id);
+    // Show loading dialog
+    _showActionLoadingDialog('Accepting Request...');
+
+    try {
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      await vendorService.acceptServiceRequest(
+          requestId, widget.token, widget.user.id);
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request accepted successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to accept request: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _rejectRequest(String requestId) async {
-    final vendorService = Provider.of<VendorService>(context, listen: false);
-    await vendorService.rejectServiceRequest(
-        requestId, widget.token, widget.user.id);
+    // Show loading dialog
+    _showActionLoadingDialog('Rejecting Request...');
+
+    try {
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      await vendorService.rejectServiceRequest(
+          requestId, widget.token, widget.user.id);
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request rejected'),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to reject request: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _completeRequest(String requestId) async {
-    final vendorService = Provider.of<VendorService>(context, listen: false);
-    await vendorService.completeServiceRequest(
-        requestId, widget.token, widget.user.id);
+    // Show loading dialog
+    _showActionLoadingDialog('Completing Request...');
+
+    try {
+      final vendorService = Provider.of<VendorService>(context, listen: false);
+      await vendorService.completeServiceRequest(
+          requestId, widget.token, widget.user.id);
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request completed successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to complete request: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showActionLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(
+                  color: Color(0xFF006FD6),
+                  strokeWidth: 3,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please wait...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showAIAssistant() {
@@ -949,9 +1247,9 @@ class _VendorHomePageState extends State<VendorHomePage>
     );
   }
 
-  void _openSettings() {
-    // TODO: Navigate to settings page
-  }
+  // void _openSettings() {
+  //   // TODO: Navigate to settings page
+  // }
 
   void _openSupport() {
     // TODO: Navigate to support page
