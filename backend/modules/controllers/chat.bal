@@ -161,22 +161,56 @@ public function sendMessage(http:Caller caller, http:Request req) returns error?
 public function getUnreadMessageCount(http:Caller caller, http:Request req) returns error? {
     // url-/unread-count?userId=$userId'
 
-    json|error queryParams = req.getQueryParams();
-    if queryParams is error {
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
         check caller->respond({
             "success": false,
-            "message": "Invalid query parameters"
+            "message": "Authentication failed"
+        });
+        return;
+    }
+    map<json> filterConversation = {};
+    if user.role == "client" {
+        filterConversation["clientId"] = user.id;
+    } else if user.role == "provider" {
+        filterConversation["providerId"] = user.id;
+    } else {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid user role"
         });
         return;
     }
 
-    json userId = check queryParams.userId;
+    var resultConversations = models:queryRequests(filterConversation);
+    if resultConversations is error {
+        log:printError("Error fetching conversations", resultConversations);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch conversations"
+        });
+        return;
+    }
+
+    io:println("Found conversation IDs: ", resultConversations.length());
+
+    // Extract conversation IDs from the request objects
+    string[] conversationIds = [];
+    foreach var conversation in resultConversations {
+        if conversation is map<json> {
+            string chatId = conversation["chatId"];
+            conversationIds.push(chatId);
+        } else {
+            conversationIds.push(conversation.chatId);
+        }
+    }
+
+    io:println("Found conversation IDs: ", conversationIds);
+
     map<json> filter = {
-        "$or": [
-            {"senderId": userId},
-            {"receiverId": userId}
-        ],
-        "read": false
+        "senderId": {"$ne": user.id},
+        "read": false,
+        "conversationId": {"$in": conversationIds}
     };
 
     var result = models:queryMessages(filter);
@@ -192,8 +226,63 @@ public function getUnreadMessageCount(http:Caller caller, http:Request req) retu
 
     int unreadCount = result.length();
 
+    io:println("Unread messages count for user ", user.id, ": ", unreadCount);
+
     check caller->respond({
         "success": true,
         "unreadCount": unreadCount
+    });
+}
+
+public function getUnreadMessageCountConversation(http:Caller caller, http:Request req) returns error? {
+    // url-/unread-count?userId=$userId'
+
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
+
+    map<json> filter = {
+
+        "senderId": {"$ne": user.id},
+        "read": false
+    };
+
+    var result = models:queryMessages(filter);
+
+    if result is error {
+        log:printError("Error fetching unread messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch unread messages"
+        });
+        return;
+    }
+    map<json> counts = {};
+    foreach var item in result {
+        // count unread messege count for each conversation
+        // Assuming item has a field 'conversationId' to group by conversation
+        string conversationId = item.conversationId ?: "";
+        if conversationId == "" {
+            log:printError("Conversation ID is missing in message item");
+            continue; // Skip this item if conversationId is not present
+        }
+        if counts[conversationId] is () {
+            counts[conversationId] = 0; // Initialize if not present
+        }
+        counts[conversationId] = <int>counts[conversationId] + 1;
+    }
+
+    io:println("Unread messages count per conversation: ", counts);
+    int unreadCount = result.length();
+
+    check caller->respond({
+        "success": true,
+        "unreadCount": unreadCount,
+        "counts": counts
     });
 }

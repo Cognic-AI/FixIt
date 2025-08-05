@@ -404,7 +404,7 @@ class MessagingService {
   Future<int> getTotalUnreadCount(String userId, String token) async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/unread-count?userId=$userId'),
+        Uri.parse('$_baseUrl/unreadCount'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -419,12 +419,53 @@ class MessagingService {
       if (!data['success']) {
         throw Exception('API error: ${data['message']}');
       }
-
-      return data['count'];
+      print(data);
+      return data['unreadCount'] as int;
     } catch (e) {
       developer.log('Error getting unread count: $e',
           name: 'MessagingService', error: e);
       return 0;
+    }
+  }
+
+  Future<Map<String, int>> getTotalUnreadCountV2(
+      String userId, String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/unreadCountConversation'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to get unread count: ${response.statusCode}');
+      }
+
+      final data = jsonDecode(response.body);
+      if (!data['success']) {
+        throw Exception('API error: ${data['message']}');
+      }
+      developer.log('📱 Unread counts: ${data['counts']}',
+          name: 'MessagingService');
+      Map<String, int> counts = {};
+      if (data['counts'] is List) {
+        for (var entry in data['counts']) {
+          counts[entry['conversationId']] = entry['count'];
+        }
+      } else if (data['counts'] is Map) {
+        final countsMap = data['counts'] as Map;
+        countsMap.forEach((conversationId, count) {
+          counts[conversationId] = count as int;
+        });
+      }
+      return counts;
+    } catch (e) {
+      developer.log('Error getting unread count: $e',
+          name: 'MessagingService', error: e);
+      print("📱 Error getting unread count: $e");
+      return {};
     }
   }
 }

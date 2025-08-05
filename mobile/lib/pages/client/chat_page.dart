@@ -512,7 +512,9 @@ class _ChatPageState extends State<ChatPage> {
               radius: 16,
               backgroundColor: Colors.grey.shade300,
               child: Text(
-                message.senderName[0].toUpperCase(),
+                widget.request.clientId == message.senderId
+                    ? widget.conversation.clientName[0].toUpperCase()
+                    : widget.conversation.vendorName[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -596,7 +598,9 @@ class _ChatPageState extends State<ChatPage> {
               radius: 16,
               backgroundColor: const Color(0xFF2563EB),
               child: Text(
-                message.senderName[0].toUpperCase(),
+                widget.request.clientId == message.senderId
+                    ? widget.conversation.clientName[0].toUpperCase()
+                    : widget.conversation.vendorName[0].toUpperCase(),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
