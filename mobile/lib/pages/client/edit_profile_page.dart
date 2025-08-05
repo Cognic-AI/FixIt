@@ -8,9 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key, required this.token});
+  const EditProfilePage({super.key, required this.token, required this.userId});
 
   final String token;
+  final String userId;
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -940,8 +941,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         context,
         MaterialPageRoute(
             builder: (context) => ServiceHistoryPage(
-                token: widget.token,
-                clientId: AuthService().currentUser?.id ?? '')));
+                token: widget.token, clientId: widget.userId)));
   }
 }
 

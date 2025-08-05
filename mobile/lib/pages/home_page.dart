@@ -288,6 +288,7 @@ class _HomePageState extends State<HomePage> {
                       MaterialPageRoute(
                         builder: (context) => EditProfilePage(
                           token: widget.token,
+                          userId: widget.user.id,
                         ),
                       ),
                     );
@@ -518,6 +519,7 @@ class _HomePageState extends State<HomePage> {
                             MaterialPageRoute(
                               builder: (context) => EditProfilePage(
                                 token: widget.token,
+                                userId: widget.user.id,
                               ),
                             ),
                           );

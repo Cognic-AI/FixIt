@@ -120,8 +120,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              EditProfilePage(token: widget.token),
+                          builder: (context) => EditProfilePage(
+                              token: widget.token, userId: user.id),
                         ),
                       );
                     },
@@ -146,7 +146,8 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EditProfilePage(token: widget.token),
+                  builder: (context) => EditProfilePage(
+                      token: widget.token, userId: user?.id ?? ''),
                 ),
               );
             },
