@@ -8,7 +8,9 @@ import '../feedback_page.dart';
 import '../auth/login_page.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, required this.token});
+
+  final String token;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -111,11 +113,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   IconButton(
                     onPressed: () {
-                      developer.log('✏️ Edit profile pressed', name: 'SettingsPage');
+                      developer.log('✏️ Edit profile pressed',
+                          name: 'SettingsPage');
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditProfilePage(),
+                          builder: (context) =>
+                              EditProfilePage(token: widget.token),
                         ),
                       );
                     },
@@ -140,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EditProfilePage(),
+                  builder: (context) => EditProfilePage(token: widget.token),
                 ),
               );
             },
@@ -150,7 +154,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Privacy & Security',
             subtitle: 'Manage your privacy settings',
             onTap: () {
-              developer.log('🔒 Privacy & Security tapped', name: 'SettingsPage');
+              developer.log('🔒 Privacy & Security tapped',
+                  name: 'SettingsPage');
               _showPrivacyDialog(context);
             },
           ),
@@ -166,7 +171,8 @@ class _SettingsPageState extends State<SettingsPage> {
             trailing: Switch(
               value: themeService.isDarkMode,
               onChanged: (value) {
-                developer.log('🎨 Theme toggled to: ${value ? 'dark' : 'light'}', 
+                developer.log(
+                    '🎨 Theme toggled to: ${value ? 'dark' : 'light'}',
                     name: 'SettingsPage');
                 themeService.toggleTheme();
               },
@@ -178,7 +184,8 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Language',
             subtitle: 'English',
             onTap: () {
-              developer.log('🌍 Language settings tapped', name: 'SettingsPage');
+              developer.log('🌍 Language settings tapped',
+                  name: 'SettingsPage');
               _showLanguageDialog(context, themeService);
             },
           ),
@@ -197,7 +204,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _pushNotifications = value;
                 });
-                developer.log('🔔 Push notifications: $value', name: 'SettingsPage');
+                developer.log('🔔 Push notifications: $value',
+                    name: 'SettingsPage');
               },
               activeColor: const Color(0xFF2563EB),
             ),
@@ -212,7 +220,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _emailNotifications = value;
                 });
-                developer.log('📧 Email notifications: $value', name: 'SettingsPage');
+                developer.log('📧 Email notifications: $value',
+                    name: 'SettingsPage');
               },
               activeColor: const Color(0xFF2563EB),
             ),
@@ -227,7 +236,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _locationEnabled = value;
                 });
-                developer.log('📍 Location services: $value', name: 'SettingsPage');
+                developer.log('📍 Location services: $value',
+                    name: 'SettingsPage');
               },
               activeColor: const Color(0xFF2563EB),
             ),
@@ -496,7 +506,8 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(context); // Close the dialog first
               try {
                 await authService.signOut();
-                developer.log('✅ User signed out successfully', name: 'SettingsPage');
+                developer.log('✅ User signed out successfully',
+                    name: 'SettingsPage');
                 // Navigate back to login and clear all previous routes
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
@@ -505,7 +516,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 }
               } catch (e) {
-                developer.log('❌ Error during sign out: $e', 
+                developer.log('❌ Error during sign out: $e',
                     name: 'SettingsPage', error: e);
                 // Show error message to user
                 if (context.mounted) {
