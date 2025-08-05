@@ -45,10 +45,11 @@ class _MessagesPageState extends State<MessagesPage> {
 
     try {
       final requests = await _requestService.getServiceRequests(widget.token);
-      final unreadCount = await _messagingService.getTotalUnreadCount(
+      final unreadCount = await _messagingService.getTotalUnreadCountV2(
         widget.userId,
         widget.token,
       );
+      print(unreadCount);
       for (var request in requests) {
         final lastMessage = await _messagingService.getLastMessage(
           request.conversationId,
@@ -65,7 +66,7 @@ class _MessagesPageState extends State<MessagesPage> {
           createdAt: request.createdAt,
           updatedAt: request.updatedAt,
           lastMessage: lastMessage,
-          unreadCount: unreadCount,
+          unreadCount: unreadCount[request.conversationId] ?? 0,
         );
         _conversations.add(conversation);
         _serviceRequests.add(request);

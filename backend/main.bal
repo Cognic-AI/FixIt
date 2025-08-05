@@ -257,12 +257,12 @@ isolated service /api/chats on new http:Listener(8087) {
     }
 
     resource function get unreadCount(http:Caller caller, http:Request req) returns error? {
-        check controllers:getUnreadMessageCountConversation(caller, req);
+        check controllers:getUnreadMessageCount(caller, req);
     }
 
-    // resource function post unreadCountConversation(http:Caller caller, http:Request req) returns error? {
-    //     check controllers:getUnreadMessageCountConversation(caller, req);
-    // }
+    resource function get unreadCountConversation(http:Caller caller, http:Request req) returns error? {
+        check controllers:getUnreadMessageCountConversation(caller, req);
+    }
 
     resource function post conversation/last(http:Caller caller, http:Request req) returns error? {
         check controllers:getConversationLast(caller, req);

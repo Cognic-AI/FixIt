@@ -161,21 +161,18 @@ public function sendMessage(http:Caller caller, http:Request req) returns error?
 public function getUnreadMessageCount(http:Caller caller, http:Request req) returns error? {
     // url-/unread-count?userId=$userId'
 
-    json|error queryParams = req.getQueryParams();
-    if queryParams is error {
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
         check caller->respond({
             "success": false,
-            "message": "Invalid query parameters"
+            "message": "Authentication failed"
         });
         return;
     }
 
-    json userId = check queryParams.userId;
     map<json> filter = {
-        "$or": [
-            {"senderId": userId},
-            {"receiverId": userId}
-        ],
+
+        "senderId": {"$ne": user.id},
         "read": false
     };
 
@@ -191,6 +188,8 @@ public function getUnreadMessageCount(http:Caller caller, http:Request req) retu
     }
 
     int unreadCount = result.length();
+
+    io:println("Unread messages count for user ", user.id, ": ", unreadCount);
 
     check caller->respond({
         "success": true,
@@ -209,24 +208,10 @@ public function getUnreadMessageCountConversation(http:Caller caller, http:Reque
         });
         return;
     }
-    // json|error payload = req.getJsonPayload();
-
-    // if payload is error {
-    //     check caller->respond({
-    //         "success": false,
-    //         "message": "Invalid request payload"
-    //     });
-    //     return;
-    // }
-
-    // json messageData = payload;
-
-    // // Extract conversationId safely from JSON
-    // string conversationId = check messageData.conversationId;
 
     map<json> filter = {
 
-        "receiverId": user.id,
+        "senderId": {"$ne": user.id},
         "read": false
     };
 
@@ -254,6 +239,8 @@ public function getUnreadMessageCountConversation(http:Caller caller, http:Reque
         }
         counts[conversationId] = <int>counts[conversationId] + 1;
     }
+
+    io:println("Unread messages count per conversation: ", counts);
     int unreadCount = result.length();
 
     check caller->respond({

@@ -648,40 +648,40 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: const Color(0xFF2563EB),
             child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
           ),
-          // Unread messages badge for FAB
-          FutureBuilder<int>(
-            future: _messagingService.getTotalUnreadCount(
-                widget.user.id, widget.token),
-            builder: (context, snapshot) {
-              final unreadCount = snapshot.data ?? 0;
-              if (unreadCount == 0) return const SizedBox.shrink();
+          // // Unread messages badge for FAB
+          // FutureBuilder<int>(
+          //   future: _messagingService.getTotalUnreadCount(
+          //       widget.user.id, widget.token),
+          //   builder: (context, snapshot) {
+          //     final unreadCount = snapshot.data ?? 0;
+          //     if (unreadCount == 0) return const SizedBox.shrink();
 
-              return Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Text(
-                    unreadCount > 99 ? '99+' : '$unreadCount',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            },
-          ),
+          //     return Positioned(
+          //       right: 0,
+          //       top: 0,
+          //       child: Container(
+          //         padding: const EdgeInsets.all(2),
+          //         decoration: BoxDecoration(
+          //           color: Colors.red,
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         constraints: const BoxConstraints(
+          //           minWidth: 16,
+          //           minHeight: 16,
+          //         ),
+          //         child: Text(
+          //           unreadCount > 99 ? '99+' : '$unreadCount',
+          //           style: const TextStyle(
+          //             color: Colors.white,
+          //             fontSize: 10,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //           textAlign: TextAlign.center,
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
     );
