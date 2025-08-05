@@ -320,12 +320,27 @@ public function updateService(http:Caller caller, http:Request req, string servi
     }
     if payload.price is decimal {
         serviceData.price = (check payload.price);
+    } else if payload.price is int {
+        serviceData.price = <decimal>(check payload.price);
+    } else if payload.price is float {
+        serviceData.price = <decimal>(check payload.price);
+    } else if payload.price is string {
+        decimal|error priceValue = decimal:fromString(check payload.price);
+        if priceValue is decimal {
+            serviceData.price = priceValue;
+        }
     }
     if payload.location is string {
         serviceData.location = (check payload.location).toString();
     }
     if payload.availability is boolean {
         serviceData.availability = check payload.availability;
+    }
+    if payload.tags is string {
+        serviceData.tags = (check payload.tags).toString();
+    }
+    if payload.images is string {
+        serviceData.images = (check payload.images).toString();
     }
 
     // Update service in Firestore
@@ -342,6 +357,8 @@ public function updateService(http:Caller caller, http:Request req, string servi
         check caller->respond(response);
         return;
     }
+
+    io:println("Service updated successfully: " + serviceId);
 
     json successResponse = {
         "message": "Service updated successfully",

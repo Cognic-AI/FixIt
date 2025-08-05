@@ -104,12 +104,12 @@ class VendorServiceCard extends StatelessWidget {
                         onTap: onDelete,
                         color: Colors.red,
                       ),
-                      const SizedBox(width: 8),
-                      _buildQuickActionButton(
-                        icon: Icons.message,
-                        onTap: onMessage,
-                        color: Colors.teal,
-                      ),
+                      // const SizedBox(width: 8),
+                      // _buildQuickActionButton(
+                      //   icon: Icons.message,
+                      //   onTap: onMessage,
+                      //   color: Colors.teal,
+                      // ),
                     ],
                   ),
                 ),
@@ -204,7 +204,7 @@ class VendorServiceCard extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children: service.tags.split(',').take(3).map((tag) {
+                    children: service.tags.split(',').map((tag) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),

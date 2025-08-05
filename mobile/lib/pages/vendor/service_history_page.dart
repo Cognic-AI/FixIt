@@ -475,25 +475,6 @@ class _ServiceHistoryPageState extends State<ServiceHistoryPage>
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 24),
-          if (status == RequestHistoryStatus.completed)
-            ElevatedButton.icon(
-              onPressed: () {
-                // Navigate back to find services
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              icon: const Icon(Icons.search),
-              label: const Text('Find Services'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
         ],
       ),
     );

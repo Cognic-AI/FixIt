@@ -17,7 +17,7 @@ import 'map_page.dart';
 import 'client/messages_page.dart';
 import 'client/requested_services_page.dart';
 import 'client/edit_profile_page.dart';
-import 'client/settings_page.dart';
+// import 'client/settings_page.dart';
 import 'auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -292,15 +292,15 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     );
-                  } else if (value == 'settings') {
-                    developer.log('Navigating to settings page',
-                        name: 'HomePage');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingsPage(token: widget.token),
-                      ),
-                    );
+                    // } else if (value == 'settings') {
+                    //   developer.log('Navigating to settings page',
+                    //       name: 'HomePage');
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => SettingsPage(token: widget.token),
+                    //     ),
+                    //   );
                   } else if (value == 'logout') {
                     developer.log('Logging out user', name: 'HomePage');
                     try {
@@ -342,16 +342,16 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings, size: 20),
-                        SizedBox(width: 12),
-                        Text('Settings'),
-                      ],
-                    ),
-                  ),
+                  // const PopupMenuItem(
+                  //   value: 'settings',
+                  //   child: Row(
+                  //     children: [
+                  //       Icon(Icons.settings, size: 20),
+                  //       SizedBox(width: 12),
+                  //       Text('Settings'),
+                  //     ],
+                  //   ),
+                  // ),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(

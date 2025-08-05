@@ -461,17 +461,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading:
-                              const Icon(Icons.lock, color: Color(0xFF2563EB)),
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.lock_outline,
+                                color: Color(0xFF2563EB)),
+                          ),
                           title: const Text('Change Password'),
+                          subtitle: const Text('Update your account password'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: _changePassword,
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Icons.history,
-                              color: Color(0xFF2563EB)),
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.history,
+                                color: Color(0xFF2563EB)),
+                          ),
                           title: const Text('Service History'),
+                          subtitle:
+                              const Text('View your past service requests'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: _serviceHistory,
                         ),
