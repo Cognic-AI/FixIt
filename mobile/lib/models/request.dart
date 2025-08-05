@@ -1,3 +1,5 @@
+import 'package:fixit/models/service_request.dart';
+
 class Request {
   final String id;
   final String serviceId;
@@ -110,4 +112,41 @@ class Request {
   bool get isAccepted => state == 'accepted';
   bool get isCompleted => state == 'completed';
   bool get isCancelled => state == 'rejected';
+
+  ServiceRequest convertToServiceRequest() {
+    // Convert string state to RequestStatus enum
+    RequestStatus getStatusFromString(String state) {
+      switch (state.toLowerCase()) {
+        case 'pending':
+          return RequestStatus.pending;
+        case 'accepted':
+          return RequestStatus.accepted;
+        case 'completed':
+          return RequestStatus.completed;
+        case 'rejected':
+          return RequestStatus.rejected;
+        default:
+          return RequestStatus.pending;
+      }
+    }
+
+    return ServiceRequest(
+      id: id,
+      serviceId: serviceId,
+      vendorId: providerId,
+      clientId: clientId,
+      status: getStatusFromString(state),
+      location: location,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      conversationId: chatId,
+      serviceTitle: title,
+      description: description,
+      serviceCategory: category,
+      servicePrice: price,
+      clientName: clientName,
+      budget: 0,
+      vendorName: providerName,
+    );
+  }
 }

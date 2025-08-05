@@ -55,6 +55,10 @@ isolated service /api/auth on new http:Listener(8080) {
         check controllers:getUserProfile(caller, req);
     }
 
+    resource function put changePassword(http:Caller caller, http:Request req) returns error? {
+        check controllers:changePassword(caller, req);
+    }
+
     resource function get test(http:Caller caller, http:Request req) returns error? {
         models:User|error user = controllers:authenticateRequest(req);
         if user is error {

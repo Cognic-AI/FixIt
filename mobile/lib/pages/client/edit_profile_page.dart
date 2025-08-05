@@ -1,3 +1,4 @@
+import 'package:fixit/pages/client/service_history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import '../../services/auth_service.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  const EditProfilePage({super.key, required this.token, required this.userId});
+
+  final String token;
+  final String userId;
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -79,7 +83,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       setState(() {
         _locationError = null;
       });
-      
+
       LatLng? result = await showDialog<LatLng>(
         context: context,
         builder: (context) => _MapDialog(initialLocation: _selectedLocation),
@@ -88,7 +92,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (result != null) {
         setState(() {
           _selectedLocation = result;
-          _locationController.text = "${result.latitude.toStringAsFixed(6)}, ${result.longitude.toStringAsFixed(6)}";
+          _locationController.text =
+              "${result.latitude.toStringAsFixed(6)}, ${result.longitude.toStringAsFixed(6)}";
           _hasChanges = true;
         });
       }
@@ -143,22 +148,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
             if (_hasChanges)
               TextButton(
                 onPressed: _isLoading ? null : _saveProfile,
-                child: _isLoading 
-                  ? const SizedBox(
-                      width: 16, 
-                      height: 16, 
-                      child: CircularProgressIndicator(
-                        color: Colors.white, 
-                        strokeWidth: 2,
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Save',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    )
-                  : const Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
               ),
           ],
         ),
@@ -169,7 +174,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             return Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -181,7 +187,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     _buildSectionHeader('Personal Information'),
                     const SizedBox(height: 16),
                     _buildPersonalInfoFields(),
-                    
+
                     const SizedBox(height: 32),
 
                     // Contact Information Section
@@ -199,8 +205,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 40),
 
                     // Save Button (only show if not in app bar)
-                    if (!_hasChanges)
-                      _buildSaveButton(),
+                    if (!_hasChanges) _buildSaveButton(),
 
                     const SizedBox(height: 24),
 
@@ -218,22 +223,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<bool> _showUnsavedChangesDialog() async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Unsaved Changes'),
-        content: const Text('You have unsaved changes. Are you sure you want to leave?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Stay'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Unsaved Changes'),
+            content: const Text(
+                'You have unsaved changes. Are you sure you want to leave?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Stay'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Leave'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Leave'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   Widget _buildSectionHeader(String title) {
@@ -306,9 +313,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   child: IconButton(
                     onPressed: _changeProfilePicture,
-                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.camera_alt,
+                        color: Colors.white, size: 20),
                     padding: const EdgeInsets.all(8),
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
                   ),
                 ),
               ),
@@ -351,7 +360,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF2563EB), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -374,7 +384,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF2563EB), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -486,7 +497,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: Color(0xFF2563EB), size: 16),
+              const Icon(Icons.info_outline,
+                  color: Color(0xFF2563EB), size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -570,10 +582,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               child: const Icon(Icons.history, color: Color(0xFF2563EB)),
             ),
-            title: const Text('Booking History'),
-            subtitle: const Text('View your past bookings'),
+            title: const Text('Service History'),
+            subtitle: const Text('View your past service requests'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: _bookingHistory,
+            onTap: _serviceHistory,
           ),
         ],
       ),
@@ -693,7 +705,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const Text('Coming Soon'),
           ],
         ),
-        content: Text('$feature functionality will be available in the next update.'),
+        content: Text(
+            '$feature functionality will be available in the next update.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -725,9 +738,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
         setState(() {
           _hasChanges = false;
         });
-        
+
         _showSuccessSnackBar('Profile updated successfully!');
-        
+
         // Navigate back after a short delay to show the success message
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (mounted) {
@@ -748,57 +761,187 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _changePassword() {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.lock_outline, color: Color(0xFF2563EB)),
-            const SizedBox(width: 8),
-            const Text('Change Password'),
-          ],
-        ),
-        content: const Text(
-          'Password change functionality will be available in the next update. You can reset your password using the "Forgot Password" option on the login screen.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  const Icon(Icons.lock_outline, color: Color(0xFF2563EB)),
+                  const SizedBox(width: 8),
+                  const Text('Change Password'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline,
+                                color: Colors.red.shade700, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                errorMessage!,
+                                style: TextStyle(color: Colors.red.shade700),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    TextField(
+                      controller: oldPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Current Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_open_outlined),
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: newPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'New Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        helperText:
+                            'At least 8 characters with letters and numbers',
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Confirm New Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.verified_user_outlined),
+                      ),
+                      obscureText: true,
+                      enabled: !isLoading,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          // Validate input
+                          if (oldPasswordController.text.isEmpty ||
+                              newPasswordController.text.isEmpty ||
+                              confirmPasswordController.text.isEmpty) {
+                            setState(() {
+                              errorMessage = 'All fields are required.';
+                            });
+                            return;
+                          }
+
+                          if (newPasswordController.text.length < 8) {
+                            setState(() {
+                              errorMessage =
+                                  'New password must be at least 8 characters long.';
+                            });
+                            return;
+                          }
+
+                          if (newPasswordController.text !=
+                              confirmPasswordController.text) {
+                            setState(() {
+                              errorMessage = 'New passwords do not match.';
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          try {
+                            await AuthService().resetPassword(
+                              oldPasswordController.text,
+                              newPasswordController.text,
+                              widget.token,
+                            );
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              errorMessage =
+                                  'Failed to change password. Please check your current password and try again.';
+                            });
+                            return;
+                          }
+
+                          // If successful:
+                          Navigator.pop(context);
+                          _showSuccessSnackBar(
+                              'Password changed successfully.');
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Change Password'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  void _bookingHistory() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.history, color: Color(0xFF2563EB)),
-            const SizedBox(width: 8),
-            const Text('Booking History'),
-          ],
-        ),
-        content: const Text(
-          'Booking history will be available in the next update. You\'ll be able to view all your past service requests and their status.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  void _serviceHistory() {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ServiceHistoryPage(
+                token: widget.token, clientId: widget.userId)));
   }
 }
 
@@ -860,7 +1003,8 @@ class _MapDialogState extends State<_MapDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Location services are disabled. Please enable them.'),
+              content: const Text(
+                  'Location services are disabled. Please enable them.'),
               action: SnackBarAction(
                 label: 'Settings',
                 onPressed: () => Geolocator.openLocationSettings(),
@@ -874,11 +1018,13 @@ class _MapDialogState extends State<_MapDialog> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        if (permission == LocationPermission.deniedForever ||
+            permission == LocationPermission.denied) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Location permission is required to use current location.'),
+                content: Text(
+                    'Location permission is required to use current location.'),
               ),
             );
           }
@@ -889,7 +1035,7 @@ class _MapDialogState extends State<_MapDialog> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      
+
       if (mounted) {
         setState(() {
           _currentLocation = LatLng(position.latitude, position.longitude);

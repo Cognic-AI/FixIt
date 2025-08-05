@@ -286,7 +286,10 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditProfilePage(),
+                        builder: (context) => EditProfilePage(
+                          token: widget.token,
+                          userId: widget.user.id,
+                        ),
                       ),
                     );
                   } else if (value == 'settings') {
@@ -295,7 +298,7 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SettingsPage(),
+                        builder: (context) => SettingsPage(token: widget.token),
                       ),
                     );
                   } else if (value == 'logout') {
@@ -514,7 +517,10 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const EditProfilePage(),
+                              builder: (context) => EditProfilePage(
+                                token: widget.token,
+                                userId: widget.user.id,
+                              ),
                             ),
                           );
                         },

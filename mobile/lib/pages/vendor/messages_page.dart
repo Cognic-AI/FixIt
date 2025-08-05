@@ -196,7 +196,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 location: '',
                 budget: 0.0,
                 servicePrice: 0.0,
-                status: RequestStatus.active,
+                status: RequestStatus.accepted,
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
                 scheduledDate: null,

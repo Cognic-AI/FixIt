@@ -110,7 +110,7 @@ class _AiChatPageState extends State<AiChatPage> with TickerProviderStateMixin {
         conversationId: widget.userId,
         receiverId: 'ai',
         receiverName: 'AI Assistant',
-        senderType: 'client',
+        senderType: 'vendor',
         type: MessageType.text,
       );
 

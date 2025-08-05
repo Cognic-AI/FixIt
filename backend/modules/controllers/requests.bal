@@ -208,7 +208,7 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
     io:println("getMyRequests called"); // IO log
     // Authenticate and authorize provider role
     io:println("request data: ", req.getJsonPayload()); // IO log
-    models:User|error user = authorizeRole(req, ["client", "vendor"]);
+    models:User|error user = authenticateRequest(req);
     if user is error {
         io:println("Unauthorized access attempt in getMyRequests"); // IO log
         json errorResponse = {

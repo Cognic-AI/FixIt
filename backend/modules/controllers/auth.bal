@@ -1,4 +1,6 @@
+import backend.models;
 import backend.utils as utils;
+
 import ballerina/crypto;
 import ballerina/http;
 import ballerina/io;
@@ -7,7 +9,6 @@ import ballerina/log;
 import ballerina/regex;
 import ballerina/time;
 import ballerina/uuid;
-import backend.models;
 
 // JWT Configuration
 configurable string jwtSecretKey = ?;
@@ -28,6 +29,11 @@ public type UserRegistration record {
 public type UserLogin record {
     string email;
     string password;
+};
+
+public type UserChangePassword record {
+    string oldPassword;
+    string newPassword;
 };
 
 public type AuthResponse record {
@@ -229,7 +235,7 @@ public function _registerUser(http:Caller caller, http:Request req) returns erro
         phoneNumber: newUser.phoneNumber,
         role: newUser.role,
         location: newUser.location,
-        password: "",  // Don't send password back
+        password: "", // Don't send password back
         emailVerified: newUser.emailVerified,
         profileImageUrl: newUser.profileImageUrl,
         createdAt: newUser.createdAt,
@@ -340,7 +346,7 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         phoneNumber: user.phoneNumber,
         role: user.role,
         location: user.location,
-        password: "",  // Don't send password back
+        password: "", // Don't send password back
         emailVerified: user.emailVerified,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
@@ -359,6 +365,80 @@ public function _login(http:Caller caller, http:Request req) returns error? {
     response.setJsonPayload(authResponse.toJson());
     check caller->respond(response);
     log:printInfo("User logged in successfully: " + loginData.email);
+}
+
+public function changePassword(http:Caller caller, http:Request req) returns error? {
+    models:User|error user = authenticateRequest(req);
+    if user is error {
+        json errorResponse = {
+            "message": "Unauthorized",
+            "statusCode": 401
+        };
+        http:Response response = new;
+        response.statusCode = 401;
+        response.setJsonPayload(errorResponse);
+        check caller->respond(response);
+        return;
+    }
+    json|error payload = req.getJsonPayload();
+    if payload is error {
+        json errorResponse = {
+            "message": "Invalid request payload",
+            "statusCode": 400
+        };
+        http:Response response = new;
+        response.statusCode = 400;
+        response.setJsonPayload(errorResponse);
+        check caller->respond(response);
+        return;
+    }
+
+    UserChangePassword|error passwordChangeData = payload.cloneWithType(UserChangePassword);
+    if passwordChangeData is error {
+        json errorResponse = {
+            "message": "Invalid request payload format",
+            "statusCode": 400
+        };
+        http:Response response = new;
+        response.statusCode = 400;
+        response.setJsonPayload(errorResponse);
+        check caller->respond(response);
+        return;
+    }
+
+    // Verify password
+    boolean|error passwordValid = verifyPassword(passwordChangeData.oldPassword, user.password);
+    if passwordValid is error || !passwordValid {
+        json errorResponse = {
+            "message": "Unauthorized password change",
+            "statusCode": 401
+        };
+        http:Response response = new;
+        response.statusCode = 401;
+        response.setJsonPayload(errorResponse);
+        check caller->respond(response);
+        return;
+    }
+
+    // Update last login time
+    string currentTime = time:utcToString(time:utcNow());
+    user.lastLoginAt = currentTime;
+    user.updatedAt = currentTime;
+    user.password = check hashPassword(passwordChangeData.newPassword);
+
+    error? updateResult = models:updateDocument("users", user.id, <map<json>>user.toJson());
+    if updateResult is error {
+        log:printError("Failed to update last login time", updateResult);
+    }
+
+    http:Response response = new;
+    response.statusCode = 200;
+    response.setJsonPayload({
+        "message": "Password changed successfully",
+        "statusCode": 200
+    }.toJson());
+    check caller->respond(response);
+    log:printInfo("User password changed successfully: " + user.email);
 }
 
 // Authentication middleware
@@ -457,7 +537,7 @@ public function getUserProfile(http:Caller caller, http:Request req) returns err
         phoneNumber: user.phoneNumber,
         role: user.role,
         location: user.location,
-        password: "",  // Don't send password back
+        password: "", // Don't send password back
         emailVerified: user.emailVerified,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,

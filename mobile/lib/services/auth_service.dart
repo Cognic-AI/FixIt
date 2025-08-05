@@ -116,14 +116,17 @@ class AuthService extends ChangeNotifier {
 
   Future<void> loadUserProfile() async {
     if (_isInitialized) {
-      developer.log('🔐 [AUTH] Already initialized, skipping', name: 'AuthService');
+      developer.log('🔐 [AUTH] Already initialized, skipping',
+          name: 'AuthService');
       return;
     }
-    
-    if (_jwtToken == null){
+
+    if (_jwtToken == null) {
       _jwtToken = await _storage.read(key: 'token');
       if (_jwtToken == null) {
-        developer.log('🔐 [AUTH] No token found, marking as initialized without user', name: 'AuthService');
+        developer.log(
+            '🔐 [AUTH] No token found, marking as initialized without user',
+            name: 'AuthService');
         _isInitialized = true;
         return;
       }
@@ -174,31 +177,37 @@ class AuthService extends ChangeNotifier {
   }
 
   // Password reset would need a backend endpoint, not implemented here
-  Future<void> resetPassword(String email) async {
-    _isLoading = true;
-    notifyListeners();
-
+  Future<void> resetPassword(
+      String oldPassword, String newPassword, String token) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/reset-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
+      print('🔐 [AUTH_SERVICE] Attempting to change password');
+      final response = await http.put(
+        Uri.parse('$_baseUrl/changePassword'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        }),
       );
+      print('🔐 [AUTH_SERVICE] Password change response: ${response.body}');
 
       if (response.statusCode == 200) {
-        developer.log('✅ Password reset email sent', name: 'AuthService');
+        print('✅ [AUTH_SERVICE] Password change successful');
+        developer.log('✅ Password change successful', name: 'AuthService');
       } else {
-        developer.log('❌ Failed to send reset email: ${response.body}',
+        print('❌ [AUTH_SERVICE] Failed to change password: ${response.body}');
+        developer.log('❌ Failed to change password: ${response.body}',
             name: 'AuthService');
-        throw Exception('Failed to send reset email: ${response.body}');
+        throw Exception('Failed to change password: ${response.body}');
       }
     } catch (e) {
-      developer.log('❌ Error sending reset email: $e',
+      print('❌ [AUTH_SERVICE] Error changing password: $e');
+      developer.log('❌ Error changing password: $e',
           name: 'AuthService', error: e);
       rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 }

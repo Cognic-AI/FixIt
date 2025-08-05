@@ -1,12 +1,12 @@
-import 'package:fixit/pages/client/chat_page.dart';
+import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/service_request.dart';
 import '../../models/message.dart';
 import '../../services/service_request_service.dart';
 
-class RequestedServicesPage extends StatefulWidget {
-  const RequestedServicesPage({
+class ServiceHistoryPage extends StatefulWidget {
+  const ServiceHistoryPage({
     super.key,
     required this.clientId,
     required this.token,
@@ -16,22 +16,22 @@ class RequestedServicesPage extends StatefulWidget {
   final String token;
 
   @override
-  State<RequestedServicesPage> createState() => _RequestedServicesPageState();
+  State<ServiceHistoryPage> createState() => _ServiceHistoryPageState();
 }
 
-class _RequestedServicesPageState extends State<RequestedServicesPage>
+class _ServiceHistoryPageState extends State<ServiceHistoryPage>
     with SingleTickerProviderStateMixin {
   final ServiceRequestService _requestService = ServiceRequestService();
   late TabController _tabController;
 
   List<ServiceRequest> _allRequests = [];
-  Map<RequestStatus, int> _statusCounts = {};
+  Map<RequestHistoryStatus, int> _statusCounts = {};
   bool _isLoading = true;
   Conversation? _currentConversation;
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadRequestData();
   }
 
@@ -43,10 +43,12 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     try {
       final requests = await _requestService.getServiceRequests(widget.token);
       final counts = await _requestService.getRequestCounts(widget.token);
-
       setState(() {
         _allRequests = requests;
-        _statusCounts = counts;
+        _statusCounts = {
+          RequestHistoryStatus.completed: counts[RequestStatus.completed] ?? 0,
+          RequestHistoryStatus.rejected: counts[RequestStatus.rejected] ?? 0,
+        };
         _isLoading = false;
       });
 
@@ -106,33 +108,41 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     }
   }
 
-  List<ServiceRequest> _getRequestsByStatus(RequestStatus status) {
-    return _allRequests.where((request) => request.status == status).toList();
+  List<ServiceRequest> _getRequestsByStatus(RequestHistoryStatus status) {
+    var tempStatus = RequestStatus.completed;
+    if (status == RequestHistoryStatus.rejected) {
+      tempStatus = RequestStatus.rejected;
+    } else if (status == RequestHistoryStatus.completed) {
+      tempStatus = RequestStatus.completed;
+    }
+    return _allRequests
+        .where((request) => request.status == tempStatus)
+        .toList();
   }
 
   Color _getStatusColor(RequestStatus status) {
     switch (status) {
-      case RequestStatus.pending:
-        return Colors.orange;
-      case RequestStatus.accepted:
-        return const Color(0xFF2563EB);
       case RequestStatus.completed:
         return const Color(0xFF10B981);
       case RequestStatus.rejected:
         return Colors.red;
+      case RequestStatus.pending:
+        return Colors.orange;
+      case RequestStatus.accepted:
+        return Colors.blue;
     }
   }
 
   IconData _getStatusIcon(RequestStatus status) {
     switch (status) {
-      case RequestStatus.pending:
-        return Icons.schedule;
-      case RequestStatus.accepted:
-        return Icons.work;
       case RequestStatus.completed:
         return Icons.check_circle;
       case RequestStatus.rejected:
         return Icons.cancel;
+      case RequestStatus.pending:
+        return Icons.schedule;
+      case RequestStatus.accepted:
+        return Icons.thumb_up;
     }
   }
 
@@ -371,37 +381,6 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
                   ],
                 ),
 
-                // Scheduled Date for Accepted requests
-                if (request.status == RequestStatus.accepted &&
-                    request.scheduledDate != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.event,
-                          size: 16,
-                          color: Color(0xFF2563EB),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Scheduled: ${_formatDate(request.scheduledDate!)}',
-                          style: const TextStyle(
-                            color: Color(0xFF2563EB),
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
                 // Rejection Reason for Rejected requests
                 if (request.status == RequestStatus.rejected &&
                     request.rejectionReason != null) ...[
@@ -441,27 +420,17 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
     );
   }
 
-  Widget _buildEmptyState(RequestStatus status) {
+  Widget _buildEmptyState(RequestHistoryStatus status) {
     String title, message;
     IconData icon;
 
     switch (status) {
-      case RequestStatus.pending:
-        title = 'No Pending Requests';
-        message = 'You don\'t have any pending service requests.';
-        icon = Icons.schedule;
-        break;
-      case RequestStatus.accepted:
-        title = 'No Accepted Services';
-        message = 'You don\'t have any accepted services at the moment.';
-        icon = Icons.work;
-        break;
-      case RequestStatus.completed:
+      case RequestHistoryStatus.completed:
         title = 'No Completed Services';
         message = 'You haven\'t completed any services yet.';
         icon = Icons.check_circle;
         break;
-      case RequestStatus.rejected:
+      case RequestHistoryStatus.rejected:
         title = 'No Rejected Requests';
         message = 'You don\'t have any rejected requests.';
         icon = Icons.cancel;
@@ -495,14 +464,36 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
+          const SizedBox(height: 24),
+          if (status == RequestHistoryStatus.completed)
+            ElevatedButton.icon(
+              onPressed: () {
+                // Navigate back to find services
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              icon: const Icon(Icons.search),
+              label: const Text('Find Services'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -514,7 +505,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text(
-          'My Requests',
+          'Service History',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -532,28 +523,12 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: [
             Tab(
-              text: 'Pending',
-              icon: Badge(
-                isLabelVisible: (_statusCounts[RequestStatus.pending] ?? 0) > 0,
-                label: Text('${_statusCounts[RequestStatus.pending] ?? 0}'),
-                child: const Icon(Icons.schedule),
-              ),
-            ),
-            Tab(
-              text: 'Accepted',
-              icon: Badge(
-                isLabelVisible:
-                    (_statusCounts[RequestStatus.accepted] ?? 0) > 0,
-                label: Text('${_statusCounts[RequestStatus.accepted] ?? 0}'),
-                child: const Icon(Icons.work),
-              ),
-            ),
-            Tab(
               text: 'Completed',
               icon: Badge(
                 isLabelVisible:
-                    (_statusCounts[RequestStatus.completed] ?? 0) > 0,
-                label: Text('${_statusCounts[RequestStatus.completed] ?? 0}'),
+                    (_statusCounts[RequestHistoryStatus.completed] ?? 0) > 0,
+                label: Text(
+                    '${_statusCounts[RequestHistoryStatus.completed] ?? 0}'),
                 child: const Icon(Icons.check_circle),
               ),
             ),
@@ -561,8 +536,9 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
               text: 'Rejected',
               icon: Badge(
                 isLabelVisible:
-                    (_statusCounts[RequestStatus.rejected] ?? 0) > 0,
-                label: Text('${_statusCounts[RequestStatus.rejected] ?? 0}'),
+                    (_statusCounts[RequestHistoryStatus.rejected] ?? 0) > 0,
+                label: Text(
+                    '${_statusCounts[RequestHistoryStatus.rejected] ?? 0}'),
                 child: const Icon(Icons.cancel),
               ),
             ),
@@ -591,7 +567,7 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
             )
           : TabBarView(
               controller: _tabController,
-              children: RequestStatus.values.map((status) {
+              children: RequestHistoryStatus.values.map((status) {
                 final requests = _getRequestsByStatus(status);
                 return requests.isEmpty
                     ? _buildEmptyState(status)

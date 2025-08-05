@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 
-enum RequestStatus { pending, active, completed, rejected }
+enum RequestStatus { pending, accepted, completed, rejected }
+
+enum RequestHistoryStatus { completed, rejected }
 
 class ServiceRequest {
   final String id;
@@ -103,8 +105,8 @@ class ServiceRequest {
     switch (status) {
       case RequestStatus.pending:
         return 'Pending';
-      case RequestStatus.active:
-        return 'Active';
+      case RequestStatus.accepted:
+        return 'Accepted';
       case RequestStatus.completed:
         return 'Completed';
       case RequestStatus.rejected:
@@ -116,7 +118,7 @@ class ServiceRequest {
     switch (status) {
       case RequestStatus.pending:
         return 'Waiting for vendor confirmation';
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return 'Service confirmed and in progress';
       case RequestStatus.completed:
         return 'Service completed successfully';
