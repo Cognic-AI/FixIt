@@ -197,3 +197,68 @@ public function getUnreadMessageCount(http:Caller caller, http:Request req) retu
         "unreadCount": unreadCount
     });
 }
+
+public function getUnreadMessageCountConversation(http:Caller caller, http:Request req) returns error? {
+    // url-/unread-count?userId=$userId'
+
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
+    // json|error payload = req.getJsonPayload();
+
+    // if payload is error {
+    //     check caller->respond({
+    //         "success": false,
+    //         "message": "Invalid request payload"
+    //     });
+    //     return;
+    // }
+
+    // json messageData = payload;
+
+    // // Extract conversationId safely from JSON
+    // string conversationId = check messageData.conversationId;
+
+    map<json> filter = {
+
+        "receiverId": user.id,
+        "read": false
+    };
+
+    var result = models:queryMessages(filter);
+
+    if result is error {
+        log:printError("Error fetching unread messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch unread messages"
+        });
+        return;
+    }
+    map<json> counts = {};
+    foreach var item in result {
+        // count unread messege count for each conversation
+        // Assuming item has a field 'conversationId' to group by conversation
+        string conversationId = item.conversationId ?: "";
+        if conversationId == "" {
+            log:printError("Conversation ID is missing in message item");
+            continue; // Skip this item if conversationId is not present
+        }
+        if counts[conversationId] is () {
+            counts[conversationId] = 0; // Initialize if not present
+        }
+        counts[conversationId] = <int>counts[conversationId] + 1;
+    }
+    int unreadCount = result.length();
+
+    check caller->respond({
+        "success": true,
+        "unreadCount": unreadCount,
+        "counts": counts
+    });
+}
