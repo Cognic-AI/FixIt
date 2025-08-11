@@ -1,12 +1,11 @@
-// import backend.firestore.operations as db;
-
 // import ballerina/http;
 // import ballerina/log;
 // import ballerina/time;
 // import ballerina/uuid;
+// import backend.models;
 
 // public function getUserChats(http:Caller caller, http:Request req, string userId) returns error? {
-//     var result = db:queryDocuments("chats", {"participants": userId});
+//     var result = models:queryDocuments("chats", {"participants": userId});
 
 //     if result is error {
 //         log:printError("Error fetching chats", result);
