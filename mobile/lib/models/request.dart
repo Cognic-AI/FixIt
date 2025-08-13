@@ -24,6 +24,8 @@ class Request {
   final String clientLocation;
   final String providerLocation;
   final String? note;
+  final double? budget;
+  final String? serviceType;
   Request({
     required this.id,
     required this.serviceId,
@@ -48,6 +50,8 @@ class Request {
     required this.clientLocation,
     required this.providerLocation,
     this.note,
+    this.budget,
+    this.serviceType,
   });
 
   factory Request.fromJson(Map<String, dynamic> json) {
@@ -75,6 +79,9 @@ class Request {
       clientLocation: json['clientLocation'] ?? '',
       providerLocation: json['providerLocation'] ?? '',
       note: json['note'],
+      budget:
+          json['budget'] != null ? (json['budget'] as num).toDouble() : null,
+      serviceType: json['serviceType'] ?? '',
     );
   }
 
@@ -103,6 +110,8 @@ class Request {
       'clientLocation': clientLocation,
       'providerLocation': providerLocation,
       'note': note,
+      'budget': budget,
+      'serviceType': serviceType
     };
   }
 
@@ -150,6 +159,7 @@ class Request {
       servicePrice: price,
       clientName: clientName,
       budget: 0,
+      serviceType: 'on-site',
       vendorName: providerName,
       note: note,
       clientLocation: clientLocation.isNotEmpty ? clientLocation : "",

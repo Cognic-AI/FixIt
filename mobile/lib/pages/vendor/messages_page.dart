@@ -205,6 +205,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 note: null,
                 conversationId: conversation.id,
                 clientLocation: '',
+                serviceType: 'on-site',
               ),
             );
             Navigator.push(

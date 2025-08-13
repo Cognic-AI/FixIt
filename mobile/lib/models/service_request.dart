@@ -16,6 +16,7 @@ class ServiceRequest {
   final String description;
   final String location;
   final double budget;
+  final String serviceType;
   final double servicePrice;
   final RequestStatus status;
   final DateTime createdAt;
@@ -38,6 +39,7 @@ class ServiceRequest {
       required this.description,
       required this.location,
       required this.budget,
+      required this.serviceType,
       required this.servicePrice,
       required this.status,
       required this.createdAt,
@@ -63,6 +65,7 @@ class ServiceRequest {
       description: json['description'],
       location: json['location'],
       budget: (json['budget'] ?? 0).toDouble(),
+      serviceType: json['serviceType'] ?? 'on-site',
       servicePrice: (json['servicePrice'] ?? 0).toDouble(),
       status: RequestStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
@@ -93,6 +96,7 @@ class ServiceRequest {
       'description': description,
       'location': location,
       'budget': budget,
+      'serviceType': serviceType,
       'servicePrice': servicePrice,
       'status': status.toString().split('.').last,
       'createdAt': createdAt.toIso8601String(),

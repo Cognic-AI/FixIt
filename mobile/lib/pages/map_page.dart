@@ -698,6 +698,7 @@ class _MapPageState extends State<MapPage> {
           category: service.category,
           title: service.title,
           price: service.price,
+          service: service,
         ),
       ),
     );

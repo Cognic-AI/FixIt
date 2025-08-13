@@ -15,6 +15,8 @@ public type Request record {
     string chatId;
     string clientLocation;
     string note;
+    string budget;
+    string serviceType;
 };
 
 public type RequestResponse record {
@@ -41,6 +43,8 @@ public type RequestResponse record {
     string clientLocation;
     string providerLocation;
     string note;
+    string budget;
+    string serviceType;
 };
 
 public function queryRequest(map<json> filter) returns RequestResponse|error {
@@ -111,7 +115,9 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
                 providerEmail: res.providerEmail,
                 clientLocation: result.clientLocation,
                 providerLocation: result.location,
-                note: result.note
+                note: result.note,
+                budget: result.budget,
+                serviceType: result.serviceType
             };
             io:println("✅ User document retrieved successfully");
             return result_;
@@ -235,7 +241,9 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
                     providerEmail: <string>userData["providerEmail"],
                     clientLocation: <string>userData["clientLocation"],
                     providerLocation: <string>userData["providerLocation"],
-                    note: req.note
+                    note: req.note,
+                    budget: req.budget,
+                    serviceType: req.serviceType
                 };
                 requests.push(requestResponse);
                 io:println("✅ Request with ID ", req.id, " processed successfully");

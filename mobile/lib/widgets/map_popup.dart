@@ -291,6 +291,7 @@ class _MapPopupState extends State<MapPopup> {
           category: widget.service.category,
           title: widget.service.title,
           price: widget.service.price,
+          service: widget.service,
         ),
       ),
     );

@@ -19,6 +19,8 @@ public type Request record {
     string chatId;
     string clientLocation;
     string note;
+    string budget;
+    string serviceType;
 };
 
 public type RequestResponse record {
@@ -44,6 +46,8 @@ public type RequestResponse record {
     string providerEmail;
     string clientLocation;
     string note;
+    string budget;
+    string serviceType;
 };
 
 public type RequestCreation record {
@@ -53,6 +57,8 @@ public type RequestCreation record {
     string providerId;
     string clientLocation;
     string note;
+    string budget;
+    string serviceType;
 };
 
 // Create a new request (Provider only)
@@ -116,7 +122,9 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         createdAt: currentTime,
         updatedAt: currentTime,
         clientLocation: requestData.clientLocation,
-        note: requestData.note
+        note: requestData.note,
+        budget: requestData.budget,
+        serviceType: requestData.serviceType
     };
 
     io:println("Creating new request with ID: " + requestId); // IO log

@@ -74,6 +74,7 @@ class ServiceRequestService {
       clientLocation: request.clientLocation.isNotEmpty
           ? request.clientLocation
           : "", // Fallback to location if clientLocation is empty
+      serviceType: request.serviceType ?? 'on-site',
     );
   }
 
