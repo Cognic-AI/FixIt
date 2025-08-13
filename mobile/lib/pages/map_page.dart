@@ -162,7 +162,7 @@ class _MapPageState extends State<MapPage> {
           (searchQuery.isEmpty || matchesTags);
     }).toList();
 
-    // Simulate search delay (you can remove this in production)
+    // Simulate search delay 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() {
@@ -215,7 +215,7 @@ class _MapPageState extends State<MapPage> {
       // Remove any whitespace
       locationStr = locationStr.trim();
 
-      // Format 1: "lat,lng" (e.g., "6.9271,79.8612")
+      // Format 1: "lat,lng" 
       if (locationStr.contains(',')) {
         final parts = locationStr.split(',');
         if (parts.length == 2) {
@@ -250,7 +250,6 @@ class _MapPageState extends State<MapPage> {
       }
 
       // Format 3: For demonstration, if location is a city name in Sri Lanka
-      // You can add a mapping of city names to coordinates
       final cityCoordinates = _getCityCoordinates(locationStr.toLowerCase());
       if (cityCoordinates != null) {
         return cityCoordinates;
@@ -269,7 +268,6 @@ class _MapPageState extends State<MapPage> {
 
   LatLng? _getCityCoordinates(String cityName) {
     // Basic mapping of Sri Lankan cities to coordinates
-    // You can expand this or use a proper geocoding service
     final Map<String, LatLng> cityMap = {
       'colombo': const LatLng(6.9271, 79.8612),
       'kandy': const LatLng(7.2906, 80.6337),
@@ -310,7 +308,6 @@ class _MapPageState extends State<MapPage> {
 
   BitmapDescriptor _getMarkerIcon(String category) {
     // Return different marker icons based on service category
-    // For now, use default marker, but you can customize this
     switch (category.toLowerCase()) {
       case 'cleaning':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
@@ -346,7 +343,7 @@ class _MapPageState extends State<MapPage> {
     developer.log('MapPage: Marker tapped for service: ${service.title}',
         name: 'MapPage');
 
-    // You can implement a bottom sheet or dialog to show service details
+    // ToDo: Implement a bottom sheet or dialog to show service details
     _showServiceBottomSheet(service);
   }
 
