@@ -201,8 +201,9 @@ class _MessagesPageState extends State<MessagesPage> {
                 createdAt: DateTime.now(),
                 updatedAt: DateTime.now(),
                 scheduledDate: null,
-                notes: null,
+                note: null,
                 conversationId: conversation.id,
+                clientLocation: '',
               ),
             );
             Navigator.push(

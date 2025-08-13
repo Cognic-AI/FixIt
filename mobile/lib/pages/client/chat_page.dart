@@ -1,5 +1,6 @@
 import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
@@ -391,8 +392,15 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
 
-                    _buildDetailRow(
-                        Icons.location_on, 'Location', request.location),
+                    // _buildDetailRow(
+                    //     Icons.location_on, 'Location', request.location),
+                    GestureDetector(
+                      onTap: () => _showLocationOnMap(request.location),
+                      child: _buildDetailRow(
+                          Icons.location_on,
+                          'Vendor Location',
+                          "${request.location} (Tap to view on map)"),
+                    ),
 
                     _buildDetailRow(Icons.euro, 'Price',
                         '€${request.servicePrice.toStringAsFixed(2)}'),
@@ -407,7 +415,7 @@ class _ChatPageState extends State<ChatPage> {
                       _buildDetailRow(Icons.event, 'Scheduled',
                           _formatDate(request.scheduledDate!)),
 
-                    if (request.notes != null && request.notes!.isNotEmpty) ...[
+                    if (request.note != null && request.note!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Text(
                         'Notes',
@@ -419,7 +427,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        request.notes!,
+                        request.note!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
@@ -437,6 +445,64 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
     );
+  }
+
+  void _showLocationOnMap(String location) async {
+    try {
+      // Parse the location string (assuming format "latitude, longitude")
+      final parts = location.split(',');
+      if (parts.length != 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location format')),
+        );
+        return;
+      }
+
+      final lat = double.tryParse(parts[0].trim());
+      final lng = double.tryParse(parts[1].trim());
+
+      if (lat == null || lng == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location coordinates')),
+        );
+        return;
+      }
+
+      final locationPoint = LatLng(lat, lng);
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: locationPoint,
+                zoom: 15,
+              ),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('location'),
+                  position: locationPoint,
+                ),
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error showing location: $e')),
+      );
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {

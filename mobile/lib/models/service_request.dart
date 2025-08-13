@@ -22,30 +22,31 @@ class ServiceRequest {
   final DateTime updatedAt;
   final String? rejectionReason;
   final DateTime? scheduledDate;
-  final String? notes;
+  final String? note;
   final String conversationId;
+  final String clientLocation;
 
-  ServiceRequest({
-    required this.id,
-    required this.clientId,
-    required this.clientName,
-    required this.vendorId,
-    required this.vendorName,
-    required this.serviceId,
-    required this.serviceTitle,
-    required this.serviceCategory,
-    required this.description,
-    required this.location,
-    required this.budget,
-    required this.servicePrice,
-    required this.status,
-    required this.createdAt,
-    required this.updatedAt,
-    this.rejectionReason,
-    this.scheduledDate,
-    this.notes,
-    required this.conversationId,
-  });
+  ServiceRequest(
+      {required this.id,
+      required this.clientId,
+      required this.clientName,
+      required this.vendorId,
+      required this.vendorName,
+      required this.serviceId,
+      required this.serviceTitle,
+      required this.serviceCategory,
+      required this.description,
+      required this.location,
+      required this.budget,
+      required this.servicePrice,
+      required this.status,
+      required this.createdAt,
+      required this.updatedAt,
+      this.rejectionReason,
+      this.scheduledDate,
+      this.note,
+      required this.conversationId,
+      required this.clientLocation});
 
   factory ServiceRequest.fromJson(Map<String, dynamic> json) {
     developer.log('📋 Creating ServiceRequest from JSON: ${json['id']}',
@@ -73,8 +74,9 @@ class ServiceRequest {
       scheduledDate: json['scheduledDate'] != null
           ? DateTime.parse(json['scheduledDate'])
           : null,
-      notes: json['notes'],
+      note: json['notes'],
       conversationId: json['conversationId'] ?? '',
+      clientLocation: json['clientLocation'] ?? '',
     );
   }
 
@@ -97,7 +99,8 @@ class ServiceRequest {
       'updatedAt': updatedAt.toIso8601String(),
       'rejectionReason': rejectionReason,
       'scheduledDate': scheduledDate?.toIso8601String(),
-      'notes': notes,
+      'notes': note,
+      'clientLocation': clientLocation,
     };
   }
 

@@ -23,6 +23,7 @@ class Request {
   final String providerEmail;
   final String clientLocation;
   final String providerLocation;
+  final String? note;
   Request({
     required this.id,
     required this.serviceId,
@@ -46,6 +47,7 @@ class Request {
     required this.providerEmail,
     required this.clientLocation,
     required this.providerLocation,
+    this.note,
   });
 
   factory Request.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class Request {
       providerEmail: json['providerEmail'] ?? '',
       clientLocation: json['clientLocation'] ?? '',
       providerLocation: json['providerLocation'] ?? '',
+      note: json['note'],
     );
   }
 
@@ -99,6 +102,7 @@ class Request {
       'providerEmail': providerEmail,
       'clientLocation': clientLocation,
       'providerLocation': providerLocation,
+      'note': note,
     };
   }
 
@@ -147,6 +151,8 @@ class Request {
       clientName: clientName,
       budget: 0,
       vendorName: providerName,
+      note: note,
+      clientLocation: clientLocation.isNotEmpty ? clientLocation : "",
     );
   }
 }

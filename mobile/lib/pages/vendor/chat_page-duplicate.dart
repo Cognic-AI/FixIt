@@ -390,7 +390,7 @@ class _ChatPageState extends State<ChatPage> {
                       _buildDetailRow(Icons.event, 'Scheduled',
                           _formatDate(request.scheduledDate!)),
 
-                    if (request.notes != null && request.notes!.isNotEmpty) ...[
+                    if (request.note != null && request.note!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Text(
                         'Notes',
@@ -402,7 +402,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        request.notes!,
+                        request.note!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],

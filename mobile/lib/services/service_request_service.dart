@@ -67,8 +67,11 @@ class ServiceRequestService {
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
       scheduledDate: null, // Request doesn't have scheduled date
-      notes: request.tags.isNotEmpty ? 'Tags: ${request.tags}' : null,
+      note: request.note,
       conversationId: request.chatId,
+      clientLocation: request.clientLocation.isNotEmpty
+          ? request.clientLocation
+          : "", // Fallback to location if clientLocation is empty
     );
   }
 

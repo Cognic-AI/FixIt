@@ -13,6 +13,8 @@ public type Request record {
     string createdAt;
     string updatedAt;
     string chatId;
+    string clientLocation;
+    string note;
 };
 
 public type RequestResponse record {
@@ -38,6 +40,7 @@ public type RequestResponse record {
     string providerEmail;
     string clientLocation;
     string providerLocation;
+    string note;
 };
 
 public function queryRequest(map<json> filter) returns RequestResponse|error {
@@ -70,11 +73,11 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
     else {
         map<json> filter2 = {"id": result.serviceId};
 
-        RequestResponse|error?|mongodb:DatabaseError|mongodb:ApplicationError res = mongoCollectionRequests->findOne(
+        _Service|error?|mongodb:DatabaseError|mongodb:ApplicationError res = mongoCollectionRequests->findOne(
         filter2,
         {},  // findOptions
         (),  // projection
-        RequestResponse
+        _Service
         );
         if res is mongodb:ApplicationError {
             io:println("❌ Error executing query: ", res.message());
@@ -82,8 +85,9 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
         } else if res is error {
             io:println("❌ Error retrieving service details: ", res.message());
             return error("Service details retrieval error: " + res.message());
-        } else if res is RequestResponse {
+        } else if res is _Service {
             // Create a new RequestResponse with service details
+            io:println("✅ Service details retrieved successfully");
             RequestResponse result_ = {
                 id: result.id,
                 serviceId: result.serviceId,
@@ -104,12 +108,15 @@ public function queryRequest(map<json> filter) returns RequestResponse|error {
                 clientName: "",
                 clientEmail: "",
                 providerName: "",
-                providerEmail: "",
-                clientLocation: "",
-                providerLocation: ""
+                providerEmail: res.providerEmail,
+                clientLocation: result.clientLocation,
+                providerLocation: result.location,
+                note: result.note
             };
             io:println("✅ User document retrieved successfully");
             return result_;
+        } else {
+            io:println(res.toString());
         }
         return error("Unexpected result type");
     }
@@ -180,24 +187,24 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
                 return;
             }
             map<json> filterUser = {"id": req.clientId};
-                User|error user = queryUsers("users", filterUser);
-                map<json> userData = {"clientName":"", "providerName":"", "clientEmail":"","providerEmail":"","clientLocation":"", "providerLocation":""};
-                if user is error {
-                    io:println("Failed to parse user data: ", user.message());
-                }else{
-                    userData["clientName"] = user.firstName + " " + user.lastName;
-                    userData["clientEmail"] = user.email;
-                    userData["clientLocation"] = user.location;
-                }
-                map<json> filterProvider = {"id": req.providerId};
-                User|error providerUser = queryUsers("users", filterProvider);
-                if providerUser is error {
-                    io:println("Failed to parse provider user data: ", providerUser.message());
-                }else{
-                    userData["providerName"] = providerUser.firstName + " " + providerUser.lastName;
-                    userData["providerEmail"] = providerUser.email;
-                    userData["providerLocation"] = providerUser.location;
-                }
+            User|error user = queryUsers("users", filterUser);
+            map<json> userData = {"clientName": "", "providerName": "", "clientEmail": "", "providerEmail": "", "clientLocation": "", "providerLocation": ""};
+            if user is error {
+                io:println("Failed to parse user data: ", user.message());
+            } else {
+                userData["clientName"] = user.firstName + " " + user.lastName;
+                userData["clientEmail"] = user.email;
+                userData["clientLocation"] = user.location;
+            }
+            map<json> filterProvider = {"id": req.providerId};
+            User|error providerUser = queryUsers("users", filterProvider);
+            if providerUser is error {
+                io:println("Failed to parse provider user data: ", providerUser.message());
+            } else {
+                userData["providerName"] = providerUser.firstName + " " + providerUser.lastName;
+                userData["providerEmail"] = providerUser.email;
+                userData["providerLocation"] = providerUser.location;
+            }
 
             map<json> serviceFilter = {};
             _Service|error res = queryService(serviceFilter);
@@ -227,7 +234,8 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
                     providerName: <string>userData["providerName"],
                     providerEmail: <string>userData["providerEmail"],
                     clientLocation: <string>userData["clientLocation"],
-                    providerLocation: <string>userData["providerLocation"]
+                    providerLocation: <string>userData["providerLocation"],
+                    note: req.note
                 };
                 requests.push(requestResponse);
                 io:println("✅ Request with ID ", req.id, " processed successfully");
