@@ -1,5 +1,6 @@
 import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
@@ -377,8 +378,16 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
 
-                    _buildDetailRow(
-                        Icons.location_on, 'Location', request.location),
+                    // _buildDetailRow(
+                    //     Icons.location_on, 'Location', request.location),
+                    GestureDetector(
+                      onTap: () =>
+                          _showLocationOnMap(widget.request.clientLocation),
+                      child: _buildDetailRow(
+                          Icons.location_on,
+                          'Client Location',
+                          "${widget.request.clientLocation} (Tap to view on map)"),
+                    ),
                     _buildDetailRow(Icons.euro, 'Price',
                         '€${request.servicePrice.toStringAsFixed(2)}'),
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
@@ -420,6 +429,64 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
     );
+  }
+
+  void _showLocationOnMap(String location) async {
+    try {
+      // Parse the location string (assuming format "latitude, longitude")
+      final parts = location.split(',');
+      if (parts.length != 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location format')),
+        );
+        return;
+      }
+
+      final lat = double.tryParse(parts[0].trim());
+      final lng = double.tryParse(parts[1].trim());
+
+      if (lat == null || lng == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location coordinates')),
+        );
+        return;
+      }
+
+      final locationPoint = LatLng(lat, lng);
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: locationPoint,
+                zoom: 15,
+              ),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('location'),
+                  position: locationPoint,
+                ),
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error showing location: $e')),
+      );
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {

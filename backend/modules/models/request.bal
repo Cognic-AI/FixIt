@@ -194,7 +194,7 @@ public function queryRequests(map<json> filter) returns RequestResponse[]|error 
             } else {
                 userData["clientName"] = user.firstName + " " + user.lastName;
                 userData["clientEmail"] = user.email;
-                userData["clientLocation"] = user.location;
+                userData["clientLocation"] = req.clientLocation;
             }
             map<json> filterProvider = {"id": req.providerId};
             User|error providerUser = queryUsers("users", filterProvider);

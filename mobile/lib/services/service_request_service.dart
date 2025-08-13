@@ -45,6 +45,8 @@ class ServiceRequestService {
 
 // Helper method to convert Request to ServiceRequest
   ServiceRequest _convertRequestToServiceRequest(Request request) {
+    print("ClientLocation: ${request.clientLocation}");
+    print("Location: ${request.location}");
     return ServiceRequest(
       id: request.id,
       clientId: request.clientId,

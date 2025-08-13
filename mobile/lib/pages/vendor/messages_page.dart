@@ -70,6 +70,7 @@ class _MessagesPageState extends State<MessagesPage> {
         );
         _conversations.add(conversation);
         _serviceRequests.add(request);
+        print("Client Location NEW ${request.clientLocation}");
       }
       setState(() {
         _isLoading = false;

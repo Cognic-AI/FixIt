@@ -395,11 +395,12 @@ class _ChatPageState extends State<ChatPage> {
                     // _buildDetailRow(
                     //     Icons.location_on, 'Location', request.location),
                     GestureDetector(
-                      onTap: () => _showLocationOnMap(request.location),
+                      onTap: () =>
+                          _showLocationOnMap(widget.request.clientLocation),
                       child: _buildDetailRow(
                           Icons.location_on,
                           'Vendor Location',
-                          "${request.location} (Tap to view on map)"),
+                          "${widget.request.clientLocation} (Tap to view on map)"),
                     ),
 
                     _buildDetailRow(Icons.euro, 'Price',
