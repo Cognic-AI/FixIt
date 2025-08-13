@@ -1,0 +1,288 @@
+import backend.models;
+
+import ballerina/http;
+import ballerina/io;
+import ballerina/log;
+import ballerina/time;
+import ballerina/uuid;
+
+public function getChatMessages(http:Caller caller, http:Request req) returns error? {
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
+    json|error payload = req.getJsonPayload();
+
+    if payload is error {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid request payload"
+        });
+        return;
+    }
+
+    json messageData = payload;
+
+    // Extract conversationId safely from JSON
+    string conversationId = check messageData.conversationId;
+
+    map<json> filter = {
+        "conversationId": conversationId
+    };
+    var result = models:queryMessages(filter);
+
+    if result is error {
+        log:printError("Error fetching messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch messages"
+        });
+        return;
+    }
+
+    _ = check models:markAsRead(conversationId, user.id);
+
+    check caller->respond({
+        "success": true,
+        "messages": result
+    });
+}
+
+public function getConversationLast(http:Caller caller, http:Request req) returns error? {
+    json|error payload = req.getJsonPayload();
+
+    if payload is error {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid request payload"
+        });
+        return;
+    }
+
+    json messageData = payload;
+
+    // Extract conversationId safely from JSON
+    json conversationId = check messageData.conversationId;
+
+    map<json> filter = {
+        "conversationId": conversationId
+    };
+
+    map<json> findOptions = {
+        "sort": {"timestamp": -1},
+        "limit": 1
+    };
+
+    var result = models:queryMessagesWithOptions(filter, findOptions);
+
+    if result is error {
+        log:printError("Error fetching messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch messages"
+        });
+        return;
+    }
+
+    io:println("Last message for conversation ", conversationId, ": ", result);
+
+    check caller->respond({
+        "success": true,
+        "messages": result
+    });
+}
+
+public function sendMessage(http:Caller caller, http:Request req) returns error? {
+    json|error payload = req.getJsonPayload();
+
+    if payload is error {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid request payload"
+        });
+        return;
+    }
+
+    json messageData = payload;
+    string messageId = uuid:createType1AsString();
+
+    // Extract fields safely from JSON
+    json senderId = check messageData.senderId;
+    json conversationId = check messageData.conversationId;
+    json content = check messageData.content;
+    json messageType = messageData.messageType is () ? "text" : check messageData.messageType;
+
+    json newMessage = {
+        "id": messageId,
+        "senderId": senderId,
+        "content": content,
+        "timestamp": time:utcToString(time:utcAddSeconds(time:utcNow(), 19800)),
+        "read": false,
+        "messageType": messageType,
+        "conversationId": conversationId // Assuming conversationId is same as chatId
+    };
+
+    var result = models:createDocument("messages", <map<json>>newMessage, messageId);
+
+    if result is error {
+        log:printError("Error creating message", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to send message"
+        });
+        return;
+    }
+
+    // Update chat's last message
+    // json chatContent = check messageData.content;
+    // json chatSenderId = check messageData.senderId;
+
+    // json chatUpdate = {
+    //     "lastMessage": {
+    //         "content": chatContent,
+    //         "senderId": chatSenderId,
+    //         "timestamp": time:utcToString(time:utcNow())
+    //     },
+    //     "updatedAt": time:utcToString(time:utcNow())
+    // };
+
+    // _ = check models:updateDocument("requests", conversationId, <map<json>>chatUpdate);
+
+    check caller->respond({
+        "success": true,
+        "message": newMessage
+    });
+}
+
+public function getUnreadMessageCount(http:Caller caller, http:Request req) returns error? {
+    // url-/unread-count?userId=$userId'
+
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
+    map<json> filterConversation = {};
+    if user.role == "client" {
+        filterConversation["clientId"] = user.id;
+    } else if user.role == "provider" {
+        filterConversation["providerId"] = user.id;
+    } else {
+        check caller->respond({
+            "success": false,
+            "message": "Invalid user role"
+        });
+        return;
+    }
+
+    var resultConversations = models:queryRequests(filterConversation);
+    if resultConversations is error {
+        log:printError("Error fetching conversations", resultConversations);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch conversations"
+        });
+        return;
+    }
+
+    io:println("Found conversation IDs: ", resultConversations.length());
+
+    // Extract conversation IDs from the request objects
+    string[] conversationIds = [];
+    foreach var conversation in resultConversations {
+        if conversation is map<json> {
+            string chatId = conversation["chatId"];
+            conversationIds.push(chatId);
+        } else {
+            conversationIds.push(conversation.chatId);
+        }
+    }
+
+    io:println("Found conversation IDs: ", conversationIds);
+
+    map<json> filter = {
+        "senderId": {"$ne": user.id},
+        "read": false,
+        "conversationId": {"$in": conversationIds}
+    };
+
+    var result = models:queryMessages(filter);
+
+    if result is error {
+        log:printError("Error fetching unread messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch unread messages"
+        });
+        return;
+    }
+
+    int unreadCount = result.length();
+
+    io:println("Unread messages count for user ", user.id, ": ", unreadCount);
+
+    check caller->respond({
+        "success": true,
+        "unreadCount": unreadCount
+    });
+}
+
+public function getUnreadMessageCountConversation(http:Caller caller, http:Request req) returns error? {
+    // url-/unread-count?userId=$userId'
+
+    models:User|error user = check authenticateRequest(req);
+    if user is error {
+        check caller->respond({
+            "success": false,
+            "message": "Authentication failed"
+        });
+        return;
+    }
+
+    map<json> filter = {
+
+        "senderId": {"$ne": user.id},
+        "read": false
+    };
+
+    var result = models:queryMessages(filter);
+
+    if result is error {
+        log:printError("Error fetching unread messages", result);
+        check caller->respond({
+            "success": false,
+            "message": "Failed to fetch unread messages"
+        });
+        return;
+    }
+    map<json> counts = {};
+    foreach var item in result {
+        // count unread messege count for each conversation
+        // Assuming item has a field 'conversationId' to group by conversation
+        string conversationId = item.conversationId ?: "";
+        if conversationId == "" {
+            log:printError("Conversation ID is missing in message item");
+            continue; // Skip this item if conversationId is not present
+        }
+        if counts[conversationId] is () {
+            counts[conversationId] = 0; // Initialize if not present
+        }
+        counts[conversationId] = <int>counts[conversationId] + 1;
+    }
+
+    io:println("Unread messages count per conversation: ", counts);
+    int unreadCount = result.length();
+
+    check caller->respond({
+        "success": true,
+        "unreadCount": unreadCount,
+        "counts": counts
+    });
+}

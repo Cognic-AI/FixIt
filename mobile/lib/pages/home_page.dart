@@ -1,4 +1,6 @@
 import 'package:fixit/models/user.dart';
+import 'package:fixit/pages/client/ai_chat_page.dart';
+import 'package:fixit/pages/client/subscribed_services_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
@@ -15,7 +17,7 @@ import 'map_page.dart';
 import 'client/messages_page.dart';
 import 'client/requested_services_page.dart';
 import 'client/edit_profile_page.dart';
-import 'client/settings_page.dart';
+// import 'client/settings_page.dart';
 import 'auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -64,7 +66,7 @@ class _HomePageState extends State<HomePage> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    int badge = 0,
+    dynamic badge = 0,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -77,40 +79,80 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              children: [
-                Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 24,
-                ),
-                if (badge > 0)
-                  Positioned(
-                    right: -2,
-                    top: -2,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
+            badge is Future
+                ? FutureBuilder<int>(
+                    future: badge as Future<int>,
+                    builder: (context, snapshot) {
+                      final badgeCount = snapshot.data ?? 0;
+                      return Stack(
+                        children: [
+                          Icon(
+                            icon,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          if (badgeCount > 0)
+                            Positioned(
+                              right: -2,
+                              top: -2,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  badgeCount > 99 ? '99+' : '$badgeCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    })
+                : Stack(
+                    children: [
+                      Icon(
+                        icon,
+                        color: Colors.white,
+                        size: 24,
                       ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        badge > 99 ? '99+' : '$badge',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                      if (badge > 0)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              badge > 99 ? '99+' : '$badge',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                    ],
                   ),
-              ],
-            ),
             const SizedBox(height: 4),
             Text(
               label,
@@ -185,11 +227,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                   // Unread messages badge
                   FutureBuilder<int>(
-                    future: Future.value(_messagingService.getTotalUnreadCount(widget.user.id)),
+                    future: Future.value(_messagingService.getTotalUnreadCount(
+                        widget.user.id, widget.token)),
                     builder: (context, snapshot) {
                       final unreadCount = snapshot.data ?? 0;
                       if (unreadCount == 0) return const SizedBox.shrink();
-                      
+
                       return Positioned(
                         right: 8,
                         top: 8,
@@ -236,24 +279,28 @@ class _HomePageState extends State<HomePage> {
               ),
               PopupMenuButton<String>(
                 onSelected: (value) async {
-                  developer.log('Menu item selected: $value',
-                      name: 'HomePage');
+                  developer.log('Menu item selected: $value', name: 'HomePage');
                   if (value == 'profile') {
-                    developer.log('Navigating to profile page', name: 'HomePage');
+                    developer.log('Navigating to profile page',
+                        name: 'HomePage');
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditProfilePage(),
+                        builder: (context) => EditProfilePage(
+                          token: widget.token,
+                          userId: widget.user.id,
+                        ),
                       ),
                     );
-                  } else if (value == 'settings') {
-                    developer.log('Navigating to settings page', name: 'HomePage');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsPage(),
-                      ),
-                    );
+                    // } else if (value == 'settings') {
+                    //   developer.log('Navigating to settings page',
+                    //       name: 'HomePage');
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => SettingsPage(token: widget.token),
+                    //     ),
+                    //   );
                   } else if (value == 'logout') {
                     developer.log('Logging out user', name: 'HomePage');
                     try {
@@ -264,7 +311,8 @@ class _HomePageState extends State<HomePage> {
                       // Navigate to login and clear all previous routes
                       if (context.mounted) {
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
                           (Route<dynamic> route) => false,
                         );
                       }
@@ -294,16 +342,16 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings, size: 20),
-                        SizedBox(width: 12),
-                        Text('Settings'),
-                      ],
-                    ),
-                  ),
+                  // const PopupMenuItem(
+                  //   value: 'settings',
+                  //   child: Row(
+                  //     children: [
+                  //       Icon(Icons.settings, size: 20),
+                  //       SizedBox(width: 12),
+                  //       Text('Settings'),
+                  //     ],
+                  //   ),
+                  // ),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(
@@ -384,8 +432,9 @@ class _HomePageState extends State<HomePage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      MapPage(token: widget.token, uid: widget.user.id)),
+                                  builder: (context) => MapPage(
+                                      token: widget.token,
+                                      uid: widget.user.id)),
                             );
                           },
                           icon: const Icon(Icons.map),
@@ -418,10 +467,14 @@ class _HomePageState extends State<HomePage> {
                             ),
                           );
                         },
-                        badge: _messagingService.getTotalUnreadCount(widget.user.id),
+                        badge: _messagingService.getTotalUnreadCount(
+                            widget.user.id, widget.token),
                       ),
                       FutureBuilder<int>(
-                        future: _requestService.getRequestCounts(widget.user.id).then((counts) => counts[RequestStatus.pending] ?? 0),
+                        future: _requestService
+                            .getRequestCounts(widget.user.id)
+                            .then(
+                                (counts) => counts[RequestStatus.pending] ?? 0),
                         builder: (context, snapshot) {
                           final pendingCount = snapshot.data ?? 0;
                           return _buildQuickAccessItem(
@@ -446,8 +499,14 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.bookmark_outline,
                         label: 'Saved',
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Saved services feature coming soon!')),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SubscribedServicesPage(
+                                token: widget.token,
+                                uid: widget.user.id,
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -458,7 +517,10 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const EditProfilePage(),
+                              builder: (context) => EditProfilePage(
+                                token: widget.token,
+                                userId: widget.user.id,
+                              ),
                             ),
                           );
                         },
@@ -576,9 +638,9 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MessagesPage(
+                  builder: (context) => AiChatPage(
                     userId: widget.user.id,
-                    token: widget.token,
+                    token: widget.token, // Pass the token for authentication
                   ),
                 ),
               );
@@ -586,34 +648,40 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: const Color(0xFF2563EB),
             child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
           ),
-          // Unread messages badge for FAB
-          if (_messagingService.getTotalUnreadCount(widget.user.id) > 0)
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Text(
-                  _messagingService.getTotalUnreadCount(widget.user.id) > 99 
-                      ? '99+' 
-                      : '${_messagingService.getTotalUnreadCount(widget.user.id)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
+          // // Unread messages badge for FAB
+          // FutureBuilder<int>(
+          //   future: _messagingService.getTotalUnreadCount(
+          //       widget.user.id, widget.token),
+          //   builder: (context, snapshot) {
+          //     final unreadCount = snapshot.data ?? 0;
+          //     if (unreadCount == 0) return const SizedBox.shrink();
+
+          //     return Positioned(
+          //       right: 0,
+          //       top: 0,
+          //       child: Container(
+          //         padding: const EdgeInsets.all(2),
+          //         decoration: BoxDecoration(
+          //           color: Colors.red,
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         constraints: const BoxConstraints(
+          //           minWidth: 16,
+          //           minHeight: 16,
+          //         ),
+          //         child: Text(
+          //           unreadCount > 99 ? '99+' : '$unreadCount',
+          //           style: const TextStyle(
+          //             color: Colors.white,
+          //             fontSize: 10,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //           textAlign: TextAlign.center,
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
     );

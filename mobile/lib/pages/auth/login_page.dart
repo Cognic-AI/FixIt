@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
 import '../../services/auth_service.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 
 class LoginPage extends StatefulWidget {
@@ -201,24 +200,24 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Logo - using Image.asset instead of image.asset
-                        Container(
+                      Container(
                         width: MediaQuery.of(context).size.width * 0.4,
                         height: MediaQuery.of(context).size.width * 0.4,
                         padding: const EdgeInsets.all(20),
-                    
                         child: Image.asset(
                           'assets/images/logo-no-bg.png',
                           width: 180,
                           height: 180,
-                          fit: BoxFit.contain, // Changed to contain to preserve aspect ratio
+                          fit: BoxFit
+                              .contain, // Changed to contain to preserve aspect ratio
                         ),
                       ),
-                      const SizedBox(height: 20),   
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
-              
+
               // Bottom section with form
               Expanded(
                 flex: 3,
@@ -239,7 +238,7 @@ class _LoginPageState extends State<LoginPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 20),
-                          
+
                           // Sign in title
                           const Text(
                             'Sign in',
@@ -250,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // Subtitle
                           Text(
                             'Welcome back! Please enter your details.',
@@ -308,7 +307,7 @@ class _LoginPageState extends State<LoginPage> {
                               return null;
                             },
                           ),
-                          
+
                           // Remember me and forgot password
                           const SizedBox(height: 16),
                           Row(
@@ -443,7 +442,8 @@ class _LoginPageState extends State<LoginPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                   ),
                                 ),
                               ),
@@ -461,7 +461,8 @@ class _LoginPageState extends State<LoginPage> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                   ),
                                 ),
                               ),

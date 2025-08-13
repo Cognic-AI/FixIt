@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../onboarding/interests_page.dart';
 
 class RegisterPage extends StatefulWidget {
   final String userType;
-  
+
   const RegisterPage({super.key, required this.userType});
 
   @override
@@ -38,7 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -60,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
         lastName: _lastNameController.text.trim(),
         userType: widget.userType,
       );
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -87,19 +86,15 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF006FFD)
-        ),
+        decoration: const BoxDecoration(color: Color(0xFF006FFD)),
         child: SafeArea(
           child: Column(
             children: [
-           // Top section with logo and curved bottom
+              // Top section with logo and curved bottom
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF006FFD)
-                ),
+                decoration: const BoxDecoration(color: Color(0xFF006FFD)),
                 child: Column(
                   children: [
                     // Back button positioned at top left
@@ -117,21 +112,19 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                     ),
-                    
+
                     Image.asset(
-                        'assets/images/logo-no-bg.png',
-                        width: 250,
-                        height: 200,
-                        fit: BoxFit.contain,
-                      ),
-               
+                      'assets/images/logo-no-bg.png',
+                      width: 250,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+
                     const SizedBox(height: 16),
-          
                   ],
                 ),
               ),
-              
-              
+
               // Bottom section with form
               Expanded(
                 child: Container(
@@ -151,7 +144,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 20),
-                          
+
                           // Title
                           const Text(
                             "Let's Get Started!",
@@ -162,7 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           Text(
                             'Create your ${widget.userType} account',
                             style: TextStyle(
@@ -171,7 +164,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          
+
                           // Name Fields
                           Row(
                             children: [
@@ -205,7 +198,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Email Field
                           CustomTextField(
                             controller: _emailController,
@@ -217,14 +210,15 @@ class _RegisterPageState extends State<RegisterPage> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
                               }
-                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                  .hasMatch(value)) {
                                 return 'Please enter a valid email';
                               }
                               return null;
                             },
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Password Field
                           CustomTextField(
                             controller: _passwordController,
@@ -234,13 +228,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             prefixIcon: Icons.lock_outline,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword 
-                                    ? Icons.visibility_outlined 
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                                 color: Colors.grey[600],
                               ),
                               onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
+                                setState(
+                                    () => _obscurePassword = !_obscurePassword);
                               },
                             ),
                             validator: (value) {
@@ -254,7 +249,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Confirm Password Field
                           CustomTextField(
                             controller: _confirmPasswordController,
@@ -264,13 +259,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             prefixIcon: Icons.lock_outline,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscureConfirmPassword 
-                                    ? Icons.visibility_outlined 
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                                 color: Colors.grey[600],
                               ),
                               onPressed: () {
-                                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                                setState(() => _obscureConfirmPassword =
+                                    !_obscureConfirmPassword);
                               },
                             ),
                             validator: (value) {
@@ -284,7 +280,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          
+
                           // Terms and Conditions
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +288,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               Checkbox(
                                 value: _agreeToTerms,
                                 onChanged: (value) {
-                                  setState(() => _agreeToTerms = value ?? false);
+                                  setState(
+                                      () => _agreeToTerms = value ?? false);
                                 },
                                 activeColor: const Color(0xFF006FFD),
                                 shape: RoundedRectangleBorder(
@@ -310,7 +307,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                         height: 1.4,
                                       ),
                                       children: const [
-                                        TextSpan(text: "I've read and agree with the "),
+                                        TextSpan(
+                                            text:
+                                                "I've read and agree with the "),
                                         TextSpan(
                                           text: 'Terms and Conditions',
                                           style: TextStyle(
@@ -335,7 +334,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                           const SizedBox(height: 32),
-                          
+
                           // Register Button
                           SizedBox(
                             width: double.infinity,
@@ -367,9 +366,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                     ),
                             ),
-                          ),     
+                          ),
                           const SizedBox(height: 32),
-                          
+
                           // Login Link
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -410,23 +409,23 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildBenefitRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: const Color(0xFF006FFD),
-          size: 18,
-        ),
-        const SizedBox(width: 12),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildBenefitRow(IconData icon, String text) {
+  //   return Row(
+  //     children: [
+  //       Icon(
+  //         icon,
+  //         color: const Color(0xFF006FFD),
+  //         size: 18,
+  //       ),
+  //       const SizedBox(width: 12),
+  //       Text(
+  //         text,
+  //         style: TextStyle(
+  //           fontSize: 14,
+  //           color: Colors.grey[700],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }

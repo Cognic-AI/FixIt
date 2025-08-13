@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 
-enum RequestStatus { pending, active, completed, rejected }
+enum RequestStatus { pending, accepted, completed, rejected }
+
+enum RequestHistoryStatus { completed, rejected }
 
 class ServiceRequest {
   final String id;
@@ -21,6 +23,7 @@ class ServiceRequest {
   final String? rejectionReason;
   final DateTime? scheduledDate;
   final String? notes;
+  final String conversationId;
 
   ServiceRequest({
     required this.id,
@@ -41,10 +44,12 @@ class ServiceRequest {
     this.rejectionReason,
     this.scheduledDate,
     this.notes,
+    required this.conversationId,
   });
 
   factory ServiceRequest.fromJson(Map<String, dynamic> json) {
-    developer.log('📋 Creating ServiceRequest from JSON: ${json['id']}', name: 'ServiceRequest');
+    developer.log('📋 Creating ServiceRequest from JSON: ${json['id']}',
+        name: 'ServiceRequest');
     return ServiceRequest(
       id: json['id'],
       clientId: json['clientId'],
@@ -65,8 +70,11 @@ class ServiceRequest {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       rejectionReason: json['rejectionReason'],
-      scheduledDate: json['scheduledDate'] != null ? DateTime.parse(json['scheduledDate']) : null,
+      scheduledDate: json['scheduledDate'] != null
+          ? DateTime.parse(json['scheduledDate'])
+          : null,
       notes: json['notes'],
+      conversationId: json['conversationId'] ?? '',
     );
   }
 
@@ -97,8 +105,8 @@ class ServiceRequest {
     switch (status) {
       case RequestStatus.pending:
         return 'Pending';
-      case RequestStatus.active:
-        return 'Active';
+      case RequestStatus.accepted:
+        return 'Accepted';
       case RequestStatus.completed:
         return 'Completed';
       case RequestStatus.rejected:
@@ -110,7 +118,7 @@ class ServiceRequest {
     switch (status) {
       case RequestStatus.pending:
         return 'Waiting for vendor confirmation';
-      case RequestStatus.active:
+      case RequestStatus.accepted:
         return 'Service confirmed and in progress';
       case RequestStatus.completed:
         return 'Service completed successfully';

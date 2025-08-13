@@ -5,7 +5,7 @@ class Message {
   final String conversationId;
   final String senderId;
   final String senderName;
-  final String senderType; // 'client' or 'vendor'
+  late final String senderType; // 'client' or 'vendor'
   final String receiverId;
   final String receiverName;
   final String content;
@@ -34,21 +34,33 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json) {
     developer.log('💬 Creating Message from JSON: ${json['id']}',
         name: 'Message');
+
+    // Debug print the actual JSON structure
+    developer.log('💬 JSON structure: ${json.toString()}', name: 'Message');
+    if (json['senderId'] == 'ai') {
+      json['senderType'] = 'ai';
+    }
+    if (json['senderId'] == 'ai') {
+      json['read'] = true;
+    }
     return Message(
-      id: json['id'],
-      conversationId: json['conversationId'],
-      senderId: json['senderId'],
-      senderName: json['senderName'],
-      senderType: json['senderType'],
-      receiverId: json['receiverId'],
-      receiverName: json['receiverName'],
-      content: json['content'],
+      id: json['id'] ?? '',
+      conversationId: json['conversationId'] ?? '',
+      senderId: json['senderId'] ?? '',
+      senderName: json['senderName'] ?? 'Unknown User', // Default value
+      senderType: json['senderType'] ?? 'client', // Default value
+      receiverId: json['receiverId'] ?? '', // Default value
+      receiverName: json['receiverName'] ?? 'Unknown User', // Default value
+      content: json['content'] ?? '',
       type: MessageType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
+        (e) =>
+            e.toString().split('.').last ==
+            (json['messageType'] ?? json['type'] ?? 'text'),
         orElse: () => MessageType.text,
       ),
-      timestamp: DateTime.parse(json['timestamp']),
-      isRead: json['isRead'] ?? false,
+      timestamp:
+          DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      isRead: json['read'] ?? json['isRead'] ?? false,
       imageUrl: json['imageUrl'],
       attachmentUrl: json['attachmentUrl'],
     );

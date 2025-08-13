@@ -1,3 +1,4 @@
+// import 'package:fixit/pages/client/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -457,20 +458,20 @@ class _MapPageState extends State<MapPage> {
                 // First row of buttons
                 Row(
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Handle contact action
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.message),
-                        label: const Text('Message'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+                    // Expanded(
+                    //   child: OutlinedButton.icon(
+                    //     onPressed: () {
+                    //       // Handle contact action
+                    //       Navigator.push(context, ChatPage(conversation: conversation, currentUserId: currentUserId, token: token, request: request));
+                    //     },
+                    //     icon: const Icon(Icons.message),
+                    //     label: const Text('Message'),
+                    //     style: OutlinedButton.styleFrom(
+                    //       foregroundColor: const Color(0xFF2563EB),
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {

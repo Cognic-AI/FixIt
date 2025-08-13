@@ -107,7 +107,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         providerId: requestData.providerId,
         state: "pending",
         location: requestData.location,
-        chatId: "",
+        chatId: uuid:createType1AsString(), // Generate a new chat ID
         createdAt: currentTime,
         updatedAt: currentTime
     };
@@ -207,7 +207,8 @@ public function getRequests(http:Caller caller, http:Request req) returns error?
 public function getMyRequests(http:Caller caller, http:Request req) returns error? {
     io:println("getMyRequests called"); // IO log
     // Authenticate and authorize provider role
-    models:User|error user = authorizeRole(req, ["client", "vendor"]);
+    io:println("request data: ", req.getJsonPayload()); // IO log
+    models:User|error user = authenticateRequest(req);
     if user is error {
         io:println("Unauthorized access attempt in getMyRequests"); // IO log
         json errorResponse = {

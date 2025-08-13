@@ -1,3 +1,4 @@
+import 'package:fixit/models/subscription.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -7,13 +8,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserService {
   static final String _baseServiceUrl =
-      dotenv.env['USER_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
+      dotenv.env['VENDOR_SERVICE_URL'] ?? 'http://localhost:8084/api/services';
   static final String _baseRequestUrl =
       dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
+  static final String _baseSubscriptionUrl =
+      dotenv.env['SUBSCRIPTION_SERVICE_URL'] ??
+          'http://localhost:8088/api/subscriptions';
 
   Future<List<Service>> loadServices(String token) async {
     developer.log('[UserService] Loading services from $_baseServiceUrl',
         name: 'UserService');
+    print("[UserService] Loading services from $_baseServiceUrl");
 
     try {
       final response = await http.get(
@@ -119,6 +124,37 @@ class UserService {
     }
   }
 
+  Future<List<Subscription>> getMySubscriptions(String token) async {
+    developer.log(
+        '[UserService] Loading my subscriptions from $_baseSubscriptionUrl',
+        name: 'UserService');
+
+    try {
+      final response = await http.get(
+        Uri.parse(_baseSubscriptionUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['subscriptions'] is List) {
+          return (decoded['subscriptions'] as List)
+              .map((json) => Subscription.fromJson(json))
+              .toList();
+        }
+        throw Exception('Unexpected response format');
+      } else {
+        throw Exception('Failed to load my requests: ${response.body}');
+      }
+    } catch (e) {
+      developer.log('Error loading my requests: $e', name: 'UserService');
+      rethrow;
+    }
+  }
+
   // Create a new request (vendor only)
   Future<Request> createRequest({
     required String token,
@@ -142,12 +178,43 @@ class UserService {
           'clientId': clientId,
           'providerId': providerId,
           'location': location,
-          }),
+        }),
       );
 
       if (response.statusCode == 201) {
         final decoded = jsonDecode(response.body);
         return Request.fromJson(decoded['request']);
+      } else {
+        throw Exception('Failed to create request: ${response.body}');
+      }
+    } catch (e) {
+      developer.log('Error creating request: $e', name: 'UserService');
+      rethrow;
+    }
+  }
+
+  Future<void> makeSubscription({
+    required String token,
+    required String serviceId,
+  }) async {
+    developer.log(
+        '[UserService] Creating new subscription at $_baseSubscriptionUrl',
+        name: 'UserService');
+
+    try {
+      final response = await http.post(
+        Uri.parse(_baseSubscriptionUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({
+          'serviceId': serviceId,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return;
       } else {
         throw Exception('Failed to create request: ${response.body}');
       }
@@ -221,6 +288,34 @@ class UserService {
       }
     } catch (e) {
       developer.log('Error deleting request: $e', name: 'UserService');
+      rethrow;
+    }
+  }
+
+  Future<void> removeSubscription({
+    required String token,
+    required String serviceId,
+    required String subscriptionId,
+  }) async {
+    developer.log(
+        '[UserService] Deleting subscription $serviceId at $_baseSubscriptionUrl',
+        name: 'UserService');
+
+    try {
+      final response = await http.delete(
+        Uri.parse(_baseSubscriptionUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({'serviceId': serviceId, 'id': subscriptionId}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete subscription: ${response.body}');
+      }
+    } catch (e) {
+      developer.log('Error deleting subscription: $e', name: 'UserService');
       rethrow;
     }
   }

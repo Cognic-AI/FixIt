@@ -1,10 +1,11 @@
 import 'package:fixit/models/service_request.dart';
+import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
 import 'package:fixit/services/messaging_service.dart';
 import 'package:fixit/services/service_request_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
-import 'chat_page.dart';
+// import 'chat_page.dart';
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({
@@ -22,9 +23,10 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPageState extends State<MessagesPage> {
   final ServiceRequestService _requestService = ServiceRequestService();
-  final MessagingService _messagingService = MessagingService();
   final List<Conversation> _conversations = [];
+  final MessagingService _messagingService = MessagingService();
   final List<ServiceRequest> _serviceRequests = [];
+
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -47,6 +49,7 @@ class _MessagesPageState extends State<MessagesPage> {
         widget.userId,
         widget.token,
       );
+      print(unreadCount);
       for (var request in requests) {
         final lastMessage = await _messagingService.getLastMessage(
           request.conversationId,
@@ -179,13 +182,29 @@ class _MessagesPageState extends State<MessagesPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            // Find the matching service request for this conversation
-            final matchingRequest = _serviceRequests.firstWhere(
-              (request) => request.conversationId == conversation.id,
-              orElse: () =>
-                  throw Exception('No matching service request found'),
+            ServiceRequest request = _serviceRequests.firstWhere(
+              (element) => element.conversationId == conversation.id,
+              orElse: () => ServiceRequest(
+                id: '',
+                clientId: '',
+                clientName: '',
+                vendorId: '',
+                vendorName: '',
+                serviceId: '',
+                serviceTitle: '',
+                serviceCategory: '',
+                description: '',
+                location: '',
+                budget: 0.0,
+                servicePrice: 0.0,
+                status: RequestStatus.accepted,
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+                scheduledDate: null,
+                notes: null,
+                conversationId: conversation.id,
+              ),
             );
-
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -193,7 +212,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   conversation: conversation,
                   currentUserId: widget.userId,
                   token: widget.token,
-                  request: matchingRequest,
+                  request: request,
                 ),
               ),
             ).then((_) {
@@ -258,7 +277,7 @@ class _MessagesPageState extends State<MessagesPage> {
 
                       // Vendor Name
                       Text(
-                        conversation.vendorName,
+                        conversation.clientName,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],

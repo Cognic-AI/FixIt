@@ -1,19 +1,7 @@
 import backend.controllers;
 import backend.models;
 
-// import backend.bookings;
-// import backend.services;
-
-// import backend.events;
-// import backend.feedback;
-// import backend.firestore;
-// import backend.maps;
-// import backend.messaging;
-
-// import backend.reviews;
-
 import ballerina/http;
-// import ballerina/log;
 import ballerina/time;
 
 // Shared CORS configuration
@@ -54,6 +42,10 @@ isolated service /api/auth on new http:Listener(8080) {
 
     resource function get profile(http:Caller caller, http:Request req) returns error? {
         check controllers:getUserProfile(caller, req);
+    }
+
+    resource function put changePassword(http:Caller caller, http:Request req) returns error? {
+        check controllers:changePassword(caller, req);
     }
 
     resource function get test(http:Caller caller, http:Request req) returns error? {
@@ -127,10 +119,6 @@ isolated service /api/ai on new http:Listener(8082) {
     resource function post chat(http:Caller caller, http:Request req) returns error? {
         check controllers:chatWithGemini(caller, req);
     }
-
-    // resource function post recommendations(http:Caller caller, http:Request req) returns error? {
-    //     check ai:getRecommendations(caller, req);
-    // }
 }
 
 // Services
@@ -182,10 +170,9 @@ isolated service /api/requests on new http:Listener(8086) {
 
     resource function delete [string requestId](http:Caller caller, http:Request req) returns error? {
         check controllers:deleteRequest(caller, req, requestId);
-// Contracts service
+        // Contracts service
     }
 }
-
 
 @http:ServiceConfig {
     cors: corsConfig
@@ -213,116 +200,46 @@ isolated service /api/contracts on new http:Listener(8085) {
     }
 }
 
-// Location service
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/location on new http:Listener(8085) {
-//     resource function get login(http:Caller caller, http:Request req) returns error? {
-//         check maps:_location(caller, req);
-//     }
-// }
+// Messaging service
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/chats on new http:Listener(8087) {
+    resource function post conversations(http:Caller caller, http:Request req) returns error? {
+        check controllers:getChatMessages(caller, req);
+    }
 
-// Events service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/events on new http:Listener(8080) {
-//     resource function get .(http:Caller caller, http:Request req) returns error? {
-//         check events:getEvents(caller, req);
-//     }
+    resource function post messages(http:Caller caller, http:Request req) returns error? {
+        check controllers:sendMessage(caller, req);
+    }
 
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check events:createEvent(caller, req);
-//     }
+    resource function get unreadCount(http:Caller caller, http:Request req) returns error? {
+        check controllers:getUnreadMessageCount(caller, req);
+    }
 
-//     resource function get [string eventId](http:Caller caller, http:Request req) returns error? {
-//         check events:getEventById(caller, req, eventId);
-//     }
-// }
+    resource function get unreadCountConversation(http:Caller caller, http:Request req) returns error? {
+        check controllers:getUnreadMessageCountConversation(caller, req);
+    }
 
-// Messaging service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/chats on new http:Listener(8080) {
-//     resource function get [string userId](http:Caller caller, http:Request req) returns error? {
-//         check messaging:getUserChats(caller, req, userId);
-//     }
+    resource function post conversation/last(http:Caller caller, http:Request req) returns error? {
+        check controllers:getConversationLast(caller, req);
+    }
+}
 
-//     resource function get [string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-//         check messaging:getChatMessages(caller, req, chatId);
-//     }
+// Subscription service (commented out)
+@http:ServiceConfig {
+    cors: corsConfig
+}
+isolated service /api/subscriptions on new http:Listener(8088) {
+    resource function get .(http:Caller caller, http:Request req) returns error? {
+        check controllers:getMySubscriptions(caller, req);
+    }
 
-//     resource function post [string chatId]/messages(http:Caller caller, http:Request req) returns error? {
-//         check messaging:sendMessage(caller, req, chatId);
-//     }
+    resource function post .(http:Caller caller, http:Request req) returns error? {
+        check controllers:saveServiceSubscription(caller, req);
+    }
 
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check messaging:createChat(caller, req);
-//     }
-// }
-
-// Bookings service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/bookings on new http:Listener(8080) {
-//     resource function get [string userId](http:Caller caller, http:Request req) returns error? {
-//         check bookings:getUserBookings(caller, req, userId);
-//     }
-
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check bookings:createBooking(caller, req);
-//     }
-
-//     resource function put [string bookingId](http:Caller caller, http:Request req) returns error? {
-//         check bookings:updateBooking(caller, req, bookingId);
-//     }
-// }
-
-// Reviews service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/reviews on new http:Listener(8080) {
-//     resource function get service/[string serviceId](http:Caller caller, http:Request req) returns error? {
-//         check reviews:getServiceReviews(caller, req, serviceId);
-//     }
-
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check reviews:createReview(caller, req);
-//     }
-// }
-
-// Feedback service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/feedback on new http:Listener(8080) {
-//     resource function post .(http:Caller caller, http:Request req) returns error? {
-//         check feedback:submitFeedback(caller, req);
-//     }
-
-//     resource function get .(http:Caller caller, http:Request req) returns error? {
-//         check feedback:getFeedback(caller, req);
-//     }
-// }
-
-// Maps service (commented out)
-// @http:ServiceConfig {
-//     cors: corsConfig
-// }
-// isolated service /api/maps on new http:Listener(8080) {
-//     resource function get geocode(http:Caller caller, http:Request req) returns error? {
-//         check maps:geocodeAddress(caller, req);
-//     }
-
-//     resource function get directions(http:Caller caller, http:Request req) returns error? {
-//         check maps:getDirections(caller, req);
-//     }
-
-//     resource function get nearby(http:Caller caller, http:Request req) returns error? {
-//         check maps:getNearbyPlaces(caller, req);
-//     }
-// }
+    resource function delete .(http:Caller caller, http:Request req) returns error? {
+        check controllers:deleteServiceSubscription(caller, req);
+    }
+}
