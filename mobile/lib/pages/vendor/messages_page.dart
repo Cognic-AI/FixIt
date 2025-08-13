@@ -45,16 +45,35 @@ class _MessagesPageState extends State<MessagesPage> {
 
     try {
       final requests = await _requestService.getServiceRequests(widget.token);
-      final unreadCount = await _messagingService.getTotalUnreadCountV2(
-        widget.userId,
-        widget.token,
-      );
-      print(unreadCount);
-      for (var request in requests) {
-        final lastMessage = await _messagingService.getLastMessage(
-          request.conversationId,
+
+      Map<String, int> unreadCount = {};
+      try {
+        unreadCount = await _messagingService.getTotalUnreadCountV2(
+          widget.userId,
           widget.token,
         );
+        print(unreadCount);
+      } catch (e) {
+        developer.log('Error getting unread count: $e', name: 'MessagesPage');
+        // Continue with empty unread count if this fails
+        unreadCount = {};
+      }
+
+      for (var request in requests) {
+        Message? lastMessage;
+        try {
+          lastMessage = await _messagingService.getLastMessage(
+            request.conversationId,
+            widget.token,
+          );
+        } catch (e) {
+          // Handle case where there are no messages for this conversation
+          developer.log(
+              'No messages found for conversation: ${request.conversationId}',
+              name: 'MessagesPage');
+          lastMessage = null;
+        }
+
         final conversation = Conversation(
           id: request.conversationId,
           serviceId: request.serviceId,
@@ -152,7 +171,12 @@ class _MessagesPageState extends State<MessagesPage> {
     } else if (difference.inDays < 7) {
       // This week - show day name
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      return days[timestamp.weekday - 1];
+      final weekdayIndex = timestamp.weekday - 1;
+      if (weekdayIndex >= 0 && weekdayIndex < days.length) {
+        return days[weekdayIndex];
+      } else {
+        return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+      }
     } else {
       // Older - show date
       return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
@@ -196,7 +220,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 serviceCategory: '',
                 description: '',
                 location: '',
-                budget: 0.0,
+                budget: '0.0',
                 servicePrice: 0.0,
                 status: RequestStatus.accepted,
                 createdAt: DateTime.now(),

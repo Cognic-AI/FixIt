@@ -148,7 +148,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
 
     json successResponse = {
         "message": "Request created successfully",
-        "request": newRequest.toJson()
+        "request": newRequest.id
     };
 
     http:Response response = new;

@@ -4,6 +4,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
+import '../../widgets/quotation_form.dart';
+import '../../widgets/bill_form.dart';
+import '../../models/sub_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage(
@@ -49,13 +52,24 @@ class _ChatPageState extends State<ChatPage> {
           widget.request,
           widget.currentUserId,
           widget.token);
-      final messages = result['messages'] as List<Message>;
-      setState(() {
-        _messages = messages;
-        _isLoading = false;
-      });
-      _scrollToBottom();
-      developer.log('💬 Loaded ${messages.length} messages', name: 'ChatPage');
+
+      // Safety check for result
+      if (result.containsKey('messages')) {
+        final messages = result['messages'] as List<Message>? ?? [];
+        setState(() {
+          _messages = messages;
+          _isLoading = false;
+        });
+        _scrollToBottom();
+        developer.log('💬 Loaded ${messages.length} messages',
+            name: 'ChatPage');
+      } else {
+        setState(() {
+          _messages = [];
+          _isLoading = false;
+        });
+        developer.log('💬 No messages found in result', name: 'ChatPage');
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -138,6 +152,238 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     });
+  }
+
+  void _showAttachmentOptions() {
+    // Hide bill option if status is pending
+    final showBill = widget.request.status != RequestStatus.pending;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Choose Action',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                ),
+              ),
+            ),
+
+            // Options
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  // Quotation Option
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long,
+                        color: Color(0xFF2563EB),
+                      ),
+                    ),
+                    title: const Text(
+                      'Send Quotation',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Provide pricing for the service',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showQuotationForm();
+                    },
+                  ),
+
+                  if (showBill) ...[
+                    const Divider(),
+                    // Bill Option
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.receipt,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                      title: const Text(
+                        'Send Bill',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      subtitle: const Text(
+                        'Final bill for completed service',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showBillForm();
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showQuotationForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => QuotationForm(
+        request: widget.request,
+        onSubmit: (subServices, notes) {
+          _sendQuotation(subServices, notes);
+        },
+      ),
+    );
+  }
+
+  void _showBillForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BillForm(
+        request: widget.request,
+        onSubmit: (serviceDetails, finalAmount, paymentNotes) {
+          _sendBill(serviceDetails, finalAmount, paymentNotes);
+        },
+      ),
+    );
+  }
+
+  Future<void> _sendQuotation(
+      List<SubService> subServices, String notes) async {
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final message = await _messagingService.sendQuotation(
+        conversationId: widget.conversation.id,
+        senderId: widget.currentUserId,
+        senderName: widget.conversation.vendorName,
+        senderType: 'vendor',
+        receiverId: widget.conversation.clientId,
+        receiverName: widget.conversation.clientName,
+        serviceTitle: widget.request.serviceTitle,
+        clientName: widget.request.clientName,
+        subServices: subServices,
+        notes: notes,
+        token: widget.token,
+      );
+
+      setState(() {
+        _messages.add(message);
+        _isSending = false;
+      });
+      _scrollToBottom();
+      developer.log('📤 Quotation sent successfully', name: 'ChatPage');
+    } catch (e) {
+      setState(() {
+        _isSending = false;
+      });
+      developer.log('Error sending quotation: $e', name: 'ChatPage');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send quotation: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendBill(
+      String serviceDetails, double finalAmount, String paymentNotes) async {
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final message = await _messagingService.sendBill(
+        conversationId: widget.conversation.id,
+        senderId: widget.currentUserId,
+        senderName: widget.conversation.vendorName,
+        senderType: 'vendor',
+        receiverId: widget.conversation.clientId,
+        receiverName: widget.conversation.clientName,
+        serviceTitle: widget.request.serviceTitle,
+        clientName: widget.request.clientName,
+        serviceDetails: serviceDetails,
+        finalAmount: finalAmount,
+        paymentNotes: paymentNotes,
+        token: widget.token,
+      );
+
+      setState(() {
+        _messages.add(message);
+        _isSending = false;
+      });
+      _scrollToBottom();
+      developer.log('📤 Bill sent successfully', name: 'ChatPage');
+    } catch (e) {
+      setState(() {
+        _isSending = false;
+      });
+      developer.log('Error sending bill: $e', name: 'ChatPage');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send bill: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   String _formatMessageTime(DateTime timestamp) {
@@ -391,7 +637,7 @@ class _ChatPageState extends State<ChatPage> {
                     _buildDetailRow(Icons.euro, 'Price',
                         '€${request.servicePrice.toStringAsFixed(2)}'),
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
-                        '€${request.budget.toStringAsFixed(2)}'),
+                        '€${request.budget}'),
                     _buildDetailRow(Icons.access_time, 'Requested',
                         _formatDate(request.createdAt)),
 
@@ -550,6 +796,11 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageBubble(Message message, bool isMe) {
+    // Check if it's a special message type
+    final isQuotation = message.type == MessageType.quotation;
+    final isBill = message.type == MessageType.bill;
+    final isSpecialMessage = isQuotation || isBill;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Row(
@@ -581,12 +832,26 @@ class _ChatPageState extends State<ChatPage> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                gradient: isMe
+                gradient: isMe && !isSpecialMessage
                     ? const LinearGradient(
                         colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
                       )
                     : null,
-                color: isMe ? null : Colors.grey.shade100,
+                color: isMe && !isSpecialMessage
+                    ? null
+                    : isSpecialMessage
+                        ? (isQuotation
+                            ? const Color(0xFF2563EB).withOpacity(0.1)
+                            : const Color(0xFF10B981).withOpacity(0.1))
+                        : Colors.grey.shade100,
+                border: isSpecialMessage
+                    ? Border.all(
+                        color: isQuotation
+                            ? const Color(0xFF2563EB)
+                            : const Color(0xFF10B981),
+                        width: 1.5,
+                      )
+                    : null,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -605,14 +870,36 @@ class _ChatPageState extends State<ChatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isMe ? Colors.white : const Color(0xFF1F2937),
-                      height: 1.3,
+                  // Special header for quotation/bill
+                  if (isSpecialMessage) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          isQuotation ? Icons.receipt_long : Icons.receipt,
+                          color: isQuotation
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF10B981),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isQuotation ? 'QUOTATION' : 'FINAL BILL',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isQuotation
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF10B981),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                  ],
+
+                  // Message content
+                  _buildMessageContent(message, isMe, isSpecialMessage),
+
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -621,7 +908,7 @@ class _ChatPageState extends State<ChatPage> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isMe
+                          color: isMe && !isSpecialMessage
                               ? Colors.white.withOpacity(0.8)
                               : Colors.grey[500],
                         ),
@@ -631,9 +918,11 @@ class _ChatPageState extends State<ChatPage> {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
-                          color: message.isRead
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.7),
+                          color: isSpecialMessage
+                              ? Colors.grey[500]
+                              : message.isRead
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.7),
                         ),
                       ],
                     ],
@@ -662,6 +951,190 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildMessageContent(
+      Message message, bool isMe, bool isSpecialMessage) {
+    if (isSpecialMessage) {
+      // Parse and format special message content
+      return _buildFormattedContent(message.content);
+    } else {
+      // Regular text message
+      return Text(
+        message.content,
+        style: TextStyle(
+          fontSize: 16,
+          color: isMe ? Colors.white : const Color(0xFF1F2937),
+          height: 1.3,
+        ),
+      );
+    }
+  }
+
+  Widget _buildFormattedContent(String content) {
+    try {
+      // Safety check for null or empty content
+      if (content.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final lines = content.split('\n');
+      List<Widget> widgets = [];
+
+      for (String line in lines) {
+        final trimmedLine = line.trim();
+
+        if (trimmedLine.isEmpty) {
+          widgets.add(const SizedBox(height: 4));
+          continue;
+        }
+
+        // Handle headers like **📋 QUOTATION** or **🧾 FINAL BILL**
+        if (trimmedLine.startsWith('**') &&
+            trimmedLine.endsWith('**') &&
+            !trimmedLine.contains(':')) {
+          final headerText = trimmedLine.replaceAll('**', '');
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                headerText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+          continue;
+        }
+
+        // Handle bold key-value pairs like **Service:** Service Name
+        if (trimmedLine.startsWith('**') && trimmedLine.contains(':')) {
+          final colonIndex = trimmedLine.indexOf(':');
+          if (colonIndex >= 0 && colonIndex < trimmedLine.length - 1) {
+            final keyPart =
+                trimmedLine.substring(0, colonIndex + 1).replaceAll('**', '');
+            final valuePart = trimmedLine.substring(colonIndex + 1).trim();
+
+            widgets.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      keyPart,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        valuePart,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+            continue;
+          }
+        }
+
+        // Handle dividers
+        if (trimmedLine.startsWith('---')) {
+          widgets.add(
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(thickness: 1, color: Colors.grey),
+            ),
+          );
+          continue;
+        }
+
+        // Handle italic text at the end
+        if (trimmedLine.startsWith('*') &&
+            trimmedLine.endsWith('*') &&
+            !trimmedLine.startsWith('**')) {
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                trimmedLine.replaceAll('*', ''),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+          continue;
+        }
+
+        // Handle numbered lists for sub-services
+        try {
+          if (RegExp(r'^\d+\.').hasMatch(trimmedLine)) {
+            widgets.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Text(
+                  trimmedLine,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+              ),
+            );
+            continue;
+          }
+        } catch (regexError) {
+          // If regex fails, treat as regular text
+          developer.log('RegExp error: $regexError', name: 'ChatPage');
+        }
+
+        // Regular text
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 1),
+            child: Text(
+              trimmedLine,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
+      );
+    } catch (e) {
+      // If there's any error in formatting, fall back to plain text display
+      developer.log('Error formatting message content: $e', name: 'ChatPage');
+      return Text(
+        content,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFF1F2937),
+        ),
+      );
+    }
   }
 
   Widget _buildMessagesList() {
@@ -819,6 +1292,34 @@ class _ChatPageState extends State<ChatPage> {
             child: SafeArea(
               child: Row(
                 children: [
+                  // Attachment btn
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _showAttachmentOptions,
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Icon(
+                            Icons.attachment,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   // Message Input
                   Expanded(
                     child: Container(

@@ -24,7 +24,7 @@ class Request {
   final String clientLocation;
   final String providerLocation;
   final String? note;
-  final double? budget;
+  final String? budget;
   final String? serviceType;
   Request({
     required this.id,
@@ -69,7 +69,7 @@ class Request {
       description: json['description'],
       category: json['category'],
       availability: json['availability'] ?? false,
-      price: (json['price'] as num).toDouble(),
+      price: (json['price']).toDouble(),
       tags: json['tags'] ?? '',
       images: json['images'] ?? '',
       clientName: json['clientName'] ?? '',
@@ -79,8 +79,7 @@ class Request {
       clientLocation: json['clientLocation'] ?? '',
       providerLocation: json['providerLocation'] ?? '',
       note: json['note'],
-      budget:
-          json['budget'] != null ? (json['budget'] as num).toDouble() : null,
+      budget: json['budget'] != "" ? (json['budget']).toString() : '0',
       serviceType: json['serviceType'] ?? '',
     );
   }
@@ -158,7 +157,7 @@ class Request {
       serviceCategory: category,
       servicePrice: price,
       clientName: clientName,
-      budget: 0,
+      budget: '0',
       serviceType: 'on-site',
       vendorName: providerName,
       note: note,

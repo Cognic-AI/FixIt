@@ -15,7 +15,7 @@ class ServiceRequest {
   final String serviceCategory;
   final String description;
   final String location;
-  final double budget;
+  final String budget;
   final String serviceType;
   final double servicePrice;
   final RequestStatus status;
@@ -64,7 +64,7 @@ class ServiceRequest {
       serviceCategory: json['serviceCategory'],
       description: json['description'],
       location: json['location'],
-      budget: (json['budget'] ?? 0).toDouble(),
+      budget: (json['budget'] != "" ? (json['budget']).toString() : '0'),
       serviceType: json['serviceType'] ?? 'on-site',
       servicePrice: (json['servicePrice'] ?? 0).toDouble(),
       status: RequestStatus.values.firstWhere(

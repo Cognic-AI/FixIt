@@ -85,7 +85,7 @@ class Message {
   }
 }
 
-enum MessageType { text, image, file, location, system }
+enum MessageType { text, image, file, location, system, quotation, bill }
 
 class Conversation {
   final String id;

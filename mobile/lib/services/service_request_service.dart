@@ -63,7 +63,7 @@ class ServiceRequestService {
       location: request.location.isNotEmpty
           ? request.location
           : request.clientLocation,
-      budget: request.price, // Using price as budget
+      budget: request.price.toString(),
       servicePrice: request.price,
       status: _convertStateToRequestStatus(request.state),
       createdAt: request.createdAt,

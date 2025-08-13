@@ -13,7 +13,7 @@ class UserService {
       dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
   static final String _baseSubscriptionUrl =
       dotenv.env['SUBSCRIPTION_SERVICE_URL'] ??
-          'http://localhost:8088/api/subscriptions';
+          'http://10.10.27.227:8088/api/subscriptions';
 
   Future<List<Service>> loadServices(String token) async {
     developer.log('[UserService] Loading services from $_baseServiceUrl',
@@ -156,7 +156,7 @@ class UserService {
   }
 
   // Create a new request (vendor only)
-  Future<void> createRequest({
+  Future<String> createRequest({
     required String token,
     required String serviceId,
     required String clientId,
@@ -192,6 +192,7 @@ class UserService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         print("Decoded request: $decoded");
+        return decoded['request'];
       } else {
         print("Failed to create request: ${response.body}");
         throw Exception('Failed to create request: ${response.body}');

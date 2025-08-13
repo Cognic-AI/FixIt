@@ -1,4 +1,5 @@
 import 'package:fixit/models/service.dart';
+import 'package:fixit/services/messaging_service.dart';
 import 'package:fixit/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
@@ -394,7 +395,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
         // await Future.delayed(const Duration(seconds: 2));
         // developer.log('Submitting request: $requestData',
         //     name: 'RequestServicePage');
-        await UserService().createRequest(
+        String _id = await UserService().createRequest(
             token: widget.token,
             serviceId: widget.service.id,
             clientId: widget.uid,
@@ -410,7 +411,17 @@ class _RequestServicePageState extends State<RequestServicePage> {
             clientLocation: _selectedLocation != null
                 ? "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}"
                 : "");
-        // Add your API call logic here
+
+        await MessagingService().sendMessage(
+          conversationId: _id,
+          senderId: widget.uid,
+          senderName: "System",
+          senderType: 'client',
+          receiverId: widget.service.providerId,
+          receiverName: "System",
+          content: "New Request has been sent",
+          token: widget.token,
+        );
 
         Navigator.pop(context); // Close loading dialog
 
