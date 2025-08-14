@@ -13,7 +13,7 @@ class UserService {
       dotenv.env['REQUEST_SERVICE_URL'] ?? 'http://localhost:8086/api/requests';
   static final String _baseSubscriptionUrl =
       dotenv.env['SUBSCRIPTION_SERVICE_URL'] ??
-          'http://localhost:8088/api/subscriptions';
+          'http://10.10.27.227:8088/api/subscriptions';
 
   Future<List<Service>> loadServices(String token) async {
     developer.log('[UserService] Loading services from $_baseServiceUrl',
@@ -156,12 +156,16 @@ class UserService {
   }
 
   // Create a new request (vendor only)
-  Future<Request> createRequest({
+  Future<String> createRequest({
     required String token,
     required String serviceId,
     required String clientId,
     required String providerId,
     required String location,
+    required String? note,
+    required String? clientLocation,
+    required String serviceType,
+    required double? budget,
   }) async {
     developer.log('[UserService] Creating new request at $_baseRequestUrl',
         name: 'UserService');
@@ -178,16 +182,23 @@ class UserService {
           'clientId': clientId,
           'providerId': providerId,
           'location': location,
+          'clientLocation': clientLocation,
+          'note': note,
+          'serviceType': serviceType,
+          'budget': budget.toString(),
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        return Request.fromJson(decoded['request']);
+        print("Decoded request: $decoded");
+        return decoded['request'];
       } else {
+        print("Failed to create request: ${response.body}");
         throw Exception('Failed to create request: ${response.body}');
       }
     } catch (e) {
+      print("Error creating request: $e");
       developer.log('Error creating request: $e', name: 'UserService');
       rethrow;
     }

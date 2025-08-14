@@ -17,6 +17,10 @@ public type Request record {
     string createdAt;
     string updatedAt;
     string chatId;
+    string clientLocation;
+    string note;
+    string budget;
+    string serviceType;
 };
 
 public type RequestResponse record {
@@ -41,6 +45,9 @@ public type RequestResponse record {
     string providerName;
     string providerEmail;
     string clientLocation;
+    string note;
+    string budget;
+    string serviceType;
 };
 
 public type RequestCreation record {
@@ -48,6 +55,10 @@ public type RequestCreation record {
     string clientId;
     string location;
     string providerId;
+    string clientLocation;
+    string note;
+    string budget;
+    string serviceType;
 };
 
 // Create a new request (Provider only)
@@ -109,7 +120,11 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         location: requestData.location,
         chatId: uuid:createType1AsString(), // Generate a new chat ID
         createdAt: currentTime,
-        updatedAt: currentTime
+        updatedAt: currentTime,
+        clientLocation: requestData.clientLocation,
+        note: requestData.note,
+        budget: requestData.budget,
+        serviceType: requestData.serviceType
     };
 
     io:println("Creating new request with ID: " + requestId); // IO log
@@ -133,7 +148,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
 
     json successResponse = {
         "message": "Request created successfully",
-        "request": newRequest.toJson()
+        "request": newRequest.id
     };
 
     http:Response response = new;

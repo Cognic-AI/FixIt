@@ -1,5 +1,6 @@
 import 'package:fixit/models/service_request.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as developer;
 import '../../models/message.dart';
 import '../../services/messaging_service.dart';
@@ -391,14 +392,22 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                     const SizedBox(height: 12),
 
-                    _buildDetailRow(
-                        Icons.location_on, 'Location', request.location),
+                    // _buildDetailRow(
+                    //     Icons.location_on, 'Location', request.location),
+                    GestureDetector(
+                      onTap: () =>
+                          _showLocationOnMap(widget.request.clientLocation),
+                      child: _buildDetailRow(
+                          Icons.location_on,
+                          'Vendor Location',
+                          "${widget.request.clientLocation} (Tap to view on map)"),
+                    ),
 
                     _buildDetailRow(Icons.euro, 'Price',
                         '€${request.servicePrice.toStringAsFixed(2)}'),
 
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
-                        '€${request.budget.toStringAsFixed(2)}'),
+                        '€${request.budget}'),
 
                     _buildDetailRow(Icons.access_time, 'Requested',
                         _formatDate(request.createdAt)),
@@ -407,7 +416,7 @@ class _ChatPageState extends State<ChatPage> {
                       _buildDetailRow(Icons.event, 'Scheduled',
                           _formatDate(request.scheduledDate!)),
 
-                    if (request.notes != null && request.notes!.isNotEmpty) ...[
+                    if (request.note != null && request.note!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Text(
                         'Notes',
@@ -419,7 +428,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        request.notes!,
+                        request.note!,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
@@ -437,6 +446,64 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
     );
+  }
+
+  void _showLocationOnMap(String location) async {
+    try {
+      // Parse the location string (assuming format "latitude, longitude")
+      final parts = location.split(',');
+      if (parts.length != 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location format')),
+        );
+        return;
+      }
+
+      final lat = double.tryParse(parts[0].trim());
+      final lng = double.tryParse(parts[1].trim());
+
+      if (lat == null || lng == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid location coordinates')),
+        );
+        return;
+      }
+
+      final locationPoint = LatLng(lat, lng);
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Location'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: locationPoint,
+                zoom: 15,
+              ),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('location'),
+                  position: locationPoint,
+                ),
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error showing location: $e')),
+      );
+    }
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
@@ -500,6 +567,11 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageBubble(Message message, bool isMe) {
+    // Check if it's a special message type
+    final isQuotation = message.type == MessageType.quotation;
+    final isBill = message.type == MessageType.bill;
+    final isSpecialMessage = isQuotation || isBill;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
       child: Row(
@@ -531,12 +603,19 @@ class _ChatPageState extends State<ChatPage> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                gradient: isMe
+                gradient: isMe && !isSpecialMessage
                     ? const LinearGradient(
                         colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
                       )
                     : null,
-                color: isMe ? null : Colors.grey.shade100,
+                color: isMe && !isSpecialMessage
+                    ? null
+                    : isSpecialMessage
+                        ? Colors.blue.shade50
+                        : Colors.grey.shade100,
+                border: isSpecialMessage
+                    ? Border.all(color: Colors.blue.shade200, width: 1.5)
+                    : null,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -555,14 +634,28 @@ class _ChatPageState extends State<ChatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isMe ? Colors.white : const Color(0xFF1F2937),
-                      height: 1.3,
+                  if (isSpecialMessage) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          isQuotation ? Icons.description : Icons.receipt_long,
+                          size: 16,
+                          color: Colors.blue.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          isQuotation ? 'Quotation' : 'Bill',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                  ],
+                  _buildMessageContent(message, isMe, isSpecialMessage),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -571,9 +664,11 @@ class _ChatPageState extends State<ChatPage> {
                         _formatMessageTime(message.timestamp),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isMe
+                          color: isMe && !isSpecialMessage
                               ? Colors.white.withOpacity(0.8)
-                              : Colors.grey[500],
+                              : isSpecialMessage
+                                  ? Colors.blue.shade400
+                                  : Colors.grey[500],
                         ),
                       ),
                       if (isMe) ...[
@@ -581,9 +676,11 @@ class _ChatPageState extends State<ChatPage> {
                         Icon(
                           message.isRead ? Icons.done_all : Icons.done,
                           size: 16,
-                          color: message.isRead
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.7),
+                          color: isSpecialMessage
+                              ? Colors.blue.shade400
+                              : message.isRead
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.7),
                         ),
                       ],
                     ],
@@ -612,6 +709,190 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  Widget _buildMessageContent(
+      Message message, bool isMe, bool isSpecialMessage) {
+    if (isSpecialMessage) {
+      // Parse and format special message content
+      return _buildFormattedContent(message.content);
+    } else {
+      // Regular text message
+      return Text(
+        message.content,
+        style: TextStyle(
+          fontSize: 16,
+          color: isMe ? Colors.white : const Color(0xFF1F2937),
+          height: 1.3,
+        ),
+      );
+    }
+  }
+
+  Widget _buildFormattedContent(String content) {
+    try {
+      // Safety check for null or empty content
+      if (content.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final lines = content.split('\n');
+      List<Widget> widgets = [];
+
+      for (String line in lines) {
+        final trimmedLine = line.trim();
+
+        if (trimmedLine.isEmpty) {
+          widgets.add(const SizedBox(height: 4));
+          continue;
+        }
+
+        // Handle headers like **📋 QUOTATION** or **🧾 FINAL BILL**
+        if (trimmedLine.startsWith('**') &&
+            trimmedLine.endsWith('**') &&
+            !trimmedLine.contains(':')) {
+          final headerText = trimmedLine.replaceAll('**', '');
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                headerText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1F2937),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+          continue;
+        }
+
+        // Handle bold key-value pairs like **Service:** Service Name
+        if (trimmedLine.startsWith('**') && trimmedLine.contains(':')) {
+          final colonIndex = trimmedLine.indexOf(':');
+          if (colonIndex >= 0 && colonIndex < trimmedLine.length - 1) {
+            final keyPart =
+                trimmedLine.substring(0, colonIndex + 1).replaceAll('**', '');
+            final valuePart = trimmedLine.substring(colonIndex + 1).trim();
+
+            widgets.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      keyPart,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        valuePart,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+            continue;
+          }
+        }
+
+        // Handle dividers
+        if (trimmedLine.startsWith('---')) {
+          widgets.add(
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(thickness: 1, color: Colors.grey),
+            ),
+          );
+          continue;
+        }
+
+        // Handle italic text at the end
+        if (trimmedLine.startsWith('*') &&
+            trimmedLine.endsWith('*') &&
+            !trimmedLine.startsWith('**')) {
+          widgets.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                trimmedLine.replaceAll('*', ''),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+          continue;
+        }
+
+        // Handle numbered lists for sub-services
+        try {
+          if (RegExp(r'^\d+\.').hasMatch(trimmedLine)) {
+            widgets.add(
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Text(
+                  trimmedLine,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1F2937),
+                  ),
+                ),
+              ),
+            );
+            continue;
+          }
+        } catch (regexError) {
+          // If regex fails, treat as regular text
+          developer.log('RegExp error: $regexError', name: 'ChatPage');
+        }
+
+        // Regular text
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 1),
+            child: Text(
+              trimmedLine,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
+      );
+    } catch (e) {
+      // If there's any error in formatting, fall back to plain text display
+      developer.log('Error formatting message content: $e', name: 'ChatPage');
+      return Text(
+        content,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Color(0xFF1F2937),
+        ),
+      );
+    }
   }
 
   Widget _buildMessagesList() {

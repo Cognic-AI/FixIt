@@ -23,6 +23,9 @@ class Request {
   final String providerEmail;
   final String clientLocation;
   final String providerLocation;
+  final String? note;
+  final String? budget;
+  final String? serviceType;
   Request({
     required this.id,
     required this.serviceId,
@@ -46,6 +49,9 @@ class Request {
     required this.providerEmail,
     required this.clientLocation,
     required this.providerLocation,
+    this.note,
+    this.budget,
+    this.serviceType,
   });
 
   factory Request.fromJson(Map<String, dynamic> json) {
@@ -63,7 +69,7 @@ class Request {
       description: json['description'],
       category: json['category'],
       availability: json['availability'] ?? false,
-      price: (json['price'] as num).toDouble(),
+      price: (json['price']).toDouble(),
       tags: json['tags'] ?? '',
       images: json['images'] ?? '',
       clientName: json['clientName'] ?? '',
@@ -72,6 +78,9 @@ class Request {
       providerEmail: json['providerEmail'] ?? '',
       clientLocation: json['clientLocation'] ?? '',
       providerLocation: json['providerLocation'] ?? '',
+      note: json['note'],
+      budget: json['budget'] != "" ? (json['budget']).toString() : '0',
+      serviceType: json['serviceType'] ?? '',
     );
   }
 
@@ -99,6 +108,9 @@ class Request {
       'providerEmail': providerEmail,
       'clientLocation': clientLocation,
       'providerLocation': providerLocation,
+      'note': note,
+      'budget': budget,
+      'serviceType': serviceType
     };
   }
 
@@ -145,8 +157,11 @@ class Request {
       serviceCategory: category,
       servicePrice: price,
       clientName: clientName,
-      budget: 0,
+      budget: '0',
+      serviceType: 'on-site',
       vendorName: providerName,
+      note: note,
+      clientLocation: clientLocation.isNotEmpty ? clientLocation : "",
     );
   }
 }

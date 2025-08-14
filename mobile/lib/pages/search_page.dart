@@ -5,7 +5,7 @@ import '../models/service.dart';
 import '../services/user_service.dart';
 import '../widgets/map_popup.dart';
 import './client/request_service_page.dart';
-import './client/messages_page.dart';
+// import './client/messages_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key, required this.token, required this.uid});
@@ -486,59 +486,59 @@ class _SearchPageState extends State<SearchPage> {
                 // Action Buttons Row
                 Row(
                   children: [
-                    // Message Button
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MessagesPage(
-                                    userId: widget.uid,
-                                    token: widget.token,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline,
-                                    size: 16,
-                                    color: Color(0xFF10B981),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Message',
-                                    style: TextStyle(
-                                      color: Color(0xFF10B981),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
+                    // // Message Button
+                    // Expanded(
+                    //   child: Container(
+                    //     decoration: BoxDecoration(
+                    //       color: const Color(0xFF10B981).withOpacity(0.1),
+                    //       borderRadius: BorderRadius.circular(8),
+                    //     ),
+                    //     child: Material(
+                    //       color: Colors.transparent,
+                    //       child: InkWell(
+                    //         borderRadius: BorderRadius.circular(8),
+                    //         onTap: () {
+                    //           Navigator.push(
+                    //             context,
+                    //             MaterialPageRoute(
+                    //               builder: (context) => MessagesPage(
+                    //                 userId: widget.uid,
+                    //                 token: widget.token,
+                    //               ),
+                    //             ),
+                    //           );
+                    //         },
+                    //         child: const Padding(
+                    //           padding: EdgeInsets.symmetric(
+                    //             horizontal: 12,
+                    //             vertical: 10,
+                    //           ),
+                    //           child: Row(
+                    //             mainAxisSize: MainAxisSize.min,
+                    //             mainAxisAlignment: MainAxisAlignment.center,
+                    //             children: [
+                    //               Icon(
+                    //                 Icons.chat_bubble_outline,
+                    //                 size: 16,
+                    //                 color: Color(0xFF10B981),
+                    //               ),
+                    //               SizedBox(width: 6),
+                    //               Text(
+                    //                 'Message',
+                    //                 style: TextStyle(
+                    //                   color: Color(0xFF10B981),
+                    //                   fontWeight: FontWeight.w600,
+                    //                   fontSize: 14,
+                    //                 ),
+                    //               ),
+                    //             ],
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(width: 12),
                     // Request Service Button
                     Expanded(
                       child: Container(
@@ -560,6 +560,7 @@ class _SearchPageState extends State<SearchPage> {
                                     category: service.category,
                                     title: service.title,
                                     price: service.price,
+                                    service: service,
                                   ),
                                 ),
                               );
@@ -1032,6 +1033,7 @@ class _SearchPageState extends State<SearchPage> {
                               category: service.category,
                               title: service.title,
                               price: service.price,
+                              service: service,
                             ),
                           ),
                         );

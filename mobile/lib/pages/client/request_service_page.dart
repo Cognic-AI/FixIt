@@ -1,3 +1,6 @@
+import 'package:fixit/models/service.dart';
+import 'package:fixit/services/messaging_service.dart';
+import 'package:fixit/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'package:provider/provider.dart';
@@ -13,12 +16,14 @@ class RequestServicePage extends StatefulWidget {
     required this.category,
     required this.title,
     required this.price,
+    required this.service,
   });
-  final String uid; 
+  final String uid;
   final String token;
-  final String category; 
-  final String title; 
-  final double price; 
+  final String category;
+  final String title;
+  final double price;
+  final Service service;
 
   @override
   State<RequestServicePage> createState() => _RequestServicePageState();
@@ -30,7 +35,6 @@ class _RequestServicePageState extends State<RequestServicePage> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  String _selectedCategory = 'cleaning';
   LatLng? _selectedLocation;
   String _serviceType = 'on-site'; // 'on-site' or 'visit-provider'
 
@@ -87,10 +91,10 @@ class _RequestServicePageState extends State<RequestServicePage> {
   void _loadUserLocation() {
     // Only load user location for on-site services
     if (_serviceType != 'on-site') return;
-    
+
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
-    
+
     if (user != null && user.location.isNotEmpty) {
       _locationController.text = user.location;
       // Try to parse coordinates if they're in "lat,lng" format
@@ -101,7 +105,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
           final lng = double.parse(parts[1].trim());
           _selectedLocation = LatLng(lat, lng);
         } catch (e) {
-          developer.log('Could not parse user location coordinates: $e', name: 'RequestServicePage');
+          developer.log('Could not parse user location coordinates: $e',
+              name: 'RequestServicePage');
         }
       }
     } else {
@@ -119,7 +124,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
     if (result != null) {
       setState(() {
         _selectedLocation = result;
-        _locationController.text = "${result.latitude.toStringAsFixed(4)}, ${result.longitude.toStringAsFixed(4)}";
+        _locationController.text =
+            "${result.latitude.toStringAsFixed(4)}, ${result.longitude.toStringAsFixed(4)}";
       });
     }
   }
@@ -127,7 +133,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
   void _showLocationOptions() {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -150,7 +156,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2563EB).withOpacity(0.3)),
+                  border: Border.all(
+                      color: const Color(0xFF2563EB).withOpacity(0.3)),
                   color: const Color(0xFF2563EB).withOpacity(0.05),
                 ),
                 child: ListTile(
@@ -160,10 +167,13 @@ class _RequestServicePageState extends State<RequestServicePage> {
                       color: const Color(0xFF2563EB).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.person_pin_circle, color: Color(0xFF2563EB), size: 20),
+                    child: const Icon(Icons.person_pin_circle,
+                        color: Color(0xFF2563EB), size: 20),
                   ),
-                  title: const Text('Profile Location', style: TextStyle(fontWeight: FontWeight.w500)),
-                  subtitle: Text(user!.location, style: TextStyle(color: Colors.grey[600])),
+                  title: const Text('Profile Location',
+                      style: TextStyle(fontWeight: FontWeight.w500)),
+                  subtitle: Text(user!.location,
+                      style: TextStyle(color: Colors.grey[600])),
                   onTap: () {
                     Navigator.pop(context);
                     setState(() {
@@ -176,7 +186,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           final lng = double.parse(parts[1].trim());
                           _selectedLocation = LatLng(lat, lng);
                         } catch (e) {
-                          developer.log('Could not parse coordinates: $e', name: 'RequestServicePage');
+                          developer.log('Could not parse coordinates: $e',
+                              name: 'RequestServicePage');
                         }
                       }
                     });
@@ -192,9 +203,12 @@ class _RequestServicePageState extends State<RequestServicePage> {
                   color: Colors.grey.shade50,
                 ),
                 child: const ListTile(
-                  leading: Icon(Icons.person_pin_circle_outlined, color: Colors.grey),
-                  title: Text('Profile Location', style: TextStyle(color: Colors.grey)),
-                  subtitle: Text('No location set in profile', style: TextStyle(color: Colors.grey)),
+                  leading: Icon(Icons.person_pin_circle_outlined,
+                      color: Colors.grey),
+                  title: Text('Profile Location',
+                      style: TextStyle(color: Colors.grey)),
+                  subtitle: Text('No location set in profile',
+                      style: TextStyle(color: Colors.grey)),
                   enabled: false,
                 ),
               ),
@@ -202,7 +216,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+                border:
+                    Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
                 color: const Color(0xFF10B981).withOpacity(0.05),
               ),
               child: ListTile(
@@ -212,10 +227,13 @@ class _RequestServicePageState extends State<RequestServicePage> {
                     color: const Color(0xFF10B981).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.my_location, color: Color(0xFF10B981), size: 20),
+                  child: const Icon(Icons.my_location,
+                      color: Color(0xFF10B981), size: 20),
                 ),
-                title: const Text('Current Location', style: TextStyle(fontWeight: FontWeight.w500)),
-                subtitle: Text('Use your GPS location', style: TextStyle(color: Colors.grey[600])),
+                title: const Text('Current Location',
+                    style: TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text('Use your GPS location',
+                    style: TextStyle(color: Colors.grey[600])),
                 onTap: () {
                   Navigator.pop(context);
                   _useCurrentLocation();
@@ -225,7 +243,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.3)),
+                border:
+                    Border.all(color: const Color(0xFF7C3AED).withOpacity(0.3)),
                 color: const Color(0xFF7C3AED).withOpacity(0.05),
               ),
               child: ListTile(
@@ -235,10 +254,13 @@ class _RequestServicePageState extends State<RequestServicePage> {
                     color: const Color(0xFF7C3AED).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.map, color: Color(0xFF7C3AED), size: 20),
+                  child:
+                      const Icon(Icons.map, color: Color(0xFF7C3AED), size: 20),
                 ),
-                title: const Text('Select on Map', style: TextStyle(fontWeight: FontWeight.w500)),
-                subtitle: Text('Choose a specific location', style: TextStyle(color: Colors.grey[600])),
+                title: const Text('Select on Map',
+                    style: TextStyle(fontWeight: FontWeight.w500)),
+                subtitle: Text('Choose a specific location',
+                    style: TextStyle(color: Colors.grey[600])),
                 onTap: () {
                   Navigator.pop(context);
                   _openMapDialog();
@@ -291,7 +313,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        if (permission == LocationPermission.deniedForever ||
+            permission == LocationPermission.denied) {
           Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Location permissions are denied.')),
@@ -308,18 +331,21 @@ class _RequestServicePageState extends State<RequestServicePage> {
 
       setState(() {
         _selectedLocation = LatLng(position.latitude, position.longitude);
-        _locationController.text = "${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
+        _locationController.text =
+            "${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Current location selected successfully!')),
+        const SnackBar(
+            content: Text('Current location selected successfully!')),
       );
-
     } catch (e) {
       Navigator.pop(context); // Close loading dialog if still open
-      developer.log('Error getting current location: $e', name: 'RequestServicePage');
+      developer.log('Error getting current location: $e',
+          name: 'RequestServicePage');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to get current location. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to get current location. Please try again.')),
       );
     }
   }
@@ -331,7 +357,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: const Padding(
             padding: EdgeInsets.all(16.0),
             child: Row(
@@ -346,29 +373,55 @@ class _RequestServicePageState extends State<RequestServicePage> {
         ),
       );
 
-      final requestData = {
-        'title': _titleController.text,
-        'description': _descriptionController.text.isNotEmpty 
-            ? _descriptionController.text 
-            : 'No additional description provided',
-        'category': _selectedCategory,
-        'budget': _budgetController.text.isNotEmpty 
-            ? _budgetController.text 
-            : 'Budget not specified',
-        'userId': widget.uid,
-        'serviceType': _serviceType,
-        'location': _serviceType == 'on-site' 
-            ? (_locationController.text.isNotEmpty ? _locationController.text : 'No location specified')
-            : 'Not applicable - Visit provider service',
-        'serviceProvider': widget.title,
-        'servicePrice': widget.price,
-      };
+      // final requestData = {
+      //   'serviceId': widget.service.id,
+      //   'clientId': widget.uid,
+      //   'location': widget.service.location,
+      //   'providerId': widget.service.providerId,
+      //   'clientLocation': _selectedLocation != null
+      //       ? "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}"
+      //       : "",
+      //   'note': _descriptionController.text.isNotEmpty
+      //       ? _descriptionController.text
+      //       : 'No additional description provided',
+      //   'budget': _budgetController.text.isNotEmpty
+      //       ? "\$${_budgetController.text}"
+      //       : 'Budget not specified',
+      //   'serviceType': _serviceType,
+      // };
 
       try {
-        // Simulate API call with delay
-        await Future.delayed(const Duration(seconds: 2));
-        developer.log('Submitting request: $requestData', name: 'RequestServicePage');
-        // Add your API call logic here
+        // // Simulate API call with delay
+        // await Future.delayed(const Duration(seconds: 2));
+        // developer.log('Submitting request: $requestData',
+        //     name: 'RequestServicePage');
+        String _id = await UserService().createRequest(
+            token: widget.token,
+            serviceId: widget.service.id,
+            clientId: widget.uid,
+            providerId: widget.service.providerId,
+            location: widget.service.location,
+            note: _descriptionController.text.isNotEmpty
+                ? _descriptionController.text
+                : null,
+            budget: _budgetController.text.isNotEmpty
+                ? double.tryParse(_budgetController.text)
+                : null,
+            serviceType: _serviceType,
+            clientLocation: _selectedLocation != null
+                ? "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}"
+                : "");
+
+        await MessagingService().sendMessage(
+          conversationId: _id,
+          senderId: widget.uid,
+          senderName: "System",
+          senderType: 'client',
+          receiverId: widget.service.providerId,
+          receiverName: "System",
+          content: "New Request has been sent",
+          token: widget.token,
+        );
 
         Navigator.pop(context); // Close loading dialog
 
@@ -376,7 +429,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -399,7 +453,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _serviceType == 'on-site' 
+                  _serviceType == 'on-site'
                       ? 'Your service request has been submitted successfully. The service provider will contact you to arrange a visit to your location.'
                       : 'Your service request has been submitted successfully. The service provider will contact you with their location details and availability.',
                   textAlign: TextAlign.center,
@@ -432,13 +486,15 @@ class _RequestServicePageState extends State<RequestServicePage> {
         );
       } catch (e) {
         Navigator.pop(context); // Close loading dialog
-        developer.log('Error submitting request: $e', name: 'RequestServicePage');
-        
+        developer.log('Error submitting request: $e',
+            name: 'RequestServicePage');
+
         // Show error dialog
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -550,7 +606,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                               ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
@@ -575,7 +632,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.2)),
                       ),
                       child: Row(
                         children: [
@@ -583,7 +641,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           const SizedBox(width: 8),
                           const Text(
                             'Starting Price: ',
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           Text(
                             '€${widget.price.toStringAsFixed(2)}',
@@ -648,7 +707,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           RadioListTile<String>(
                             title: const Row(
                               children: [
-                                Icon(Icons.home_repair_service, color: Color(0xFF2563EB), size: 20),
+                                Icon(Icons.home_repair_service,
+                                    color: Color(0xFF2563EB), size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   'On-Site Service',
@@ -658,7 +718,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                             ),
                             subtitle: const Text(
                               'Service provider comes to your location',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 12),
                             ),
                             value: 'on-site',
                             groupValue: _serviceType,
@@ -680,7 +741,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           RadioListTile<String>(
                             title: const Row(
                               children: [
-                                Icon(Icons.store, color: Color(0xFF10B981), size: 20),
+                                Icon(Icons.store,
+                                    color: Color(0xFF10B981), size: 20),
                                 SizedBox(width: 8),
                                 Text(
                                   'Visit Provider',
@@ -690,7 +752,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                             ),
                             subtitle: const Text(
                               'You visit the service provider\'s location',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 12),
                             ),
                             value: 'visit-provider',
                             groupValue: _serviceType,
@@ -746,7 +809,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.all(16),
-                            prefixIcon: const Icon(Icons.location_on, color: Color(0xFF2563EB)),
+                            prefixIcon: const Icon(Icons.location_on,
+                                color: Color(0xFF2563EB)),
                             suffixIcon: Container(
                               margin: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
@@ -754,7 +818,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: IconButton(
-                                icon: const Icon(Icons.map, color: Colors.white, size: 20),
+                                icon: const Icon(Icons.map,
+                                    color: Colors.white, size: 20),
                                 onPressed: _showLocationOptions,
                               ),
                             ),
@@ -765,7 +830,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           ),
                           readOnly: true,
                           validator: (value) {
-                            if (_serviceType == 'on-site' && (value?.isEmpty ?? true)) {
+                            if (_serviceType == 'on-site' &&
+                                (value?.isEmpty ?? true)) {
                               return 'Please select a location for the service';
                             }
                             return null;
@@ -808,7 +874,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(16),
-                          prefixIcon: Icon(Icons.description, color: Color(0xFF2563EB)),
+                          prefixIcon:
+                              Icon(Icons.description, color: Color(0xFF2563EB)),
                           labelStyle: TextStyle(
                             color: Color(0xFF2563EB),
                             fontWeight: FontWeight.w500,
@@ -852,7 +919,8 @@ class _RequestServicePageState extends State<RequestServicePage> {
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(16),
-                          prefixIcon: Icon(Icons.euro, color: Color(0xFF2563EB)),
+                          prefixIcon:
+                              Icon(Icons.euro, color: Color(0xFF2563EB)),
                           labelStyle: TextStyle(
                             color: Color(0xFF2563EB),
                             fontWeight: FontWeight.w500,
@@ -960,7 +1028,8 @@ class _MapDialogState extends State<_MapDialog> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        if (permission == LocationPermission.deniedForever ||
+            permission == LocationPermission.denied) {
           return;
         }
       }
@@ -985,7 +1054,8 @@ class _MapDialogState extends State<_MapDialog> {
         );
       }
     } catch (e) {
-      developer.log('Error getting current location in map: $e', name: 'MapDialog');
+      developer.log('Error getting current location in map: $e',
+          name: 'MapDialog');
     }
   }
 
