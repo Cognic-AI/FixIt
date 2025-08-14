@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/message.dart';
 import '../models/service_request.dart';
+import '../models/sub_service.dart';
 
 class MessagingService {
   final String _baseUrl = dotenv.env['MESSAGING_SERVICE_URL'] ??
@@ -250,6 +251,12 @@ class MessagingService {
 
       developer.log('💬 Found ${messages.length} messages',
           name: 'MessagingService');
+
+      // Check if messages list is empty to prevent RangeError
+      if (messages.isEmpty) {
+        throw Exception('No messages found for conversation: $conversationId');
+      }
+
       return messages[0];
     } catch (e) {
       developer.log('💬 Error getting messages: $e',
@@ -426,6 +433,109 @@ class MessagingService {
           name: 'MessagingService', error: e);
       return 0;
     }
+  }
+
+  Future<Message> sendQuotation({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    required String senderType,
+    required String receiverId,
+    required String receiverName,
+    required String serviceTitle,
+    required String clientName,
+    required List<SubService> subServices,
+    required String notes,
+    required String token,
+  }) async {
+    developer.log('📤 Sending quotation from $senderId to $receiverId',
+        name: 'MessagingService');
+
+    // Calculate total price
+    double totalPrice =
+        subServices.fold(0.0, (sum, service) => sum + service.price);
+
+    // Create formatted quotation content
+    String subServicesContent = '';
+    for (int i = 0; i < subServices.length; i++) {
+      final service = subServices[i];
+      subServicesContent +=
+          '${i + 1}. ${service.description} - €${service.price.toStringAsFixed(2)}\n';
+    }
+
+    final quotationContent = '''
+**📋 QUOTATION**
+
+**Service:** $serviceTitle
+**Client:** $clientName
+
+**Sub Services:**
+$subServicesContent
+**💰 Total Price:** €${totalPrice.toStringAsFixed(2)}
+
+${notes.isNotEmpty ? '**Notes:** $notes' : ''}
+
+---
+*This is a quotation for the requested service. Please review and respond.*
+''';
+
+    return sendMessage(
+      conversationId: conversationId,
+      senderId: senderId,
+      senderName: senderName,
+      senderType: senderType,
+      receiverId: receiverId,
+      receiverName: receiverName,
+      content: quotationContent,
+      type: MessageType.quotation,
+      token: token,
+    );
+  }
+
+  Future<Message> sendBill({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    required String senderType,
+    required String receiverId,
+    required String receiverName,
+    required String serviceTitle,
+    required String clientName,
+    required String serviceDetails,
+    required double finalAmount,
+    required String paymentNotes,
+    required String token,
+  }) async {
+    developer.log('📤 Sending bill from $senderId to $receiverId',
+        name: 'MessagingService');
+
+    // Create formatted bill content
+    final billContent = '''
+**🧾 FINAL BILL**
+
+**Service:** $serviceTitle
+**Client:** $clientName
+**Work Completed:** $serviceDetails
+
+**💳 Final Amount:** €${finalAmount.toStringAsFixed(2)}
+
+${paymentNotes.isNotEmpty ? '**Payment Notes:** $paymentNotes' : ''}
+
+---
+*Service completed. Please proceed with payment.*
+''';
+
+    return sendMessage(
+      conversationId: conversationId,
+      senderId: senderId,
+      senderName: senderName,
+      senderType: senderType,
+      receiverId: receiverId,
+      receiverName: receiverName,
+      content: billContent,
+      type: MessageType.bill,
+      token: token,
+    );
   }
 
   Future<Map<String, int>> getTotalUnreadCountV2(

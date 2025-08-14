@@ -4,7 +4,7 @@ import ballerina/io;
 import ballerina/time;
 import ballerinax/mongodb;
 
-public type MessageType "text"|"image"|"file"|"location"|"system";
+public type MessageType "text"|"image"|"file"|"location"|"system"|"bill"|"quotation";
 
 public type Message record {
     string id;

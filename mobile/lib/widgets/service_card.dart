@@ -2,7 +2,7 @@ import 'package:fixit/widgets/map_popup.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
-import '../pages/client/request_service_page.dart'; 
+import '../pages/client/request_service_page.dart';
 
 class ServiceCard extends StatelessWidget {
   final Service service;
@@ -58,6 +58,7 @@ class ServiceCard extends StatelessWidget {
                 category: service.category,
                 title: service.title,
                 price: service.price,
+                service: service,
               ),
             ),
           );

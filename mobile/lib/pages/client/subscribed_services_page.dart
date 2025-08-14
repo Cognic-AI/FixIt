@@ -508,6 +508,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
                                     category: service.category,
                                     title: service.title,
                                     price: service.price,
+                                    service: service,
                                   ),
                                 ),
                               );
@@ -941,6 +942,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
                               category: service.category,
                               title: service.title,
                               price: service.price,
+                              service: service,
                             ),
                           ),
                         );

@@ -45,6 +45,8 @@ class ServiceRequestService {
 
 // Helper method to convert Request to ServiceRequest
   ServiceRequest _convertRequestToServiceRequest(Request request) {
+    print("ClientLocation: ${request.clientLocation}");
+    print("Location: ${request.location}");
     return ServiceRequest(
       id: request.id,
       clientId: request.clientId,
@@ -61,14 +63,18 @@ class ServiceRequestService {
       location: request.location.isNotEmpty
           ? request.location
           : request.clientLocation,
-      budget: request.price, // Using price as budget
+      budget: request.price.toString(),
       servicePrice: request.price,
       status: _convertStateToRequestStatus(request.state),
       createdAt: request.createdAt,
       updatedAt: request.updatedAt,
       scheduledDate: null, // Request doesn't have scheduled date
-      notes: request.tags.isNotEmpty ? 'Tags: ${request.tags}' : null,
+      note: request.note,
       conversationId: request.chatId,
+      clientLocation: request.clientLocation.isNotEmpty
+          ? request.clientLocation
+          : "", // Fallback to location if clientLocation is empty
+      serviceType: request.serviceType ?? 'on-site',
     );
   }
 
