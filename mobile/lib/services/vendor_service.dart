@@ -201,9 +201,7 @@ class VendorService extends ChangeNotifier {
         print('[VendorService] Total requests loaded: ${allRequests.length}');
         _pendingRequests = allRequests.where((req) => req.isPending).toList();
         print('[VendorService] Pending requests: ${_pendingRequests.length}');
-        _activeServices = allRequests
-            .where((req) => req.isAccepted || req.isAccepted)
-            .toList();
+        _activeServices = allRequests.where((req) => req.isAccepted).toList();
         print('[VendorService] Active services: ${_activeServices.length}');
         _completedServices =
             allRequests.where((req) => req.isCompleted).toList();

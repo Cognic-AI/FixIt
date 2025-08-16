@@ -1,6 +1,8 @@
+import backend.utils;
+
 import ballerina/io;
 import ballerinax/mongodb;
-import backend.utils;
+
 public type _Service record {
     string id;
     string providerId;
@@ -16,7 +18,6 @@ public type _Service record {
     string tags;
     string images;
 };
-
 
 public function queryService(map<json> filter) returns _Service|error {
     string collection = "services";
@@ -80,6 +81,7 @@ public function queryServices(map<json> filter) returns _Service[]|error {
     _Service[] services = [];
     error? e = result.forEach(function(_Service 'service) {
         services.push('service);
+        io:println("📄 Retrieved service: ", 'service.availability);
     });
 
     if e is error {

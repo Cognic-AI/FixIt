@@ -238,13 +238,15 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
     }
 
     map<json> filters = {};
-    if user is models:User {
-        if user.role == "client" {
-            filters["clientId"] = user.id; // Filter by client ID if authenticated as client
-        } else if user.role == "vendor" {
-            filters["providerId"] = user.id; // Filter by provider ID if authenticated as vendor
-        }
+    string username = user is models:User ? user.firstName + " " + user.lastName : "";
+    string userEmail = user is models:User ? user.email : "";
+    string userRole = user is models:User ? user.role : "guest";
+    if userRole == "client" {
+        filters["clientId"] = user.id; // Filter by client ID if authenticated as client
+    } else if userRole == "vendor" {
+        filters["providerId"] = user.id; // Filter by provider ID if authenticated as vendor
     }
+
     Request[]|error allRequestsData = models:queryRequests(filters);
     if allRequestsData is error {
         io:println("Failed to fetch requests from Firestore: " + allRequestsData.toString()); // IO log
@@ -259,7 +261,95 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
         check caller->respond(response);
         return;
     }
+    if userRole == "client" || userRole == "vendor" {
+        RequestResponse[] allRequestedServices = [];
+        allRequestsData.forEach(function(Request req2) {
+            map<json> filterServices = {
+                "id": req2.serviceId
+            };
+            Service|error allRequestedServiceData = models:queryService(filterServices);
+            if allRequestedServiceData is error {
+                io:println("Failed to fetch requests from Firestore: " + allRequestedServiceData.toString()); // IO log
+                log:printError("Failed to fetch requests from Firestore", allRequestedServiceData);
+                json errorResponse = {
+                    "message": "Failed to fetch requests",
+                    "statusCode": 500
+                };
+                http:Response response = new;
+                response.statusCode = 500;
+                response.setJsonPayload(errorResponse);
+            }
+            map<json> userFilter = {};
+            if userRole == "client" {
+                userFilter["id"] = allRequestedServiceData is Service ? allRequestedServiceData.providerId : "";
+            } else {
+                userFilter["id"] = req2.clientId;
+            }
 
+            models:User|error user2 = models:queryUsers("users", userFilter);
+            if user2 is error {
+                io:println("Unauthorized access attempt in getMyRequests"); // IO log
+                json errorResponse = {
+                    "message": "Unauthorized: Only service clients can view their requests",
+                    "statusCode": 403
+                };
+                http:Response response = new;
+                response.statusCode = 403;
+                response.setJsonPayload(errorResponse);
+                do {
+                    check caller->respond(response);
+                } on fail var e {
+                    io:println("Failed to respond to client: " + e.toString());
+                }
+                return;
+            }
+            if allRequestedServiceData is Service {
+                allRequestedServices.push({
+                    id: req2.id,
+                    serviceId: req2.serviceId,
+                    providerId: req2.providerId,
+                    clientId: req2.clientId,
+                    state: req2.state,
+                    location: req2.location,
+                    createdAt: req2.createdAt,
+                    updatedAt: req2.updatedAt,
+                    chatId: req2.chatId,
+                    title: allRequestedServiceData.title, // Assuming at least one service is found
+                    description: allRequestedServiceData.description,
+                    category: allRequestedServiceData.category,
+                    availability: allRequestedServiceData.availability,
+                    price: allRequestedServiceData.price,
+                    tags: allRequestedServiceData.tags,
+                    images: allRequestedServiceData.images,
+                    clientName: userRole == "client" ? username : user2.firstName + " " + user2.lastName,
+                    clientEmail: userRole == "client" ? userEmail : user2.email,
+                    providerName: userRole == "vendor" ? username : user2.firstName + " " + user2.lastName,
+                    providerEmail: userRole == "vendor" ? userEmail : user2.email,
+                    clientLocation: req2.clientLocation,
+                    note: req2.note,
+                    budget: req2.budget,
+                    serviceType: req2.serviceType
+                });
+
+            }
+        });
+        json successResponse = {
+            "message": "Your requests retrieved successfully",
+            "requests": allRequestedServices.toJson(),
+            "client": {
+                "id": user.id,
+                "email": user.email,
+                "firstName": user.firstName,
+                "lastName": user.lastName
+            }
+        };
+
+        http:Response response = new;
+        response.statusCode = 200;
+        response.setJsonPayload(successResponse);
+        check caller->respond(response);
+        io:println("User's requests retrieved successfully for client: " + user.email); // IO log
+    }
     json successResponse = {
         "message": "Your requests retrieved successfully",
         "requests": allRequestsData.toJson(),
