@@ -332,7 +332,7 @@ class _QuotationFormState extends State<QuotationForm> {
                                         decimal: true),
                                 decoration: InputDecoration(
                                   hintText: '0.00',
-                                  prefixText: '€ ',
+                                  prefixText: 'LKR ',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide:
@@ -384,7 +384,7 @@ class _QuotationFormState extends State<QuotationForm> {
                               ),
                             ),
                             Text(
-                              '€${_totalPrice.toStringAsFixed(2)}',
+                              'LKR ${_totalPrice.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,

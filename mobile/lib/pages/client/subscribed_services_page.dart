@@ -303,7 +303,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '€${service.price.toStringAsFixed(0)}',
+                            '${service.price.toStringAsFixed(0)}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -666,7 +666,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
                                   ),
                                 ),
                                 Text(
-                                  '€${service.price.toStringAsFixed(2)}',
+                                  'LKR ${service.price.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 24,

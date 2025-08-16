@@ -816,7 +816,14 @@ class _MapPageState extends State<MapPage> {
             // Price, location and distance
             Row(
               children: [
-                const Icon(Icons.euro, size: 16, color: Colors.green),
+                const Text(
+                  'LKR',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green,
+                  ),
+                ),
                 const SizedBox(width: 4),
                 Text(
                   service.price.toStringAsFixed(2),
@@ -1431,7 +1438,7 @@ class _MapPageState extends State<MapPage> {
                                           if (isExactService) ...[
                                             const SizedBox(height: 2),
                                             Text(
-                                              '${matchingService.category.toUpperCase()} • €${matchingService.price.toStringAsFixed(0)}',
+                                              '${matchingService.category.toUpperCase()} • LKR ${matchingService.price.toStringAsFixed(0)}',
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 color: Colors.grey[600],

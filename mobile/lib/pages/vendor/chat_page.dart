@@ -633,10 +633,10 @@ class _ChatPageState extends State<ChatPage> {
                           'Client Location',
                           "${widget.request.clientLocation} (Tap to view on map)"),
                     ),
-                    _buildDetailRow(Icons.euro, 'Price',
-                        '€${request.servicePrice.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.attach_money, 'Price',
+                        'LKR ${request.servicePrice.toStringAsFixed(2)}'),
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
-                        '€${request.budget}'),
+                        'LKR ${request.budget}'),
                     _buildDetailRow(Icons.access_time, 'Requested',
                         _formatDate(request.createdAt)),
 

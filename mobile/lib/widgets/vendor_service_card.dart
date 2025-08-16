@@ -139,7 +139,7 @@ class VendorServiceCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '\$${service.price.toStringAsFixed(2)}',
+                      'LKR ${service.price.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
