@@ -4,7 +4,7 @@ import 'package:fixit/models/service_request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:fixit/pages/auth/login_page.dart';
 import 'package:fixit/pages/vendor/ai_chat_page.dart';
-import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
+import 'package:fixit/pages/vendor/chat_page.dart';
 import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -129,6 +129,7 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   Widget _buildDashboard() {
     print('[VENDOR_HOME] _buildDashboard called');
+    VendorService().initialize(widget.user.id, widget.token);
     return Consumer<VendorService>(
       builder: (context, vendorService, child) {
         print('[VENDOR_HOME] Consumer builder called');
@@ -182,7 +183,7 @@ class _VendorHomePageState extends State<VendorHomePage>
                   children: [
                     Expanded(
                       child: _buildStatCard(
-                        'Active Services',
+                        'Accepted Requests',
                         vendorService.activeServices.length.toString(),
                         Icons.work,
                         const Color(0xFF006FD6),
@@ -385,6 +386,7 @@ class _VendorHomePageState extends State<VendorHomePage>
 
   Widget _buildServices() {
     print('[VENDOR_HOME] _buildServices called');
+    VendorService().initialize(widget.user.id, widget.token);
     return Consumer<VendorService>(
       builder: (context, vendorService, child) {
         print('[VENDOR_HOME] Services Consumer builder called');
@@ -500,6 +502,7 @@ class _VendorHomePageState extends State<VendorHomePage>
   }
 
   Widget _buildRequests() {
+    VendorService().initialize(widget.user.id, widget.token);
     return Consumer<VendorService>(
       builder: (context, vendorService, child) {
         return Column(

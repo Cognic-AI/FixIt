@@ -44,70 +44,72 @@ class FixItApp extends StatelessWidget {
   Widget build(BuildContext context) {
     developer.log('Building FixItApp widget', name: 'FixItApp');
     return Consumer<ThemeService>(
-        builder: (context, themeService, child) {
-          developer.log('Building MaterialApp with theme', name: 'FixItApp');
-          return MaterialApp(
-            title: 'FixIt',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              primaryColor: const Color(0xFF2563EB),
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF2563EB),
-                brightness: Brightness.light,
-              ),
-              useMaterial3: true,
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 0,
-              ),
+      builder: (context, themeService, child) {
+        developer.log('Building MaterialApp with theme', name: 'FixItApp');
+        return MaterialApp(
+          title: 'FixIt',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            primaryColor: const Color(0xFF2563EB),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF2563EB),
+              brightness: Brightness.light,
             ),
-            home: const SplashScreen(),
-            routes: {
-              '/splash': (context) => const SplashScreen(),
-              '/login': (context) => const LoginPage(),
-              '/interests': (context) => const InterestsPage(),
-            },
-            onGenerateRoute: (settings) {
-              // Handle routes that need AuthService data
-              switch (settings.name) {
-                case '/home':
-                  return MaterialPageRoute(
-                    builder: (context) {
-                      final authService = Provider.of<AuthService>(context, listen: false);
-                      final user = authService.currentUser;
-                      final token = authService.jwtToken;
-                      
-                      if (user != null && token != null) {
-                        return HomePage(user: user, token: token);
-                      } else {
-                        // If no user data, redirect to login
-                        return const LoginPage();
-                      }
-                    },
-                  );
-                case '/vendor_home':
-                  return MaterialPageRoute(
-                    builder: (context) {
-                      final authService = Provider.of<AuthService>(context, listen: false);
-                      final user = authService.currentUser;
-                      final token = authService.jwtToken;
-                      
-                      if (user != null && token != null) {
-                        return VendorHomePage(user: user, token: token);
-                      } else {
-                        // If no user data, redirect to login
-                        return const LoginPage();
-                      }
-                    },
-                  );
-                default:
-                  return null;
-              }
-            },
-          );
-        },
+            useMaterial3: true,
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+            ),
+          ),
+          home: const SplashScreen(),
+          routes: {
+            '/splash': (context) => const SplashScreen(),
+            '/login': (context) => const LoginPage(),
+            '/interests': (context) => const InterestsPage(userType: 'client'),
+          },
+          onGenerateRoute: (settings) {
+            // Handle routes that need AuthService data
+            switch (settings.name) {
+              case '/home':
+                return MaterialPageRoute(
+                  builder: (context) {
+                    final authService =
+                        Provider.of<AuthService>(context, listen: false);
+                    final user = authService.currentUser;
+                    final token = authService.jwtToken;
+
+                    if (user != null && token != null) {
+                      return HomePage(user: user, token: token);
+                    } else {
+                      // If no user data, redirect to login
+                      return const LoginPage();
+                    }
+                  },
+                );
+              case '/vendor_home':
+                return MaterialPageRoute(
+                  builder: (context) {
+                    final authService =
+                        Provider.of<AuthService>(context, listen: false);
+                    final user = authService.currentUser;
+                    final token = authService.jwtToken;
+
+                    if (user != null && token != null) {
+                      return VendorHomePage(user: user, token: token);
+                    } else {
+                      // If no user data, redirect to login
+                      return const LoginPage();
+                    }
+                  },
+                );
+              default:
+                return null;
+            }
+          },
+        );
+      },
     );
   }
 }

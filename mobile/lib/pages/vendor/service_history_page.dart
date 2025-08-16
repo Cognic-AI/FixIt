@@ -1,4 +1,4 @@
-import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
+import 'package:fixit/pages/vendor/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../../models/service_request.dart';

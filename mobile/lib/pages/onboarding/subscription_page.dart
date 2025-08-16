@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SubscriptionPage extends StatefulWidget {
-  const SubscriptionPage({super.key});
+  const SubscriptionPage({super.key, required this.userType});
+
+  final String userType;
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
@@ -61,13 +63,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       );
       return;
     }
-
-    // Navigate to home page
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/home',
-      (route) => false,
-    );
+    if (widget.userType == "client") {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/home',
+        (route) => false,
+      );
+    } else {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/vendor_home',
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -111,7 +119,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Progress Indicator
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -124,14 +132,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   ],
                 ),
               ),
-              
+
               // Plans
               Expanded(
                 child: Container(
                   margin: const EdgeInsets.only(top: 24),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
                     children: [
@@ -142,7 +151,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           itemBuilder: (context, index) {
                             final plan = plans[index];
                             final isSelected = selectedPlan == plan['id'];
-                            
+
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -164,7 +173,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   boxShadow: [
                                     if (isSelected)
                                       BoxShadow(
-                                        color: const Color(0xFF2563EB).withOpacity(0.1),
+                                        color: const Color(0xFF2563EB)
+                                            .withOpacity(0.1),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -174,7 +184,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           plan['name'],
@@ -191,9 +202,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.baseline,
                                       textBaseline: TextBaseline.alphabetic,
                                       children: [
                                         Text(
@@ -218,7 +229,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                             ),
                                             decoration: BoxDecoration(
                                               color: Colors.green.shade100,
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: Text(
                                               plan['discount'],
@@ -233,24 +245,27 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                       ],
                                     ),
                                     const SizedBox(height: 12),
-                                    
-                                    ...plan['features'].map<Widget>((feature) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 4),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.check,
-                                            size: 16,
-                                            color: Colors.green,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            feature,
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ],
-                                      ),
-                                    )).toList(),
+                                    ...plan['features']
+                                        .map<Widget>((feature) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 4),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.check,
+                                                    size: 16,
+                                                    color: Colors.green,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    feature,
+                                                    style: const TextStyle(
+                                                        fontSize: 14),
+                                                  ),
+                                                ],
+                                              ),
+                                            ))
+                                        .toList(),
                                   ],
                                 ),
                               ),
@@ -258,7 +273,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           },
                         ),
                       ),
-                      
+
                       // Trial Info
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -286,7 +301,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           ],
                         ),
                       ),
-                      
+
                       // Bottom Actions
                       Padding(
                         padding: const EdgeInsets.all(24),
@@ -299,10 +314,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: selectedPlan.isEmpty ? null : _startTrial,
+                                onPressed:
+                                    selectedPlan.isEmpty ? null : _startTrial,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF2563EB),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                 ),
                                 child: const Text(
                                   'Start Free Trial',

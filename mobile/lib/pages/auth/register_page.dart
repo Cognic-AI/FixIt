@@ -63,7 +63,8 @@ class _RegisterPageState extends State<RegisterPage> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const InterestsPage()),
+          MaterialPageRoute(
+              builder: (context) => InterestsPage(userType: widget.userType)),
         );
       }
     } catch (e) {

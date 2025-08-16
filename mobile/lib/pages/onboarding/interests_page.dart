@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'subscription_page.dart';
 
 class InterestsPage extends StatefulWidget {
-  const InterestsPage({super.key});
+  const InterestsPage({super.key, required this.userType});
+
+  final String userType;
 
   @override
   State<InterestsPage> createState() => _InterestsPageState();
@@ -54,7 +56,9 @@ class _InterestsPageState extends State<InterestsPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const SubscriptionPage(),
+        builder: (context) => SubscriptionPage(
+          userType: widget.userType,
+        ),
       ),
     );
   }
@@ -100,7 +104,7 @@ class _InterestsPageState extends State<InterestsPage> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Progress Indicator
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -113,14 +117,15 @@ class _InterestsPageState extends State<InterestsPage> {
                   ],
                 ),
               ),
-              
+
               // Interests Grid
               Expanded(
                 child: Container(
                   margin: const EdgeInsets.only(top: 24),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
                     children: [
@@ -128,7 +133,8 @@ class _InterestsPageState extends State<InterestsPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(24),
                           child: GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
                               childAspectRatio: 3,
                               crossAxisSpacing: 12,
@@ -137,8 +143,9 @@ class _InterestsPageState extends State<InterestsPage> {
                             itemCount: interests.length,
                             itemBuilder: (context, index) {
                               final interest = interests[index];
-                              final isSelected = selectedInterests.contains(interest);
-                              
+                              final isSelected =
+                                  selectedInterests.contains(interest);
+
                               return GestureDetector(
                                 onTap: () => _toggleInterest(interest),
                                 child: Container(
@@ -157,7 +164,9 @@ class _InterestsPageState extends State<InterestsPage> {
                                     child: Text(
                                       interest,
                                       style: TextStyle(
-                                        color: isSelected ? Colors.white : Colors.black87,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black87,
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                       ),
@@ -170,7 +179,7 @@ class _InterestsPageState extends State<InterestsPage> {
                           ),
                         ),
                       ),
-                      
+
                       // Bottom Actions
                       Padding(
                         padding: const EdgeInsets.all(24),
@@ -183,10 +192,13 @@ class _InterestsPageState extends State<InterestsPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: selectedInterests.isEmpty ? null : _continue,
+                                onPressed: selectedInterests.isEmpty
+                                    ? null
+                                    : _continue,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF2563EB),
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                 ),
                                 child: Text(
                                   'Continue (${selectedInterests.length} selected)',

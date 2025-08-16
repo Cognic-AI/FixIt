@@ -1,5 +1,5 @@
 import 'package:fixit/models/service_request.dart';
-import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
+import 'package:fixit/pages/vendor/chat_page.dart';
 import 'package:fixit/services/messaging_service.dart';
 import 'package:fixit/services/service_request_service.dart';
 import 'package:flutter/material.dart';
