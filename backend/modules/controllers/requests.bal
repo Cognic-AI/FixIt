@@ -261,7 +261,7 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
         check caller->respond(response);
         return;
     }
-    if userRole == "client" {
+    if userRole == "client" || userRole == "vendor" {
         RequestResponse[] allRequestedServices = [];
         allRequestsData.forEach(function(Request req2) {
             map<json> filterServices = {
@@ -280,7 +280,11 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
                 response.setJsonPayload(errorResponse);
             }
             map<json> userFilter = {};
-            userFilter["id"] = allRequestedServiceData is Service ? allRequestedServiceData.providerId : "";
+            if userRole == "client" {
+                userFilter["id"] = allRequestedServiceData is Service ? allRequestedServiceData.providerId : "";
+            } else {
+                userFilter["id"] = req2.clientId;
+            }
 
             models:User|error user2 = models:queryUsers("users", userFilter);
             if user2 is error {
@@ -317,10 +321,10 @@ public function getMyRequests(http:Caller caller, http:Request req) returns erro
                     price: allRequestedServiceData.price,
                     tags: allRequestedServiceData.tags,
                     images: allRequestedServiceData.images,
-                    clientName: username,
-                    clientEmail: userEmail,
-                    providerName: user2.firstName + " " + user2.lastName,
-                    providerEmail: user2.email,
+                    clientName: userRole == "client" ? username : user2.firstName + " " + user2.lastName,
+                    clientEmail: userRole == "client" ? userEmail : user2.email,
+                    providerName: userRole == "vendor" ? username : user2.firstName + " " + user2.lastName,
+                    providerEmail: userRole == "vendor" ? userEmail : user2.email,
                     clientLocation: req2.clientLocation,
                     note: req2.note,
                     budget: req2.budget,
