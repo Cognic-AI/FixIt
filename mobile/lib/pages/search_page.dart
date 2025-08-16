@@ -75,7 +75,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🔍 SearchPage initialized', name: 'SearchPage');
+    developer.log('SearchPage initialized', name: 'SearchPage');
 
     // Load services when the page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,7 +99,7 @@ class _SearchPageState extends State<SearchPage> {
         _subscriptions = subscriptions;
         _isLoading = false;
       });
-      developer.log('📊 Services loaded: ${_services.length}',
+      developer.log('Services loaded: ${_services.length}',
           name: 'SearchPage');
     } catch (e) {
       setState(() {
@@ -121,12 +121,12 @@ class _SearchPageState extends State<SearchPage> {
       setState(() {
         _isLoading = false;
       });
-      developer.log('📊 Subscription created successfully', name: 'SearchPage');
+      developer.log('Subscription created successfully', name: 'SearchPage');
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      developer.log('📊 Services loaded: ${_services.length}',
+      developer.log('Services loaded: ${_services.length}',
           name: 'SearchPage');
     }
   }

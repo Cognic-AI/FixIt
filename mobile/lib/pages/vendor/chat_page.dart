@@ -270,12 +270,12 @@
 //       );
 
 //       if (success) {
-//         developer.log('✅ Message sent successfully', name: 'ChatPage');
+//         developer.log('Message sent successfully', name: 'ChatPage');
 //         // Refresh messages
 //         _loadMessages();
 //       }
 //     } catch (e) {
-//       developer.log('❌ Error sending message: $e', name: 'ChatPage');
+//       developer.log('Error sending message: $e', name: 'ChatPage');
 //       if (mounted) {
 //         ScaffoldMessenger.of(context).showSnackBar(
 //           SnackBar(

@@ -32,22 +32,22 @@ class MessagingService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print('📱 Error getting conversation: ${response.statusCode}');
-        print('📱 Response body: ${response.body}');
+        print('Error getting conversation: ${response.statusCode}');
+        print('Response body: ${response.body}');
         throw Exception('Failed to load conversations: ${response.statusCode}');
       }
 
       final data = jsonDecode(response.body);
-      print('📱 Response data: ${data.toString()}');
+      print('Response data: ${data.toString()}');
 
       if (!data['success']) {
-        print('📱 Error getting conversation: ${data['message']}');
+        print('Error getting conversation: ${data['message']}');
         throw Exception('API error: ${data['message']}');
       }
 
       // Extract messages list from API
       final List<dynamic> messagesJson = data['messages'] ?? [];
-      print('📱 Messages JSON: $messagesJson');
+      print('Messages JSON: $messagesJson');
 
       final messages =
           messagesJson.map((json) => Message.fromJson(json)).toList();
@@ -72,7 +72,7 @@ class MessagingService {
         updatedAt: serviceRequest.updatedAt,
       );
 
-      developer.log('📱 Found conversation with ${messages.length} messages',
+      developer.log('Found conversation with ${messages.length} messages',
           name: 'MessagingService');
       print(
           '📱 Found conversation with ${messages.length} messages for $conversationId');
@@ -82,7 +82,7 @@ class MessagingService {
         'messages': messages,
       };
     } catch (e) {
-      developer.log('📱 Error getting conversation and messages: $e',
+      developer.log('Error getting conversation and messages: $e',
           name: 'MessagingService', error: e);
       print('📱 Error getting conversation and messages: $e');
       rethrow;
@@ -91,7 +91,7 @@ class MessagingService {
 
   Future<List<Message>> getAiConversation(
       String conversationId, String token) async {
-    developer.log('📱 Getting conversation and messages for: $conversationId',
+    developer.log('Getting conversation and messages for: $conversationId',
         name: 'MessagingService');
     print('Getting conversation and messages for: $conversationId');
 
@@ -106,22 +106,22 @@ class MessagingService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print('📱 Error getting conversation: ${response.statusCode}');
-        print('📱 Response body: ${response.body}');
+        print('Error getting conversation: ${response.statusCode}');
+        print('Response body: ${response.body}');
         throw Exception('Failed to load conversations: ${response.statusCode}');
       }
 
       final data = jsonDecode(response.body);
-      print('📱 Response data: ${data.toString()}');
+      print('Response data: ${data.toString()}');
 
       if (!data['success']) {
-        print('📱 Error getting conversation: ${data['message']}');
+        print('Error getting conversation: ${data['message']}');
         throw Exception('API error: ${data['message']}');
       }
 
       // Extract messages list from API
       final List<dynamic> messagesJson = data['messages'] ?? [];
-      print('📱 Messages JSON: $messagesJson');
+      print('Messages JSON: $messagesJson');
 
       final messages =
           messagesJson.map((json) => Message.fromJson(json)).toList();
@@ -131,16 +131,16 @@ class MessagingService {
 
       return messages;
     } catch (e) {
-      developer.log('📱 Error getting conversation and messages: $e',
+      developer.log('Error getting conversation and messages: $e',
           name: 'MessagingService', error: e);
-      print('📱 Error getting conversation and messages: $e');
+      print('Error getting conversation and messages: $e');
       rethrow;
     }
   }
 
   Future<List<Conversation>> getConversations(
       String userId, String token) async {
-    developer.log('📱 Getting conversations for user: $userId',
+    developer.log('Getting conversations for user: $userId',
         name: 'MessagingService');
 
     try {
@@ -166,19 +166,19 @@ class MessagingService {
       final conversations =
           conversationsJson.map((json) => Conversation.fromJson(json)).toList();
 
-      developer.log('📱 Found ${conversations.length} conversations',
+      developer.log('Found ${conversations.length} conversations',
           name: 'MessagingService');
 
       return conversations;
     } catch (e) {
-      developer.log('📱 Error getting conversations: $e',
+      developer.log('Error getting conversations: $e',
           name: 'MessagingService', error: e);
       rethrow;
     }
   }
 
   Future<List<Message>> getMessages(String conversationId, String token) async {
-    developer.log('💬 Getting messages for conversation: $conversationId',
+    developer.log('Getting messages for conversation: $conversationId',
         name: 'MessagingService');
 
     try {
@@ -192,13 +192,13 @@ class MessagingService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print('💬 Error getting messages: ${response.statusCode}');
+        print('Error getting messages: ${response.statusCode}');
         throw Exception('Failed to load messages: ${response.statusCode}');
       }
 
       final data = jsonDecode(response.body);
       if (!data['success']) {
-        print('💬 Error getting messages: ${data['message']}');
+        print('Error getting messages: ${data['message']}');
         throw Exception('API error: ${data['message']}');
       }
 
@@ -209,19 +209,19 @@ class MessagingService {
       // Sort by timestamp (oldest first for chat display)
       messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-      developer.log('💬 Found ${messages.length} messages',
+      developer.log('Found ${messages.length} messages',
           name: 'MessagingService');
       return messages;
     } catch (e) {
-      developer.log('💬 Error getting messages: $e',
+      developer.log('Error getting messages: $e',
           name: 'MessagingService', error: e);
-      print('💬 Error getting messages: $e');
+      print('Error getting messages: $e');
       rethrow;
     }
   }
 
   Future<Message> getLastMessage(String conversationId, String token) async {
-    developer.log('💬 Getting last message for conversation: $conversationId',
+    developer.log('Getting last message for conversation: $conversationId',
         name: 'MessagingService');
 
     try {
@@ -235,13 +235,13 @@ class MessagingService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print('💬 Error getting messages: ${response.statusCode}');
+        print('Error getting messages: ${response.statusCode}');
         throw Exception('Failed to load messages: ${response.statusCode}');
       }
 
       final data = jsonDecode(response.body);
       if (!data['success']) {
-        print('💬 Error getting messages: ${data['message']}');
+        print('Error getting messages: ${data['message']}');
         throw Exception('API error: ${data['message']}');
       }
 
@@ -249,7 +249,7 @@ class MessagingService {
       final messages =
           messagesJson.map((json) => Message.fromJson(json)).toList();
 
-      developer.log('💬 Found ${messages.length} messages',
+      developer.log('Found ${messages.length} messages',
           name: 'MessagingService');
 
       // Check if messages list is empty to prevent RangeError
@@ -259,9 +259,9 @@ class MessagingService {
 
       return messages[0];
     } catch (e) {
-      developer.log('💬 Error getting messages: $e',
+      developer.log('Error getting messages: $e',
           name: 'MessagingService', error: e);
-      print('💬 Error getting messages: $e');
+      print('Error getting messages: $e');
       rethrow;
     }
   }
@@ -277,7 +277,7 @@ class MessagingService {
     MessageType type = MessageType.text,
     required String token,
   }) async {
-    developer.log('📤 Sending message from $senderId to $receiverId',
+    developer.log('Sending message from $senderId to $receiverId',
         name: 'MessagingService');
 
     try {
@@ -311,11 +311,11 @@ class MessagingService {
       final messageJson = data['message'];
       final message = Message.fromJson(messageJson);
 
-      developer.log('📤 Message sent successfully: ${message.id}',
+      developer.log('Message sent successfully: ${message.id}',
           name: 'MessagingService');
       return message;
     } catch (e) {
-      developer.log('📤 Error sending message: $e',
+      developer.log('Error sending message: $e',
           name: 'MessagingService', error: e);
       rethrow;
     }
@@ -327,7 +327,7 @@ class MessagingService {
     MessageType type = MessageType.text,
     required String token,
   }) async {
-    developer.log('📤 Sending AI message', name: 'MessagingService');
+    developer.log('Sending AI message', name: 'MessagingService');
 
     try {
       final payload = {
@@ -368,11 +368,11 @@ class MessagingService {
         timestamp: DateTime.now(),
       );
 
-      developer.log('📤 Message sent successfully: ${message.id}',
+      developer.log('Message sent successfully: ${message.id}',
           name: 'MessagingService');
       return message;
     } catch (e) {
-      developer.log('📤 Error sending message: $e',
+      developer.log('Error sending message: $e',
           name: 'MessagingService', error: e);
       rethrow;
     }
@@ -380,7 +380,7 @@ class MessagingService {
 
   // Future<void> markMessagesAsRead(String conversationId, String userId) async {
   //   developer.log(
-  //       '✅ Marking messages as read for conversation: $conversationId',
+  //       'Marking messages as read for conversation: $conversationId',
   //       name: 'MessagingService');
 
   //   try {
@@ -400,9 +400,9 @@ class MessagingService {
   //       throw Exception('API error: ${data['message']}');
   //     }
 
-  //     developer.log('✅ Messages marked as read', name: 'MessagingService');
+  //     developer.log('Messages marked as read', name: 'MessagingService');
   //   } catch (e) {
-  //     developer.log('✅ Error marking messages as read: $e',
+  //     developer.log('Error marking messages as read: $e',
   //         name: 'MessagingService', error: e);
   //     rethrow;
   //   }
@@ -448,7 +448,7 @@ class MessagingService {
     required String notes,
     required String token,
   }) async {
-    developer.log('📤 Sending quotation from $senderId to $receiverId',
+    developer.log('Sending quotation from $senderId to $receiverId',
         name: 'MessagingService');
 
     // Calculate total price
@@ -464,16 +464,16 @@ class MessagingService {
     }
 
     final quotationContent = '''
-**📋 QUOTATION**
+📋 QUOTATION
 
-**Service:** $serviceTitle
-**Client:** $clientName
+Service: $serviceTitle
+Client: $clientName
 
-**Sub Services:**
+Sub Services:
 $subServicesContent
-**💰 Total Price:** €${totalPrice.toStringAsFixed(2)}
+💰 Total Price: €${totalPrice.toStringAsFixed(2)}
 
-${notes.isNotEmpty ? '**Notes:** $notes' : ''}
+${notes.isNotEmpty ? 'Notes: $notes' : ''}
 
 ---
 *This is a quotation for the requested service. Please review and respond.*
@@ -511,15 +511,15 @@ ${notes.isNotEmpty ? '**Notes:** $notes' : ''}
 
     // Create formatted bill content
     final billContent = '''
-**🧾 FINAL BILL**
+🧾 FINAL BILL
 
-**Service:** $serviceTitle
-**Client:** $clientName
-**Work Completed:** $serviceDetails
+Service: $serviceTitle
+Client: $clientName
+Work Completed: $serviceDetails
 
-**💳 Final Amount:** €${finalAmount.toStringAsFixed(2)}
+💳 Final Amount: €${finalAmount.toStringAsFixed(2)}
 
-${paymentNotes.isNotEmpty ? '**Payment Notes:** $paymentNotes' : ''}
+${paymentNotes.isNotEmpty ? 'Payment Notes: $paymentNotes' : ''}
 
 ---
 *Service completed. Please proceed with payment.*

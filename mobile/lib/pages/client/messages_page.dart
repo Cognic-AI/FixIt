@@ -98,7 +98,7 @@ class _MessagesPageState extends State<MessagesPage> {
 
     try {
       await _buildConversationsList();
-      developer.log('📱 Loaded ${_conversations.length} conversations',
+      developer.log('Loaded ${_conversations.length} conversations',
           name: 'MessagesPage');
       print(
           '📱 Loaded ${_conversations.length} conversations for ${widget.userId}');

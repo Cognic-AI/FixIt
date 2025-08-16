@@ -21,14 +21,14 @@ class AuthService extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
 
   AuthService() {
-    print('🔐 [AUTH_SERVICE] AuthService initialized');
-    developer.log('🔐 AuthService initialized', name: 'AuthService');
+    print('[AUTH_SERVICE] AuthService initialized');
+    developer.log('AuthService initialized', name: 'AuthService');
     // Note: loadUserProfile will be called explicitly from SplashScreen
   }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
-    print('🔑 [AUTH_SERVICE] Attempting sign in with email: $email');
-    developer.log('🔑 Attempting sign in with email: $email',
+    print('[AUTH_SERVICE] Attempting sign in with email: $email');
+    developer.log('Attempting sign in with email: $email',
         name: 'AuthService');
     _isLoading = true;
     notifyListeners();
@@ -48,17 +48,17 @@ class AuthService extends ChangeNotifier {
           _currentUser = app_user.User.fromJson(data['user']);
         } else {
           _currentUser = null;
-          developer.log('⚠️ Login response missing user data',
+          developer.log('Login response missing user data',
               name: 'AuthService');
         }
-        print('✅ [AUTH_SERVICE] Login successful');
-        developer.log('✅ Login successful', name: 'AuthService');
+        print('[AUTH_SERVICE] Login successful');
+        developer.log('Login successful', name: 'AuthService');
       } else {
-        developer.log('❌ Login failed: ${response.body}', name: 'AuthService');
+        developer.log('Login failed: ${response.body}', name: 'AuthService');
         throw Exception('Login failed: ${response.body}');
       }
     } catch (e) {
-      developer.log('❌ Error during login: $e', name: 'AuthService', error: e);
+      developer.log('Error during login: $e', name: 'AuthService', error: e);
       rethrow;
     } finally {
       _isLoading = false;
@@ -98,14 +98,14 @@ class AuthService extends ChangeNotifier {
         _currentUser = app_user.User.fromJson(data['user']);
         await _storage.write(key: 'token', value: _jwtToken);
 
-        developer.log('✅ Registration successful', name: 'AuthService');
+        developer.log('Registration successful', name: 'AuthService');
       } else {
-        developer.log('❌ Registration failed: ${response.body}',
+        developer.log('Registration failed: ${response.body}',
             name: 'AuthService');
         throw Exception('Registration failed: ${response.body}');
       }
     } catch (e) {
-      developer.log('❌ Error during registration: $e',
+      developer.log('Error during registration: $e',
           name: 'AuthService', error: e);
       rethrow;
     } finally {
@@ -116,7 +116,7 @@ class AuthService extends ChangeNotifier {
 
   Future<void> loadUserProfile() async {
     if (_isInitialized) {
-      developer.log('🔐 [AUTH] Already initialized, skipping',
+      developer.log('[AUTH] Already initialized, skipping',
           name: 'AuthService');
       return;
     }
@@ -125,7 +125,7 @@ class AuthService extends ChangeNotifier {
       _jwtToken = await _storage.read(key: 'token');
       if (_jwtToken == null) {
         developer.log(
-            '🔐 [AUTH] No token found, marking as initialized without user',
+            '[AUTH] No token found, marking as initialized without user',
             name: 'AuthService');
         _isInitialized = true;
         return;
@@ -147,16 +147,16 @@ class AuthService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _currentUser = app_user.User.fromJson(data);
-        developer.log('✅ User profile loaded', name: 'AuthService');
+        developer.log('User profile loaded', name: 'AuthService');
       } else {
-        developer.log('❌ Failed to load profile: ${response.body}',
+        developer.log('Failed to load profile: ${response.body}',
             name: 'AuthService');
         // Clear invalid token
         _jwtToken = null;
         await _storage.delete(key: 'token');
       }
     } catch (e) {
-      developer.log('❌ Error loading profile: $e',
+      developer.log('Error loading profile: $e',
           name: 'AuthService', error: e);
       // Clear potentially invalid token on error
       _jwtToken = null;
@@ -180,7 +180,7 @@ class AuthService extends ChangeNotifier {
   Future<void> resetPassword(
       String oldPassword, String newPassword, String token) async {
     try {
-      print('🔐 [AUTH_SERVICE] Attempting to change password');
+      print('[AUTH_SERVICE] Attempting to change password');
       final response = await http.put(
         Uri.parse('$_baseUrl/changePassword'),
         headers: {
@@ -192,20 +192,20 @@ class AuthService extends ChangeNotifier {
           'newPassword': newPassword,
         }),
       );
-      print('🔐 [AUTH_SERVICE] Password change response: ${response.body}');
+      print('[AUTH_SERVICE] Password change response: ${response.body}');
 
       if (response.statusCode == 200) {
-        print('✅ [AUTH_SERVICE] Password change successful');
-        developer.log('✅ Password change successful', name: 'AuthService');
+        print('[AUTH_SERVICE] Password change successful');
+        developer.log('Password change successful', name: 'AuthService');
       } else {
-        print('❌ [AUTH_SERVICE] Failed to change password: ${response.body}');
-        developer.log('❌ Failed to change password: ${response.body}',
+        print('[AUTH_SERVICE] Failed to change password: ${response.body}');
+        developer.log('Failed to change password: ${response.body}',
             name: 'AuthService');
         throw Exception('Failed to change password: ${response.body}');
       }
     } catch (e) {
-      print('❌ [AUTH_SERVICE] Error changing password: $e');
-      developer.log('❌ Error changing password: $e',
+      print('[AUTH_SERVICE] Error changing password: $e');
+      developer.log('Error changing password: $e',
           name: 'AuthService', error: e);
       rethrow;
     }

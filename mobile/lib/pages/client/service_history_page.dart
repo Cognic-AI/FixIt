@@ -52,7 +52,7 @@ class _ServiceHistoryPageState extends State<ServiceHistoryPage>
         _isLoading = false;
       });
 
-      developer.log('📋 Loaded ${requests.length} requests',
+      developer.log('Loaded ${requests.length} requests',
           name: 'RequestedServicesPage');
     } catch (e) {
       setState(() {

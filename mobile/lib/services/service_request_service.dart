@@ -96,7 +96,7 @@ class ServiceRequestService {
   }
 
   Future<Map<RequestStatus, int>> getRequestCounts(String clientId) async {
-    developer.log('📊 Getting request counts for client: $clientId',
+    developer.log('Getting request counts for client: $clientId',
         name: 'ServiceRequestService');
 
     try {
@@ -124,7 +124,7 @@ class ServiceRequestService {
           counts[status] = requests.where((req) => req.status == status).length;
         }
 
-        developer.log('📊 Request counts: ${counts.toString()}',
+        developer.log('Request counts: ${counts.toString()}',
             name: 'ServiceRequestService');
         return counts;
       } else {
@@ -141,7 +141,7 @@ class ServiceRequestService {
       String requestId, RequestStatus newStatus,
       {String? reason}) async {
     developer.log(
-        '🔄 Updating request $requestId status to ${newStatus.toString().split('.').last}',
+        'Updating request $requestId status to ${newStatus.toString().split('.').last}',
         name: 'ServiceRequestService');
 
     try {

@@ -5,8 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'dart:developer' as developer;
 import '../models/service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
+final String? googleMapsApiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
 
 class MapPopup extends StatefulWidget {
   const MapPopup(
@@ -417,20 +418,6 @@ class _MapPopupState extends State<MapPopup> {
                 // First row of buttons
                 Row(
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Handle contact action
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.message),
-                        label: const Text('Message'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {

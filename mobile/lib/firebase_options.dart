@@ -17,34 +17,34 @@
 
 // class DefaultFirebaseOptions {
 //   static FirebaseOptions get currentPlatform {
-//     developer.log('🔥 Getting Firebase options for current platform',
+//     developer.log('🔥Getting Firebase options for current platform',
 //         name: 'FirebaseOptions');
 //     if (kIsWeb) {
-//       developer.log('🌐 Platform detected: Web', name: 'FirebaseOptions');
+//       developer.log('Platform detected: Web', name: 'FirebaseOptions');
 //       return web;
 //     }
 //     switch (defaultTargetPlatform) {
 //       case TargetPlatform.android:
-//         developer.log('📱 Platform detected: Android', name: 'FirebaseOptions');
+//         developer.log('Platform detected: Android', name: 'FirebaseOptions');
 //         return android;
 //       case TargetPlatform.iOS:
-//         developer.log('📱 Platform detected: iOS', name: 'FirebaseOptions');
+//         developer.log('Platform detected: iOS', name: 'FirebaseOptions');
 //         return ios;
 //       case TargetPlatform.macOS:
-//         developer.log('💻 Platform detected: macOS', name: 'FirebaseOptions');
+//         developer.log('Platform detected: macOS', name: 'FirebaseOptions');
 //         return macos;
 //       case TargetPlatform.windows:
-//         developer.log('💻 Platform detected: Windows', name: 'FirebaseOptions');
+//         developer.log('Platform detected: Windows', name: 'FirebaseOptions');
 //         return windows;
 //       case TargetPlatform.linux:
-//         developer.log('⚠️ Platform detected: Linux (unsupported)',
+//         developer.log('Platform detected: Linux (unsupported)',
 //             name: 'FirebaseOptions');
 //         throw UnsupportedError(
 //           'DefaultFirebaseOptions have not been configured for linux - '
 //           'you can reconfigure this by running the FlutterFire CLI again.',
 //         );
 //       default:
-//         developer.log('❌ Unknown platform detected', name: 'FirebaseOptions');
+//         developer.log('Unknown platform detected', name: 'FirebaseOptions');
 //         throw UnsupportedError(
 //           'DefaultFirebaseOptions are not supported for this platform.',
 //         );
@@ -52,7 +52,7 @@
 //   }
 
 //   static FirebaseOptions get web {
-//     developer.log('🌐 Creating web Firebase options', name: 'FirebaseOptions');
+//     developer.log('Creating web Firebase options', name: 'FirebaseOptions');
 //     return FirebaseOptions(
 //       apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
 //       appId: dotenv.env['FIREBASE_WEB_APP_ID'] ?? '',

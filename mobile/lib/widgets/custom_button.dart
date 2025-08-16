@@ -24,7 +24,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     developer.log(
-        '🔘 Building CustomButton: "$text" (loading: $isLoading, outlined: $isOutlined)',
+        'Building CustomButton: "$text" (loading: $isLoading, outlined: $isOutlined)',
         name: 'CustomButton');
     if (isOutlined) {
       return SizedBox(

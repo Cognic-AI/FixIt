@@ -1080,7 +1080,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         });
       }
     } catch (e) {
-      developer.log('❌ Error updating profile: $e', name: 'EditProfilePage');
+      developer.log('Error updating profile: $e', name: 'EditProfilePage');
       _showErrorSnackBar('Error updating profile. Please try again.');
     } finally {
       if (mounted) {

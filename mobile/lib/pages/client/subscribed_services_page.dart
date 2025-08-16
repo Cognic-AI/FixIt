@@ -29,7 +29,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('📚 SubscribedServicesPage initialized',
+    developer.log('SubscribedServicesPage initialized',
         name: 'SubscribedServicesPage');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSubscribedServices();
@@ -65,7 +65,7 @@ class _SubscribedServicesPageState extends State<SubscribedServicesPage> {
       });
 
       developer.log(
-          '📊 Loaded ${_subscribedServices.length} subscribed services',
+          'Loaded ${_subscribedServices.length} subscribed services',
           name: 'SubscribedServicesPage');
     } catch (e) {
       setState(() {

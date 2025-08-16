@@ -54,7 +54,7 @@ class _AddServicePageState extends State<AddServicePage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🏗️ Initializing AddServicePage', name: 'AddServicePage');
+    developer.log('Initializing AddServicePage', name: 'AddServicePage');
 
     // Load services when page opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -536,7 +536,7 @@ class _AddServicePageState extends State<AddServicePage> {
         throw Exception('Failed to add service');
       }
     } catch (e) {
-      developer.log('❌ Error adding service: $e', name: 'AddServicePage');
+      developer.log('Error adding service: $e', name: 'AddServicePage');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

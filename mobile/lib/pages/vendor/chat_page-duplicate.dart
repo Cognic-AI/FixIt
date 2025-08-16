@@ -61,14 +61,14 @@ class _ChatPageState extends State<ChatPage> {
           _isLoading = false;
         });
         _scrollToBottom();
-        developer.log('💬 Loaded ${messages.length} messages',
+        developer.log('Loaded ${messages.length} messages',
             name: 'ChatPage');
       } else {
         setState(() {
           _messages = [];
           _isLoading = false;
         });
-        developer.log('💬 No messages found in result', name: 'ChatPage');
+        developer.log('No messages found in result', name: 'ChatPage');
       }
     } catch (e) {
       setState(() {
@@ -124,7 +124,7 @@ class _ChatPageState extends State<ChatPage> {
         _isSending = false;
       });
       _scrollToBottom();
-      developer.log('📤 Message sent successfully', name: 'ChatPage');
+      developer.log('Message sent successfully', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isSending = false;
@@ -325,7 +325,7 @@ class _ChatPageState extends State<ChatPage> {
         _isSending = false;
       });
       _scrollToBottom();
-      developer.log('📤 Quotation sent successfully', name: 'ChatPage');
+      developer.log('Quotation sent successfully', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isSending = false;
