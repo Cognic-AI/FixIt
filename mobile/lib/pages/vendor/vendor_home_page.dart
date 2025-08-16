@@ -4,7 +4,7 @@ import 'package:fixit/models/service_request.dart';
 import 'package:fixit/models/user.dart';
 import 'package:fixit/pages/auth/login_page.dart';
 import 'package:fixit/pages/vendor/ai_chat_page.dart';
-import 'package:fixit/pages/vendor/chat_page-duplicate.dart';
+import 'package:fixit/pages/vendor/chat_page.dart';
 import 'package:fixit/pages/vendor/messages_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
