@@ -50,8 +50,11 @@ class _RequestedServicesPageState extends State<RequestedServicesPage>
         _isLoading = false;
       });
 
-      developer.log('📋 Loaded ${requests.length} requests',
-          name: 'RequestedServicesPage');
+      for (var request in requests) {
+        print('📋 Loaded request: ${request.serviceTitle}');
+      }
+
+      print('📋 Loaded ${requests.length} requests');
     } catch (e) {
       setState(() {
         _isLoading = false;
