@@ -101,7 +101,7 @@ class ServiceRequestCard extends StatelessWidget {
 
             // Service Info
             _buildDetailRow(Icons.category, request.category),
-            if (request.description.isNotEmpty) ...[
+            if (request.note != null && request.note!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -114,7 +114,7 @@ class ServiceRequestCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Service Description:',
+                      'Notes:',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -122,7 +122,7 @@ class ServiceRequestCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      request.description,
+                      request.note ?? 'No additional notes provided.',
                       style: TextStyle(
                         color: Colors.grey[700],
                         fontSize: 14,
