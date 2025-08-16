@@ -53,7 +53,7 @@ public type RequestResponse record {
 public type RequestCreation record {
     string serviceId;
     string clientId;
-    string location;
+    string? location;
     string providerId;
     string clientLocation;
     string note;
@@ -117,7 +117,7 @@ public function createRequest(http:Caller caller, http:Request req) returns erro
         clientId: requestData.clientId,
         providerId: requestData.providerId,
         state: "pending",
-        location: requestData.location,
+        location: requestData.location ?: "",
         chatId: uuid:createType1AsString(), // Generate a new chat ID
         createdAt: currentTime,
         updatedAt: currentTime,
