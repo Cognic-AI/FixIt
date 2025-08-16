@@ -168,7 +168,7 @@ class ServiceRequestCard extends StatelessWidget {
             _buildDetailRow(Icons.calendar_today,
                 '${request.createdAt.day}/${request.createdAt.month}/${request.createdAt.year}'),
             _buildDetailRow(
-                Icons.attach_money, '\$${request.price.toStringAsFixed(2)}'),
+                Icons.attach_money, 'LKR ${request.price.toStringAsFixed(2)}'),
 
             if (request.tags.isNotEmpty) ...[
               const SizedBox(height: 8),

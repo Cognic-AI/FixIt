@@ -315,7 +315,7 @@ class _SearchPageState extends State<SearchPage> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '€${service.price.toStringAsFixed(0)}',
+                            'LKR ${service.price.toStringAsFixed(0)}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -718,7 +718,7 @@ class _SearchPageState extends State<SearchPage> {
                                   ),
                                 ),
                                 Text(
-                                  '€${service.price.toStringAsFixed(2)}',
+                                  'LKR ${service.price.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 24,
@@ -1152,7 +1152,7 @@ class _SearchPageState extends State<SearchPage> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: const Icon(
-                                      Icons.euro,
+                                      Icons.attach_money,
                                       color: Color(0xFF2563EB),
                                       size: 20,
                                     ),
@@ -1180,7 +1180,7 @@ class _SearchPageState extends State<SearchPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  '€${_priceRange.start.round()} - €${_priceRange.end.round()}',
+                                  'LKR ${_priceRange.start.round()} - LKR ${_priceRange.end.round()}',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,

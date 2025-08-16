@@ -637,7 +637,14 @@ class _RequestServicePageState extends State<RequestServicePage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.euro, color: Colors.white, size: 20),
+                          const Text(
+                            'LKR',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           const Text(
                             'Starting Price: ',
@@ -645,7 +652,7 @@ class _RequestServicePageState extends State<RequestServicePage> {
                                 TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           Text(
-                            '€${widget.price.toStringAsFixed(2)}',
+                            'LKR ${widget.price.toStringAsFixed(2)}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -915,12 +922,12 @@ class _RequestServicePageState extends State<RequestServicePage> {
                         controller: _budgetController,
                         decoration: const InputDecoration(
                           labelText: 'Enter your budget',
-                          hintText: 'Enter your budget in €',
+                          hintText: 'Enter your budget in LKR',
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(16),
                           prefixIcon:
-                              Icon(Icons.euro, color: Color(0xFF2563EB)),
+                              Icon(Icons.attach_money, color: Color(0xFF2563EB)),
                           labelStyle: TextStyle(
                             color: Color(0xFF2563EB),
                             fontWeight: FontWeight.w500,

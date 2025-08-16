@@ -326,7 +326,7 @@ class _ServiceHistoryPageState extends State<ServiceHistoryPage>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '€${request.servicePrice.toStringAsFixed(0)}',
+                          'LKR ${request.servicePrice.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

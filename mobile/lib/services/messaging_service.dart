@@ -460,7 +460,7 @@ class MessagingService {
     for (int i = 0; i < subServices.length; i++) {
       final service = subServices[i];
       subServicesContent +=
-          '${i + 1}. ${service.description} - €${service.price.toStringAsFixed(2)}\n';
+          '${i + 1}. ${service.description} - LKR ${service.price.toStringAsFixed(2)}\n';
     }
 
     final quotationContent = '''
@@ -471,7 +471,7 @@ Client: $clientName
 
 Sub Services:
 $subServicesContent
-💰 Total Price: €${totalPrice.toStringAsFixed(2)}
+💰 Total Price: LKR ${totalPrice.toStringAsFixed(2)}
 
 ${notes.isNotEmpty ? 'Notes: $notes' : ''}
 
@@ -517,7 +517,7 @@ Service: $serviceTitle
 Client: $clientName
 Work Completed: $serviceDetails
 
-💳 Final Amount: €${finalAmount.toStringAsFixed(2)}
+💳 Final Amount: LKR ${finalAmount.toStringAsFixed(2)}
 
 ${paymentNotes.isNotEmpty ? 'Payment Notes: $paymentNotes' : ''}
 

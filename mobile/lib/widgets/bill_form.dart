@@ -185,7 +185,7 @@ class _BillFormState extends State<BillForm> {
 
                     // Final Amount Field
                     const Text(
-                      'Final Amount (€) *',
+                      'Final Amount (LKR) *',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -199,7 +199,7 @@ class _BillFormState extends State<BillForm> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         hintText: '0.00',
-                        prefixText: '€ ',
+                        prefixText: 'LKR ',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey.shade300),

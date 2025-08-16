@@ -55,7 +55,7 @@ class _ChatPageState extends State<ChatPage> {
         _isLoading = false;
       });
       _scrollToBottom();
-      developer.log('💬 Loaded ${messages.length} messages', name: 'ChatPage');
+      developer.log('Loaded ${messages.length} messages', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -110,7 +110,7 @@ class _ChatPageState extends State<ChatPage> {
         _isSending = false;
       });
       _scrollToBottom();
-      developer.log('📤 Message sent successfully', name: 'ChatPage');
+      developer.log('Message sent successfully', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isSending = false;
@@ -235,9 +235,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _showRequestDetails(ServiceRequest request) {
-    developer.log('📋 Showing request details modal', name: 'ChatPage');
+    developer.log('Showing request details modal', name: 'ChatPage');
     print(
-        '📋 Request details - Title: ${request.serviceTitle}, Vendor: ${request.vendorName}');
+        'Request details - Title: ${request.serviceTitle}, Vendor: ${request.vendorName}');
 
     // Add a snackbar to confirm the method is being called
     ScaffoldMessenger.of(context).showSnackBar(
@@ -403,11 +403,11 @@ class _ChatPageState extends State<ChatPage> {
                           "${widget.request.clientLocation} (Tap to view on map)"),
                     ),
 
-                    _buildDetailRow(Icons.euro, 'Price',
-                        '€${request.servicePrice.toStringAsFixed(2)}'),
+                    _buildDetailRow(Icons.attach_money, 'Price',
+                        'LKR ${request.servicePrice.toStringAsFixed(2)}'),
 
                     _buildDetailRow(Icons.account_balance_wallet, 'Your Budget',
-                        '€${request.budget}'),
+                        'LKR ${request.budget}'),
 
                     _buildDetailRow(Icons.access_time, 'Requested',
                         _formatDate(request.createdAt)),

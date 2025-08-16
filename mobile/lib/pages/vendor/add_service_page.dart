@@ -200,7 +200,7 @@ class _AddServicePageState extends State<AddServicePage> {
                       // Price
                       CustomTextField(
                         controller: _priceController,
-                        label: 'Price (\$) *',
+                        label: 'Price (LKR) *',
                         hintText: 'Enter service price',
                         keyboardType: TextInputType.number,
                         validator: (value) {

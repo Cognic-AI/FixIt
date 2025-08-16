@@ -208,7 +208,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                       textBaseline: TextBaseline.alphabetic,
                                       children: [
                                         Text(
-                                          '\$${plan['price']}',
+                                          'LKR ${plan['price']}',
                                           style: const TextStyle(
                                             fontSize: 24,
                                             fontWeight: FontWeight.bold,

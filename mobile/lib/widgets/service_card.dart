@@ -163,7 +163,7 @@ class ServiceCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '€${service.price.toStringAsFixed(2)}',
+                        'LKR ${service.price.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -225,7 +225,7 @@ class ServiceCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '€${service.price.toStringAsFixed(2)}',
+                          'LKR ${service.price.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
