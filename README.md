@@ -142,11 +142,10 @@ SUBSCRIPTION_SERVICE_URL=http://localhost:8085/api/subscriptions
 MESSAGING_SERVICE_URL=http://localhost:8087/api/chat
 AI_URL=http://localhost:8082/api/ai
 
-Note: Open Command Prompt (cmd) and enter ipconfig to find your ipv4 address. Use this address intead of 'localhost' in the above service urls
-
 # Google Maps Integration
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
+> **Note**: Open Command Prompt (cmd) and enter ipconfig to find your ipv4 address. Use this address intead of 'localhost' in the above service urls
 
 > **Note**: See `.env.example` for a complete template with all available environment variables.
 

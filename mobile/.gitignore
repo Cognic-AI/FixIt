@@ -33,5 +33,3 @@ pubspec.lock
 
 /android/settings.gradle
 /android/settings.gradle
-
-/android/app/src/main/AndroidManifest.xml
