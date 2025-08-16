@@ -9,6 +9,7 @@ class ServiceCard extends StatelessWidget {
   final String userId;
   final String token;
   final bool isHorizontal;
+  final bool showMessageButton;
   final void Function()? onTap;
   final void Function()? onMessageTap;
   final void Function()? onMapTap;
@@ -18,6 +19,7 @@ class ServiceCard extends StatelessWidget {
     required this.userId,
     required this.token,
     this.isHorizontal = false,
+    this.showMessageButton = true,
     this.onTap,
     this.onMessageTap,
     this.onMapTap,
@@ -26,7 +28,7 @@ class ServiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     developer.log(
-        '🏗️ Building ServiceCard for: ${service.title} (horizontal: $isHorizontal)',
+        'Building ServiceCard for: ${service.title} (horizontal: $isHorizontal)',
         name: 'ServiceCard');
     final messageButton = Padding(
       padding: const EdgeInsets.only(top: 8.0),
@@ -149,6 +151,16 @@ class ServiceCard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        service.description,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         '€${service.price.toStringAsFixed(2)}',
@@ -158,7 +170,7 @@ class ServiceCard extends StatelessWidget {
                           color: Color(0xFF2563EB),
                         ),
                       ),
-                      messageButton,
+                      if (showMessageButton) messageButton,
                       requestServiceButton, // Add request service button here
                     ],
                   ),
@@ -271,28 +283,17 @@ class ServiceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          service.updatedAt,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 8),
                     Text(
-                      'Host: ${service.providerEmail}',
+                      service.description,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    messageButton,
+                    if (showMessageButton) messageButton,
                     requestServiceButton, // Add request service button here
                   ],
                 ),

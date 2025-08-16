@@ -26,7 +26,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('⚙️ Settings page initialized', name: 'SettingsPage');
+    developer.log('Settings page initialized', name: 'SettingsPage');
   }
 
   @override
@@ -115,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   IconButton(
                     onPressed: () {
-                      developer.log('✏️ Edit profile pressed',
+                      developer.log('Edit profile pressed',
                           name: 'SettingsPage');
                       Navigator.push(
                         context,
@@ -157,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Privacy & Security',
             subtitle: 'Manage your privacy settings',
             onTap: () {
-              developer.log('🔒 Privacy & Security tapped',
+              developer.log('Privacy & Security tapped',
                   name: 'SettingsPage');
               Navigator.push(
                 context,
@@ -181,7 +181,7 @@ class _SettingsPageState extends State<SettingsPage> {
               value: themeService.isDarkMode,
               onChanged: (value) {
                 developer.log(
-                    '🎨 Theme toggled to: ${value ? 'dark' : 'light'}',
+                    'Theme toggled to: ${value ? 'dark' : 'light'}',
                     name: 'SettingsPage');
                 themeService.toggleTheme();
               },
@@ -193,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Language',
             subtitle: 'English',
             onTap: () {
-              developer.log('🌍 Language settings tapped',
+              developer.log('Language settings tapped',
                   name: 'SettingsPage');
               _showLanguageDialog(context, themeService);
             },
@@ -208,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Notification Settings',
             subtitle: 'Manage all your notification preferences',
             onTap: () {
-              developer.log('🔔 Notification Settings tapped',
+              developer.log('Notification Settings tapped',
                   name: 'SettingsPage');
               Navigator.push(
                 context,
@@ -228,7 +228,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _pushNotifications = value;
                 });
-                developer.log('🔔 Push notifications: $value',
+                developer.log('Push notifications: $value',
                     name: 'SettingsPage');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -252,7 +252,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _emailNotifications = value;
                 });
-                developer.log('📧 Email notifications: $value',
+                developer.log('Email notifications: $value',
                     name: 'SettingsPage');
               },
               activeColor: const Color(0xFF2563EB),
@@ -268,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   _locationEnabled = value;
                 });
-                developer.log('📍 Location services: $value',
+                developer.log('Location services: $value',
                     name: 'SettingsPage');
               },
               activeColor: const Color(0xFF2563EB),
@@ -284,7 +284,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Help Center',
             subtitle: 'Get help and support',
             onTap: () {
-              developer.log('❓ Help Center tapped', name: 'SettingsPage');
+              developer.log('Help Center tapped', name: 'SettingsPage');
               _showHelpDialog(context);
             },
           ),
@@ -293,7 +293,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Send Feedback',
             subtitle: 'Share your thoughts with us',
             onTap: () {
-              developer.log('💬 Feedback tapped', name: 'SettingsPage');
+              developer.log('Feedback tapped', name: 'SettingsPage');
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -307,7 +307,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'About',
             subtitle: 'App version and information',
             onTap: () {
-              developer.log('ℹ️ About tapped', name: 'SettingsPage');
+              developer.log('About tapped', name: 'SettingsPage');
               _showAboutDialog(context);
             },
           ),
@@ -321,7 +321,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Sign Out',
             subtitle: 'Log out of your account',
             onTap: () {
-              developer.log('🚪 Sign out tapped', name: 'SettingsPage');
+              developer.log('Sign out tapped', name: 'SettingsPage');
               _showSignOutDialog(context, authService);
             },
             textColor: Colors.red,
@@ -787,7 +787,7 @@ class _SettingsPageState extends State<SettingsPage> {
           'FixIt v1.0.0\n\n'
           'Connect with trusted service providers in your area.\n\n'
           'Developed with ❤️ for better local services.\n\n'
-          '© 2024 FixIt. All rights reserved.',
+          '© 2025 FixIt. All rights reserved.',
         ),
         actions: [
           TextButton(
@@ -815,7 +815,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Navigator.pop(context); // Close the dialog first
               try {
                 await authService.signOut();
-                developer.log('✅ User signed out successfully',
+                developer.log('User signed out successfully',
                     name: 'SettingsPage');
                 // Navigate back to login and clear all previous routes
                 if (context.mounted) {
@@ -825,7 +825,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 }
               } catch (e) {
-                developer.log('❌ Error during sign out: $e',
+                developer.log('Error during sign out: $e',
                     name: 'SettingsPage', error: e);
                 // Show error message to user
                 if (context.mounted) {

@@ -4,14 +4,14 @@ import 'package:fixit/pages/client/subscribed_services_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
+import 'package:geolocator/geolocator.dart';
 import '../services/auth_service.dart';
 import '../services/messaging_service.dart';
 import '../services/service_request_service.dart';
+import '../services/user_service.dart';
 import '../models/service_request.dart';
 import '../widgets/service_card.dart';
-import '../widgets/event_card.dart';
 import '../models/service.dart';
-import '../models/event.dart';
 import 'search_page.dart';
 import 'map_page.dart';
 import 'client/messages_page.dart';
@@ -31,35 +31,128 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Service> featuredServices = [];
+  List<Service> nearbyServices = [];
   final MessagingService _messagingService = MessagingService();
   final ServiceRequestService _requestService = ServiceRequestService();
-
-  final List<Event> nearbyEvents = [
-    Event(
-      id: '1',
-      title: 'Maroon 5 Concert',
-      location: 'Recife Arena',
-      date: 'Apr 15, 2024',
-      price: 120.0,
-      imageUrl:
-          'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
-      category: 'Concerts',
-      description: 'Join us for an unforgettable night with Maroon 5!',
-      organizer: 'Live Nation',
-      capacity: 5000,
-      ticketsAvailable: 0,
-      time: "7:00 PM",
-    ),
-  ];
+  final UserService _userService = UserService();
+  bool _isLoadingNearbyServices = false;
 
   @override
   void initState() {
     super.initState();
     developer.log('HomePage initialized', name: 'HomePage');
-    developer.log('Featured services count: ${featuredServices.length}',
+    developer.log('Nearby services count: ${nearbyServices.length}',
         name: 'HomePage');
-    developer.log('Nearby events count: ${nearbyEvents.length}',
-        name: 'HomePage');
+    _loadNearbyServices();
+  }
+
+  Future<void> _loadNearbyServices() async {
+    setState(() {
+      _isLoadingNearbyServices = true;
+    });
+
+    try {
+      developer.log('🏠 Loading nearby services', name: 'HomePage');
+      
+      // Get all services
+      final allServices = await _userService.loadServices(widget.token);
+      
+      // Get user's current location from their profile
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      
+      if (user != null && user.location.isNotEmpty) {
+        final userLocation = _parseLocationString(user.location);
+        
+        if (userLocation != null) {
+          // Filter services by distance (within 50km)
+          final servicesWithDistance = <Map<String, dynamic>>[];
+          
+          for (final service in allServices) {
+            final serviceLocation = _parseLocationString(service.location);
+            if (serviceLocation != null) {
+              final distance = Geolocator.distanceBetween(
+                userLocation.latitude,
+                userLocation.longitude,
+                serviceLocation.latitude,
+                serviceLocation.longitude,
+              );
+              
+              // Only include services within 50km (50000 meters)
+              if (distance <= 50000) {
+                servicesWithDistance.add({
+                  'service': service,
+                  'distance': distance,
+                });
+              }
+            }
+          }
+          
+          // Sort by distance and take first 10
+          servicesWithDistance.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
+          
+          final nearby = servicesWithDistance
+              .take(10)
+              .map((item) => item['service'] as Service)
+              .toList();
+          
+          setState(() {
+            nearbyServices = nearby;
+          });
+          
+          developer.log('Found ${nearbyServices.length} nearby services', name: 'HomePage');
+        } else {
+          developer.log('Could not parse user location: ${user.location}', name: 'HomePage');
+        }
+      } else {
+        developer.log('User location not available', name: 'HomePage');
+      }
+    } catch (e) {
+      developer.log('Error loading nearby services: $e', name: 'HomePage');
+    } finally {
+      setState(() {
+        _isLoadingNearbyServices = false;
+      });
+    }
+  }
+
+  // Parse location string to LatLng (similar to map_page.dart)
+  ({double latitude, double longitude})? _parseLocationString(String locationStr) {
+    try {
+      if (locationStr.isEmpty) return null;
+      
+      locationStr = locationStr.trim();
+      
+      // Format: "lat,lng" or "lat lng"
+      if (locationStr.contains(',')) {
+        final parts = locationStr.split(',');
+        if (parts.length == 2) {
+          final lat = double.tryParse(parts[0].trim());
+          final lng = double.tryParse(parts[1].trim());
+          if (lat != null && lng != null && 
+              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            return (latitude: lat, longitude: lng);
+          }
+        }
+      }
+      
+      if (locationStr.contains(' ')) {
+        final parts = locationStr.split(' ');
+        if (parts.length == 2) {
+          final lat = double.tryParse(parts[0].trim());
+          final lng = double.tryParse(parts[1].trim());
+          if (lat != null && lng != null && 
+              lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            return (latitude: lat, longitude: lng);
+          }
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      developer.log('Error parsing location "$locationStr": $e', name: 'HomePage');
+      return null;
+    }
   }
 
   Widget _buildQuickAccessItem({
@@ -71,10 +164,15 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        width: 70,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -86,24 +184,35 @@ class _HomePageState extends State<HomePage> {
                       final badgeCount = snapshot.data ?? 0;
                       return Stack(
                         children: [
-                          Icon(
-                            icon,
-                            color: Colors.white,
-                            size: 24,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              icon,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                           if (badgeCount > 0)
                             Positioned(
                               right: -2,
                               top: -2,
                               child: Container(
-                                padding: const EdgeInsets.all(2),
+                                padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
                                   color: Colors.red,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                                 constraints: const BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
+                                  minWidth: 20,
+                                  minHeight: 20,
                                 ),
                                 child: Text(
                                   badgeCount > 99 ? '99+' : '$badgeCount',
@@ -121,24 +230,35 @@ class _HomePageState extends State<HomePage> {
                     })
                 : Stack(
                     children: [
-                      Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 24,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                       if (badge > 0)
                         Positioned(
                           right: -2,
                           top: -2,
                           child: Container(
-                            padding: const EdgeInsets.all(2),
+                            padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               color: Colors.red,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 2,
+                              ),
                             ),
                             constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
+                              minWidth: 20,
+                              minHeight: 20,
                             ),
                             child: Text(
                               badge > 99 ? '99+' : '$badge',
@@ -153,15 +273,17 @@ class _HomePageState extends State<HomePage> {
                         ),
                     ],
                   ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               label,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -171,24 +293,57 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    developer.log('🔨 Building HomePage', name: 'HomePage');
+    developer.log('Building HomePage', name: 'HomePage');
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           // App Bar
           SliverAppBar(
             expandedHeight: 120,
+            collapsedHeight: 80,
             floating: false,
             pinned: true,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
+            backgroundColor: const Color(0xFF2563EB),
+            foregroundColor: Colors.white,
             elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'FixIt',
-                style: TextStyle(
-                  color: Color(0xFF2563EB),
-                  fontWeight: FontWeight.bold,
+              centerTitle: true,
+              title: Transform.translate(
+                offset: const Offset(0, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      child: Image.asset(
+                        'assets/images/logo-no-bg.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.build_rounded,
+                            size: 48,
+                            color: Colors.white,
+                          );
+                        },
+                      ),
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0, -8),
+                      child: const Text(
+                        'A one-step solution to fix everyday problems',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               background: Container(
@@ -205,62 +360,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             actions: [
-              // Messages Button with Badge
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    onPressed: () {
-                      developer.log(
-                          'Messages button pressed - navigating to MessagesPage',
-                          name: 'HomePage');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MessagesPage(
-                            userId: widget.user.id,
-                            token: widget.token,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Unread messages badge
-                  FutureBuilder<int>(
-                    future: Future.value(_messagingService.getTotalUnreadCount(
-                        widget.user.id, widget.token)),
-                    builder: (context, snapshot) {
-                      final unreadCount = snapshot.data ?? 0;
-                      if (unreadCount == 0) return const SizedBox.shrink();
-
-                      return Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Text(
-                            unreadCount > 99 ? '99+' : '$unreadCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
               IconButton(
                 icon: const Icon(Icons.search),
                 onPressed: () {
@@ -336,7 +435,7 @@ class _HomePageState extends State<HomePage> {
                     value: 'profile',
                     child: Row(
                       children: [
-                        Icon(Icons.person, size: 20),
+                        Icon(Icons.person, size: 20, color: Color(0xFF2563EB)),
                         SizedBox(width: 12),
                         Text('Profile'),
                       ],
@@ -356,7 +455,7 @@ class _HomePageState extends State<HomePage> {
                     value: 'logout',
                     child: Row(
                       children: [
-                        Icon(Icons.logout, size: 20),
+                        Icon(Icons.logout, size: 20, color: Color(0xFF2563EB)),
                         SizedBox(width: 12),
                         Text('Logout'),
                       ],
@@ -367,7 +466,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
 
-          // Hero Section
+          // Hero Section with personalized welcome
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.all(24),
@@ -382,50 +481,71 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Find Local Services Near You',
-                    style: TextStyle(
-                      fontSize: 24,
+                  // Personalized greeting
+                  Text(
+                    'Hello, ${widget.user.firstName}! 👋',
+                    style: const TextStyle(
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Connect with trusted service providers in your area',
+                    'What service do you need today?',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
+                  
+                  // Main action buttons
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SearchPage(
-                                        token: widget.token,
-                                        uid: widget.user.id,
-                                      )),
-                            );
-                          },
-                          icon: const Icon(Icons.search),
-                          label: const Text('Find Services'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF2563EB),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.2),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => SearchPage(
+                                          token: widget.token,
+                                          uid: widget.user.id,
+                                        )),
+                              );
+                            },
+                            icon: const Icon(Icons.search, size: 20),
+                            label: const Text(
+                              'Find Services',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF2563EB),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
@@ -437,191 +557,309 @@ class _HomePageState extends State<HomePage> {
                                       uid: widget.user.id)),
                             );
                           },
-                          icon: const Icon(Icons.map),
-                          label: const Text('View Map'),
+                          icon: const Icon(Icons.map, size: 20),
+                          label: const Text(
+                            'View Map',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Colors.white, width: 2),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  // Quick Access Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildQuickAccessItem(
-                        icon: Icons.chat_bubble_outline,
-                        label: 'Messages',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MessagesPage(
-                                userId: widget.user.id,
-                                token: widget.token,
-                              ),
-                            ),
-                          );
-                        },
-                        badge: _messagingService.getTotalUnreadCount(
-                            widget.user.id, widget.token),
+                  const SizedBox(height: 24),
+                  
+                  // Quick access section with improved design
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
                       ),
-                      FutureBuilder<int>(
-                        future: _requestService
-                            .getRequestCounts(widget.user.id)
-                            .then(
-                                (counts) => counts[RequestStatus.pending] ?? 0),
-                        builder: (context, snapshot) {
-                          final pendingCount = snapshot.data ?? 0;
-                          return _buildQuickAccessItem(
-                            icon: Icons.assignment_outlined,
-                            label: 'Requests',
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => RequestedServicesPage(
-                                    clientId: widget.user.id,
-                                    token: widget.token,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Quick Access',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildQuickAccessItem(
+                              icon: Icons.chat_bubble_outline,
+                              label: 'Messages',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MessagesPage(
+                                      userId: widget.user.id,
+                                      token: widget.token,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            badge: pendingCount,
-                          );
-                        },
-                      ),
-                      _buildQuickAccessItem(
-                        icon: Icons.bookmark_outline,
-                        label: 'Saved',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SubscribedServicesPage(
-                                token: widget.token,
-                                uid: widget.user.id,
-                              ),
+                                );
+                              },
+                              badge: _messagingService.getTotalUnreadCount(
+                                  widget.user.id, widget.token),
                             ),
-                          );
-                        },
-                      ),
-                      _buildQuickAccessItem(
-                        icon: Icons.person_outline,
-                        label: 'Profile',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProfilePage(
-                                token: widget.token,
-                                userId: widget.user.id,
-                              ),
+                            FutureBuilder<int>(
+                              future: _requestService
+                                  .getRequestCounts(widget.user.id)
+                                  .then((counts) =>
+                                      counts[RequestStatus.pending] ?? 0),
+                              builder: (context, snapshot) {
+                                final pendingCount = snapshot.data ?? 0;
+                                return _buildQuickAccessItem(
+                                  icon: Icons.assignment_outlined,
+                                  label: 'Requests',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            RequestedServicesPage(
+                                          clientId: widget.user.id,
+                                          token: widget.token,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  badge: pendingCount,
+                                );
+                              },
                             ),
-                          );
-                        },
+                            _buildQuickAccessItem(
+                              icon: Icons.bookmark_outline,
+                              label: 'Saved',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        SubscribedServicesPage(
+                                      token: widget.token,
+                                      uid: widget.user.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickAccessItem(
+                              icon: Icons.person_outline,
+                              label: 'Profile',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditProfilePage(
+                                      token: widget.token,
+                                      userId: widget.user.id,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Services near you Section 
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 0,
+                    blurRadius: 20,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Services Near You',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Find trusted professionals in your area',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  // Nearby services horizontal scroll
+                  if (_isLoadingNearbyServices)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    )
+                  else if (nearbyServices.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.location_off,
+                            size: 48,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No services found nearby',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Update your location in profile settings to see services near you',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ClipRect(
+                      child: SizedBox(
+                        height: 375,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: nearbyServices.length,
+                          itemBuilder: (context, index) {
+                            return Container(
+                              margin: const EdgeInsets.only(right: 16),
+                              child: ServiceCard(
+                                service: nearbyServices[index],
+                                token: widget.token,
+                                userId: widget.user.id,
+                                showMessageButton: false,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
 
-          // Near You Section
+          // Tips Section
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF2563EB).withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Near You',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.lightbulb_outline,
+                          color: Color(0xFF2563EB),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Pro Tip',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SearchPage(
-                                  token: widget.token,
-                                  uid: widget.user.id,
-                                )),
-                      );
-                    },
-                    child: const Text('See More'),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Use the AI assistant for instant help with service recommendations, pricing estimates, and booking guidance. Just tap the blue robot icon!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
-
-          // Featured Services
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 280,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: featuredServices.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: ServiceCard(
-                      service: featuredServices[index],
-                      token: widget.token,
-                      userId: widget.user.id,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          // Events Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Upcoming Events',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to events page
-                    },
-                    child: const Text('See All Events'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Events List
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                  child: EventCard(event: nearbyEvents[index]),
-                );
-              },
-              childCount: nearbyEvents.length,
             ),
           ),
 
@@ -633,20 +871,43 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: Stack(
         children: [
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AiChatPage(
-                    userId: widget.user.id,
-                    token: widget.token, // Pass the token for authentication
-                  ),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2563EB).withOpacity(0.4),
+                  spreadRadius: 0,
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
-              );
-            },
-            backgroundColor: const Color(0xFF2563EB),
-            child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+              ],
+            ),
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AiChatPage(
+                      userId: widget.user.id,
+                      token: widget.token,
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: const Icon(
+                Icons.smart_toy,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
           ),
           // // Unread messages badge for FAB
           // FutureBuilder<int>(

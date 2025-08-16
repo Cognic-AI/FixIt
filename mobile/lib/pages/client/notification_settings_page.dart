@@ -33,7 +33,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🔔 Notification Settings page initialized',
+    developer.log('Notification Settings page initialized',
         name: 'NotificationSettings');
     _loadSettings();
   }
@@ -45,7 +45,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   void _saveSettings() {
     // TODO: Save settings to backend/local storage
-    developer.log('💾 Saving notification settings',
+    developer.log('Saving notification settings',
         name: 'NotificationSettings');
 
     ScaffoldMessenger.of(context).showSnackBar(

@@ -1575,7 +1575,7 @@ class _VendorHomePageState extends State<VendorHomePage>
         (route) => false,
       );
     } catch (e) {
-      developer.log('❌ Error during logout: $e', name: 'VendorHomePage');
+      developer.log('Error during logout: $e', name: 'VendorHomePage');
     }
   }
 

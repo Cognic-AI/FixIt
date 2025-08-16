@@ -69,7 +69,7 @@ class _AiChatPageState extends State<AiChatPage> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-      developer.log('💬 Loaded ${_messages.length} messages', name: 'ChatPage');
+      developer.log('Loaded ${_messages.length} messages', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -136,7 +136,7 @@ class _AiChatPageState extends State<AiChatPage> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-      developer.log('📤 Message sent successfully', name: 'ChatPage');
+      developer.log('Message sent successfully', name: 'ChatPage');
     } catch (e) {
       setState(() {
         _isSending = false;

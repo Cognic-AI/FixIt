@@ -102,18 +102,7 @@ HOW TO VIEW LOGS:
    - Use: flutter logs
    - Or: adb logcat | grep flutter
 
-5. FILTERING LOGS:
-   Look for these patterns in logs:
-   - 🚀 App startup
-   - 🔐 Authentication
-   - 🏠 Home page
-   - 🔍 Search functionality
-   - 🌱 Database seeding
-   - 🔥 Firebase operations
-   - ❌ Errors
-   - ✅ Success operations
-
-6. LOG CATEGORIES USED:
+5. LOG CATEGORIES USED:
    - Main: App initialization
    - AuthService: Authentication operations
    - HomePage: Home page interactions
@@ -126,12 +115,12 @@ HOW TO VIEW LOGS:
    - ServiceCard: Service card rendering
 
 EXAMPLE LOG OUTPUTS:
-[Main] 🚀 Starting FixIt App
-[AuthService] 🔑 Attempting sign in with email: user@example.com
-[HomePage] 🔍 Search button pressed - navigating to SearchPage
-[FirebaseOptions] 🌐 Platform detected: Web
-[LoginPage] 🌱 Starting database seeding
-[SearchPage] 🔍 SearchPage initialized
+[Main] Starting FixIt App
+[AuthService] Attempting sign in with email: user@example.com
+[HomePage] Search button pressed - navigating to SearchPage
+[FirebaseOptions] Platform detected: Web
+[LoginPage] Starting database seeding
+[SearchPage] SearchPage initialized
 
 TO ADD MORE LOGGING:
 1. Import: import 'dart:developer' as developer;

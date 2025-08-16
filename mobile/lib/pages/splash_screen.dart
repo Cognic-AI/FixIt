@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    developer.log('🚀 [SPLASH] Initializing splash screen', name: 'SplashScreen');
+    developer.log('[SPLASH] Initializing splash screen', name: 'SplashScreen');
     
     _initializeAnimations();
     _startAnimationSequence();
@@ -159,7 +159,7 @@ class _SplashScreenState extends State<SplashScreen>
         _navigateToNextScreen();
       }
     } catch (e) {
-      developer.log('❌ [SPLASH] Error during initialization: $e', 
+      developer.log('[SPLASH] Error during initialization: $e', 
           name: 'SplashScreen', error: e);
       
       // Show error message and retry option
@@ -179,7 +179,7 @@ class _SplashScreenState extends State<SplashScreen>
             _navigateToNextScreen();
           }
         } catch (retryError) {
-          developer.log('❌ [SPLASH] Retry failed: $retryError', 
+          developer.log('[SPLASH] Retry failed: $retryError', 
               name: 'SplashScreen', error: retryError);
           // Final fallback - go to login
           setState(() {
@@ -207,7 +207,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeApp() async {
-    developer.log('⚙️ [SPLASH] Starting app initialization', name: 'SplashScreen');
+    developer.log('[SPLASH] Starting app initialization', name: 'SplashScreen');
     
     final authService = Provider.of<AuthService>(context, listen: false);
 
@@ -218,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
       });
       
       // Load user profile (this already includes token loading)
-      developer.log('👤 [SPLASH] Loading user profile', name: 'SplashScreen');
+      developer.log('[SPLASH] Loading user profile', name: 'SplashScreen');
       await authService.loadUserProfile();
 
       // Update loading text
@@ -226,9 +226,9 @@ class _SplashScreenState extends State<SplashScreen>
         _loadingText = 'Almost ready...';
       });
 
-      developer.log('✅ [SPLASH] App initialization completed successfully', name: 'SplashScreen');
+      developer.log('[SPLASH] App initialization completed successfully', name: 'SplashScreen');
     } catch (e) {
-      developer.log('❌ [SPLASH] Error during app initialization: $e', 
+      developer.log('[SPLASH] Error during app initialization: $e', 
           name: 'SplashScreen', error: e);
       setState(() {
         _loadingText = 'Finalizing...';
@@ -243,7 +243,7 @@ class _SplashScreenState extends State<SplashScreen>
       final user = authService.currentUser!;
       final token = authService.jwtToken ?? '';
       
-      developer.log('✅ [SPLASH] User authenticated, navigating to ${user.role} home', 
+      developer.log('[SPLASH] User authenticated, navigating to ${user.role} home', 
           name: 'SplashScreen');
       
       if (user.role == 'vendor') {
@@ -260,7 +260,7 @@ class _SplashScreenState extends State<SplashScreen>
         );
       }
     } else {
-      developer.log('🔑 [SPLASH] No user authenticated, navigating to login', 
+      developer.log('[SPLASH] No user authenticated, navigating to login', 
           name: 'SplashScreen');
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const LoginPage()),

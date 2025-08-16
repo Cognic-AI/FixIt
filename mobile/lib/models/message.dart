@@ -32,11 +32,11 @@ class Message {
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
-    developer.log('💬 Creating Message from JSON: ${json['id']}',
+    developer.log('Creating Message from JSON: ${json['id']}',
         name: 'Message');
 
     // Debug print the actual JSON structure
-    developer.log('💬 JSON structure: ${json.toString()}', name: 'Message');
+    developer.log('JSON structure: ${json.toString()}', name: 'Message');
     if (json['senderId'] == 'ai') {
       json['senderType'] = 'ai';
     }
@@ -115,7 +115,7 @@ class Conversation {
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
-    developer.log('💬 Creating Conversation from JSON: ${json['id']}',
+    developer.log('Creating Conversation from JSON: ${json['id']}',
         name: 'Conversation');
     return Conversation(
       id: json['id'],

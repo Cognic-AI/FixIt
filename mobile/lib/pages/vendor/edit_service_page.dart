@@ -56,7 +56,7 @@ class _EditServicePageState extends State<EditServicePage> {
   @override
   void initState() {
     super.initState();
-    developer.log('🏗️ Initializing EditServicePage', name: 'EditServicePage');
+    developer.log('Initializing EditServicePage', name: 'EditServicePage');
 
     // Initialize controllers with existing service data
     _titleController = TextEditingController(text: widget.service.title);
@@ -541,7 +541,7 @@ class _EditServicePageState extends State<EditServicePage> {
         Navigator.pop(context);
       }
     } catch (e) {
-      developer.log('❌ Error updating service: $e', name: 'EditServicePage');
+      developer.log('Error updating service: $e', name: 'EditServicePage');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

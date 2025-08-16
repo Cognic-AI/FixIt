@@ -8,8 +8,9 @@ import 'dart:developer' as developer;
 import '../models/service.dart';
 import '../services/user_service.dart';
 import 'client/request_service_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const googleMapsApiKey = "AIzaSyDmToh-xq4nhfUAaz6dpYl9IylWNWJMCMI";
+final String googleMapsApiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? "";
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key, required this.token, required this.uid});
@@ -39,6 +40,10 @@ class _MapPageState extends State<MapPage> {
   Set<Marker> _markers = {};
   Map<PolylineId, Polyline> _polylines = {};
   Service? _selectedService;
+  
+  // Suggestion system
+  final ValueNotifier<List<String>> _searchSuggestions = ValueNotifier<List<String>>([]);
+  final FocusNode _searchFocusNode = FocusNode();
 
   final List<String> serviceTypes = [
     'All',
@@ -118,12 +123,69 @@ class _MapPageState extends State<MapPage> {
     // Cancel previous timer if it exists
     _searchDebouncer?.cancel();
 
+    // Update suggestions without setState to avoid keyboard collapse
+    _updateSuggestions(value);
+
     // Create a new timer that will trigger search after 500ms of no typing
     _searchDebouncer = Timer(const Duration(milliseconds: 500), () {
       _performSearch();
     });
+  }
 
-    setState(() {});
+  void _updateSuggestions(String query) {
+    if (query.isEmpty) {
+      _searchSuggestions.value = [];
+      return;
+    }
+
+    Set<String> suggestions = {};
+    final lowercaseQuery = query.toLowerCase();
+
+    // Priority 1: Service titles that start with the query
+    for (final service in _services) {
+      if (service.title.toLowerCase().startsWith(lowercaseQuery)) {
+        suggestions.add(service.title);
+      }
+    }
+
+    // Priority 2: Categories that start with the query
+    for (final category in serviceTypes) {
+      if (category != 'All' && 
+          category.toLowerCase().startsWith(lowercaseQuery)) {
+        suggestions.add('${category[0].toUpperCase()}${category.substring(1)} Services');
+      }
+    }
+
+    // Priority 3: Service titles that contain the query
+    for (final service in _services) {
+      if (service.title.toLowerCase().contains(lowercaseQuery) &&
+          !service.title.toLowerCase().startsWith(lowercaseQuery)) {
+        suggestions.add(service.title);
+      }
+    }
+
+    // Limit to 5 suggestions and update ValueNotifier
+    _searchSuggestions.value = suggestions.take(5).toList();
+  }
+
+  void _selectSuggestion(String suggestion) {
+    // Check if it's a category suggestion
+    if (suggestion.endsWith(' Services')) {
+      final categoryName = suggestion.replaceAll(' Services', '').toLowerCase();
+      setState(() {
+        _selectedServiceType = categoryName;
+        _searchController.clear();
+        _searchFocusNode.unfocus();
+      });
+    } else {
+      // It's a service title
+      _searchController.text = suggestion;
+      _searchFocusNode.unfocus();
+    }
+    
+    // Clear suggestions and perform search
+    _searchSuggestions.value = [];
+    _performSearch();
   }
 
   void _performSearch() {
@@ -754,6 +816,7 @@ class _MapPageState extends State<MapPage> {
                       Expanded(
                         child: TextField(
                           controller: _searchController,
+                          focusNode: _searchFocusNode,
                           decoration: const InputDecoration(
                             hintText: 'Search services on map...',
                             border: InputBorder.none,
@@ -820,6 +883,53 @@ class _MapPageState extends State<MapPage> {
                 ),
               ],
             ),
+          ),
+
+          // Search suggestions
+          ValueListenableBuilder<List<String>>(
+            valueListenable: _searchSuggestions,
+            builder: (context, suggestions, child) {
+              if (suggestions.isEmpty) return const SizedBox.shrink();
+              
+              return Column(
+                children: [
+                  const Divider(height: 1),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: suggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = suggestions[index];
+                        return GestureDetector(
+                          onTap: () => _selectSuggestion(suggestion),
+                          child: Container(
+                            color: Colors.transparent,
+                            child: ListTile(
+                              dense: true,
+                              leading: const Icon(
+                                Icons.search,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              title: _buildHighlightedText(
+                                suggestion,
+                                _searchController.text,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
 
           // Dropdown list of service types
@@ -970,10 +1080,45 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  Widget _buildHighlightedText(String text, String query) {
+    if (query.isEmpty) {
+      return Text(text);
+    }
+
+    final String lowerText = text.toLowerCase();
+    final String lowerQuery = query.toLowerCase();
+    final int index = lowerText.indexOf(lowerQuery);
+
+    if (index == -1) {
+      return Text(text);
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black87, fontSize: 14),
+        children: [
+          if (index > 0)
+            TextSpan(text: text.substring(0, index)),
+          TextSpan(
+            text: text.substring(index, index + query.length),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2563EB),
+            ),
+          ),
+          if (index + query.length < text.length)
+            TextSpan(text: text.substring(index + query.length)),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     _searchDebouncer?.cancel();
+    _searchSuggestions.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 }

@@ -51,7 +51,7 @@ class ServiceRequest {
       required this.clientLocation});
 
   factory ServiceRequest.fromJson(Map<String, dynamic> json) {
-    developer.log('📋 Creating ServiceRequest from JSON: ${json['id']}',
+    developer.log('Creating ServiceRequest from JSON: ${json['id']}',
         name: 'ServiceRequest');
     return ServiceRequest(
       id: json['id'],

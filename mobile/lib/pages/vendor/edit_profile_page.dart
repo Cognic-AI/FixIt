@@ -532,7 +532,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       // TODO: Implement profile update in AuthService
-      developer.log('💾 Saving profile changes', name: 'EditProfilePage');
+      developer.log('Saving profile changes', name: 'EditProfilePage');
 
       // Simulate API call
       await Future.delayed(const Duration(seconds: 1));
@@ -547,7 +547,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         Navigator.pop(context);
       }
     } catch (e) {
-      developer.log('❌ Error updating profile: $e', name: 'EditProfilePage');
+      developer.log('Error updating profile: $e', name: 'EditProfilePage');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
