@@ -1,5 +1,5 @@
 # FixIt
-A one-step solution to fix everyday problems - Service offering platform connecting customers with service providers
+A one-step solution to fix everyday problems
 
 ## Overview
 FixIt is a comprehensive service platform that consists of:
