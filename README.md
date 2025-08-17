@@ -50,7 +50,9 @@ FixIt/
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/Cognic-AI/iwb25-097-cognic-ai.git
-cd FixIt
+```
+```bash
+cd iwb25-097-cognic-ai
 ```
 
 ### 2. Environment Setup
