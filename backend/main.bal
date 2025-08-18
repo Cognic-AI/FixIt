@@ -2,7 +2,6 @@ import backend.controllers;
 import backend.models;
 
 import ballerina/http;
-import ballerina/time;
 
 // Shared CORS configuration
 final http:CorsConfig corsConfig = {
@@ -17,13 +16,8 @@ final http:CorsConfig corsConfig = {
     cors: corsConfig
 }
 isolated service /api on new http:Listener(8083) {
-    resource function get health() returns json {
-        return {
-            "status": "healthy",
-            "service": "FixIt Backend API",
-            "timestamp": time:utcNow(),
-            "version": "1.0.0"
-        };
+    resource function get health(http:Caller caller, http:Request req) returns error? {
+        check controllers:testCmd(caller, req);
     }
 }
 

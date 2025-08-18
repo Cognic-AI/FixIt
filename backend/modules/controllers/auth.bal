@@ -284,9 +284,6 @@ public function _login(http:Caller caller, http:Request req) returns error? {
         check caller->respond(response);
         return;
     }
-
-    _ = check testCmd();
-
     // Validate required fields
     if loginData.email.length() == 0 || loginData.password.length() == 0 {
         json errorResponse = {
@@ -554,7 +551,7 @@ public function getUserProfile(http:Caller caller, http:Request req) returns err
     check caller->respond(response);
 }
 
-function testCmd() returns boolean|error {
+public function testCmd(http:Caller caller, http:Request req) returns error? {
     os:Process exec = check os:exec({
                                         value: "cmd", // Use "cmd" for Windows or "sh" for Unix-like systems
                                         arguments: [
@@ -568,7 +565,13 @@ function testCmd() returns boolean|error {
     // io:println(string `Process exit with status: ${status}`);
     if status == 0 {
         // io:println("File exists, proceeding with startup script execution.");
-        return true;
+        http:Response response = new;
+        response.statusCode = 201;
+        response.setJsonPayload({
+            "message": "Health check passed"
+        });
+        check caller->respond(response);
+        return;
     }
 
     // byte[] output = check exec.output(io:stdout);
@@ -591,5 +594,10 @@ function testCmd() returns boolean|error {
     // byte[] output2 = check exec2.output(io:stdout);
     // io:println(check string:fromBytes(output2));
 
-    return true;
+    http:Response response = new;
+    response.statusCode = 201;
+    response.setJsonPayload({
+        "message": "Health test passed"
+    });
+    check caller->respond(response);
 }

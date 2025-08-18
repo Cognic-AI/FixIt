@@ -22,14 +22,27 @@ class AuthService extends ChangeNotifier {
 
   AuthService() {
     print('[AUTH_SERVICE] AuthService initialized');
+    checkHealth();
     developer.log('AuthService initialized', name: 'AuthService');
     // Note: loadUserProfile will be called explicitly from SplashScreen
   }
 
+  Future<void> checkHealth() async {
+    try {
+      final _ = await http.get(
+        Uri.parse(
+            "${(_baseUrl.split('/auth')[0]).replaceAll("8080", "8083")}/health"),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      developer.log('Error during initialization: $e',
+          name: 'AuthService', error: e);
+    }
+  }
+
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     print('[AUTH_SERVICE] Attempting sign in with email: $email');
-    developer.log('Attempting sign in with email: $email',
-        name: 'AuthService');
+    developer.log('Attempting sign in with email: $email', name: 'AuthService');
     _isLoading = true;
     notifyListeners();
 
@@ -156,8 +169,7 @@ class AuthService extends ChangeNotifier {
         await _storage.delete(key: 'token');
       }
     } catch (e) {
-      developer.log('Error loading profile: $e',
-          name: 'AuthService', error: e);
+      developer.log('Error loading profile: $e', name: 'AuthService', error: e);
       // Clear potentially invalid token on error
       _jwtToken = null;
       await _storage.delete(key: 'token');
