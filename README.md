@@ -1,5 +1,5 @@
 # FixIt
-A one-step solution to fix everyday problems - Service offering platform connecting customers with service providers
+FixIt is a smart mobile companion designed to be your one-stop solution for everyday problems. Instead of juggling multiple apps or services, FixIt brings everything together in a single, intuitive platform.
 
 ## Overview
 FixIt is a comprehensive service platform that consists of:
@@ -49,8 +49,10 @@ FixIt/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Cognic-AI/FixIt.git
-cd FixIt
+git clone https://github.com/Cognic-AI/iwb25-097-cognic-ai.git
+```
+```bash
+cd iwb25-097-cognic-ai
 ```
 
 ### 2. Environment Setup
@@ -273,38 +275,3 @@ bal version
 curl http://localhost:8083/api/health
 ```
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support and questions:
-- Create an issue in this repository
-- Check the `backend/AUTH_GUIDE.md` for authentication details
-- Review the troubleshooting section above
-
-## Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐
-│   Flutter App   │    │  Ballerina API  │
-│   (Mobile)      │◄──►│   (Backend)     │
-└─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │   MongoDB       │
-                       │   (Database)    │
-                       └─────────────────┘
-```
-
-The application follows a client-server architecture with the Flutter mobile app communicating with the Ballerina backend services through REST APIs. The backend handles authentication, data persistence, and business logic, while the mobile app provides the user interface and client-side functionality.
